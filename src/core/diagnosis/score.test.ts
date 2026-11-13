@@ -26,7 +26,7 @@ function forCategory(
   category: DiagnosisCategory,
 ) {
   const found = diagnoses.find((d) => d.category === category);
-  if (!found) throw new Error(`categoria ausente: ${category}`);
+  if (!found) throw new Error(`missing category: ${category}`);
   return found;
 }
 
