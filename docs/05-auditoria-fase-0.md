@@ -3,7 +3,7 @@
 > **Data:** 12/11/2026  
 > **Base auditada:** branch `front`, commit `5f27745` + documentação v2.0 (`a2d8607`)  
 > **Referências:** `docs/03-inspecao-e-arquitetura.md` §3.2, `docs/04-roadmap-melhorias.md` §4 e §16  
-> **Status:** aguardando revisão. Nenhuma correção foi feita ainda.
+> **Status:** revisada. Decisões D1–D5 registradas em `docs/decisoes.md` (12/11/2026).
 
 Classificação usada: `confirmado`, `corrigido`, `não reproduzido`, `parcial`, `substituído por decisão nova`.
 
