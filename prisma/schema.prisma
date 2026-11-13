@@ -84,12 +84,26 @@ enum DiagnosisStatus {
   gray
 }
 
+/// One role per member per organization (D9). Permissions per role are the
+/// matrix in docs/REQUIREMENTS.md §2.3.
+enum MembershipRole {
+  admin
+  leader
+  member
+}
+
+/// Deactivating keeps the row, so authorship and history survive (AUTH-12).
+enum MembershipStatus {
+  active
+  deactivated
+}
+
 // ---------------------------------------------------------------------------
 // Modelos
 // ---------------------------------------------------------------------------
 
-/// A panel user. A single record in the MVP, but modeled as its own table so
-/// as not to block the move to multi-user.
+/// A panel user. Access to an organization comes from a Membership, not from
+/// this record alone.
 /// The password lives in Supabase Auth; only the link is stored here.
 model User {
   id             String   @id @default(cuid())
@@ -98,9 +112,102 @@ model User {
   email          String   @unique
   createdAt      DateTime @default(now())
 
-  clients Client[]
+  clients             Client[]
+  memberships         Membership[]
+  invitationsSent     Invitation[] @relation("InvitationInvitedBy")
+  invitationsAccepted Invitation[] @relation("InvitationAcceptedBy")
+  auditEvents         AuditEvent[]
 
   @@map("users")
+}
+
+/// Tenant and data isolation boundary (ORG-01, ORG-02).
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  invitations Invitation[]
+  auditEvents AuditEvent[]
+
+  @@map("organizations")
+}
+
+/// A user's place in an organization (AUTH-03). The schema allows several
+/// organizations per user (ORG-02); V1 keeps one per person in application
+/// code (D13).
+///
+/// `onDelete: Restrict` on both sides: removing a member is a deactivation,
+/// never a delete that would erase who did what (AUTH-11, AUTH-12).
+model Membership {
+  id             String           @id @default(cuid())
+  organizationId String
+  userId         String
+  role           MembershipRole
+  status         MembershipStatus @default(active)
+  deactivatedAt  DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+/// A link that lets someone join an organization with a given role (D12).
+///
+/// Only the token's hash is stored: the link is the credential, so a leaked
+/// table must not leak usable links. Pending = not accepted, not revoked and
+/// not expired.
+model Invitation {
+  id             String         @id @default(cuid())
+  organizationId String
+  email          String
+  role           MembershipRole
+  tokenHash      String         @unique
+  expiresAt      DateTime
+  invitedById    String
+  acceptedAt     DateTime?
+  acceptedById   String?
+  revokedAt      DateTime?
+  createdAt      DateTime       @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  invitedBy    User         @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: Restrict)
+  acceptedBy   User?        @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitations")
+}
+
+/// Security and accountability trail (AUD-01, ARCHITECTURE §12.2).
+///
+/// Append-only. `metadata` holds the minimum needed to understand the change
+/// (e.g. old and new role) and never personal content such as emails or
+/// free-text answers.
+model AuditEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  /// Null for actions without a signed-in actor, e.g. a migration.
+  actorId        String?
+  entityType     String
+  entityId       String
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  actor        User?        @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_events")
 }
 
 /// The admin's client.
