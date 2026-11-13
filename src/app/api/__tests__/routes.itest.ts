@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { prisma } from "@/server/db";
 import { createBriefing, saveAnswers, submitBriefing } from "@/server/briefing";
 import { Q } from "@/core";
+import type { SessionUser } from "@/server/auth";
 
 /**
  * API tests (QUAL-04): the real route handlers, against a real Postgres. Only
@@ -13,7 +14,7 @@ import { Q } from "@/core";
  * account's resource, missing/submitted link, invalid body.
  */
 
-const session = vi.hoisted(() => ({ current: null as null | { id: string; name: string; email: string } }));
+const session = vi.hoisted(() => ({ current: null as null | SessionUser }));
 
 vi.mock("@/server/auth", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/server/auth")>();
@@ -40,8 +41,8 @@ const submitRoute = await import("@/app/api/public/briefing/[token]/submit/route
 const ORIGIN = "http://localhost:3000";
 const SUFFIX = `api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-let alice: { id: string; name: string; email: string };
-let bob: { id: string; name: string; email: string };
+let alice: SessionUser;
+let bob: SessionUser;
 let bobClientId: string;
 let bobBriefingId: string;
 
@@ -63,11 +64,20 @@ function req(method: string, path: string, init: { body?: unknown; rawBody?: str
 const params = <T extends Record<string, string>>(value: T) => ({ params: Promise.resolve(value) });
 
 beforeAll(async () => {
-  const make = (who: string) =>
-    prisma.user.create({
-      data: { supabaseAuthId: `auth-${who}-${SUFFIX}`, name: who, email: `${who}-${SUFFIX}@exemplo.test` },
+  // Each one administers their own organization, as the session would load it.
+  const make = async (who: string): Promise<SessionUser> => {
+    const organization = await prisma.organization.create({ data: { name: `Org ${who} ${SUFFIX}` } });
+    const user = await prisma.user.create({
+      data: {
+        supabaseAuthId: `auth-${who}-${SUFFIX}`,
+        name: who,
+        email: `${who}-${SUFFIX}@exemplo.test`,
+        memberships: { create: { organizationId: organization.id, role: "admin" } },
+      },
       select: { id: true, name: true, email: true },
     });
+    return { ...user, organizationId: organization.id, role: "admin" };
+  };
   alice = await make("alice");
   bob = await make("bob");
 
@@ -83,7 +93,11 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  await prisma.user.deleteMany({ where: { id: { in: [alice?.id, bob?.id].filter(Boolean) } } });
+  const userIds = [alice?.id, bob?.id].filter(Boolean);
+  const organizationIds = [alice?.organizationId, bob?.organizationId].filter(Boolean);
+  await prisma.membership.deleteMany({ where: { userId: { in: userIds } } });
+  await prisma.organization.deleteMany({ where: { id: { in: organizationIds } } });
+  await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   await prisma.$disconnect();
 });
 

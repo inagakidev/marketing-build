@@ -2,6 +2,7 @@ import { cache } from "react";
 import { prisma } from "./db";
 import { createSupabaseServerClient, supabaseConfigured } from "./supabase";
 import { decideProvisioning } from "./security/provisioning";
+import { decideMembershipAccess, type MembershipRole } from "./security/membershipAccess";
 
 /**
  * Session of whoever uses the panel.
@@ -10,21 +11,26 @@ import { decideProvisioning } from "./security/provisioning";
  * They're linked by `supabaseAuthId`. Being authenticated in Supabase is NOT
  * enough: only people with a local record get in (SEC-01, decision D3 — see
  * `security/provisioning.ts`). No user is ever created from a login.
+ *
+ * A local record isn't enough either: the user acts through their single
+ * active membership (EP-04.2, D13), which is re-read on every request, so a
+ * deactivated member loses access on their next request.
  */
 
 export interface SessionUser {
   id: string;
   name: string;
   email: string;
+  organizationId: string;
+  role: MembershipRole;
 }
 
 export type AuthState =
   | { status: "anonymous" }
-  /** Authenticated in Supabase, but without access to the panel. */
+  /** Authenticated in Supabase, but without access to the panel (no local
+   *  record, or no active membership). */
   | { status: "unprovisioned" }
   | { status: "authenticated"; user: SessionUser };
-
-const SESSION_USER_SELECT = { id: true, name: true, email: true } as const;
 
 /**
  * `cache` dedupes the call within a single request: layout, page and route can
@@ -66,20 +72,47 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 
   if (decision.action === "deny") return { status: "unprovisioned" };
 
-  const sessionUser =
-    decision.action === "link"
-      ? await prisma.user.update({
-          where: { id: decision.userId },
-          data: { supabaseAuthId: user.id },
-          select: SESSION_USER_SELECT,
-        })
-      : await prisma.user.findUniqueOrThrow({
-          where: { id: decision.userId },
-          select: SESSION_USER_SELECT,
-        });
+  // Membership first: someone without access must not trigger a write.
+  const sessionUser = await loadSessionUser(decision.userId);
+  if (!sessionUser) return { status: "unprovisioned" };
+
+  if (decision.action === "link") {
+    await prisma.user.update({
+      where: { id: decision.userId },
+      data: { supabaseAuthId: user.id },
+    });
+  }
 
   return { status: "authenticated", user: sessionUser };
 });
+
+/**
+ * The session for a local user id, or `null` when they have no active
+ * membership. Not cached: callers go through `getAuthState`, which is.
+ */
+export async function loadSessionUser(userId: string): Promise<SessionUser | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      memberships: { select: { organizationId: true, role: true, status: true } },
+    },
+  });
+  if (!user) return null;
+
+  const access = decideMembershipAccess(user.memberships);
+  if (access.action === "deny") return null;
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    organizationId: access.organizationId,
+    role: access.role,
+  };
+}
 
 /** The panel user, or `null` if anonymous or without access. */
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -112,7 +145,7 @@ export class UnauthorizedError extends Error {
  *   2. Supabase must NOT be configured. As soon as the credentials are in
  *      .env, the normal authentication path takes over.
  *   3. `DEV_ADMIN_EMAIL` must point to a user that already exists in the
- *      database — it creates no account.
+ *      database with an active membership — it creates no account.
  *
  * To disable it earlier, just remove `DEV_ADMIN_EMAIL` from .env.
  */
@@ -123,10 +156,8 @@ async function devBypassUser(): Promise<SessionUser | null> {
   const email = process.env.DEV_ADMIN_EMAIL?.trim();
   if (!email) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: SESSION_USER_SELECT,
-  });
+  const found = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  const user = found && (await loadSessionUser(found.id));
 
   if (user) {
     console.warn(

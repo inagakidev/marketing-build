@@ -100,7 +100,7 @@ All of them are documented with comments in `.env.example`. Summary:
 4. Run `npm run db:migrate` and `npm run db:seed:admin` again against Supabase — this creates the administrator both in Supabase Auth and in the local `users` table, linked together.
 5. Clear `DEV_ADMIN_EMAIL`.
 
-> **Who can sign in.** Being authenticated in Supabase isn't enough: only people who already exist in the `users` table (created by `db:seed:admin`) can access the panel. An account that exists only in Supabase — including through its public sign-up — sees the "Esta conta não tem acesso ao painel" screen. No user is ever created from a login. It's also recommended to disable public sign-up under *Authentication → Providers → Email* in Supabase. Interim policy until Phase 1 invitations (decision D3 in `docs/DECISIONS.md`).
+> **Who can sign in.** Being authenticated in Supabase isn't enough: only people who already exist in the `users` table (created by `db:seed:admin`) **and have an active membership in the organization** can access the panel. The membership is re-read on every request, so a deactivated member loses access immediately. An account that exists only in Supabase — including through its public sign-up — sees the "Esta conta não tem acesso ao painel" screen. No user is ever created from a login. It's also recommended to disable public sign-up under *Authentication → Providers → Email* in Supabase. Interim policy until Phase 1 invitations (decision D3 in `docs/DECISIONS.md`).
 
 ## How the API works
 
