@@ -18,6 +18,11 @@ export const RATE_LIMITS = {
   publicAutosave: { limit: 120, windowMs: 60_000 },
   /** Final submission. */
   publicSubmit: { limit: 10, windowMs: 60_000 },
+  /**
+   * Accepting an invitation creates a login account. Tight on purpose: the
+   * link is the credential, so guessing must be slow.
+   */
+  invitationAccept: { limit: 10, windowMs: 15 * 60_000 },
   /** The PDF launches a Chromium: the most expensive route in the system. */
   pdf: { limit: 10, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitPolicy>;

@@ -81,3 +81,10 @@ export function formatDateTime(value: Date | string | null): string {
     minute: "2-digit",
   }).format(date);
 }
+
+/** Organization roles (D9), as the invite page and members screen show them. */
+export const MEMBERSHIP_ROLE_LABELS: Record<string, string> = {
+  admin: "Pessoa administradora",
+  leader: "Líder",
+  member: "Membro",
+};

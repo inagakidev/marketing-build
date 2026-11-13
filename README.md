@@ -81,7 +81,7 @@ All of them are documented with comments in `.env.example`. Summary:
 |---|---|
 | `DATABASE_URL` | Postgres connection string. Local by default (`docker-compose.yml`); switching to a Supabase URI migrates the database without code changes. |
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public Supabase Auth credentials (your project's Settings → API). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Private key, used only on the server by the seed to create the administrator in Supabase Auth. **Never** expose it to the client. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Private key, used only on the server: by the seed to create the administrator, and when someone accepts an invitation, to create their login account. Without it in production the panel works, but invitations can't be accepted (a startup warning says so). **Never** expose it to the client. |
 | `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Data used by `npm run db:seed:admin` to create the administrator account. |
 | `NEXT_PUBLIC_APP_URL` | The application's public base URL — builds the briefing link and is where Playwright navigates to generate the PDF. Required in production. |
 | `BRIEFING_LINK_TTL_DAYS` | Default validity, in days, of a newly created briefing link (1–365). |
@@ -100,7 +100,7 @@ All of them are documented with comments in `.env.example`. Summary:
 4. Run `npm run db:migrate` and `npm run db:seed:admin` again against Supabase — this creates the administrator both in Supabase Auth and in the local `users` table, linked together.
 5. Clear `DEV_ADMIN_EMAIL`.
 
-> **Who can sign in.** Being authenticated in Supabase isn't enough: only people who already exist in the `users` table (created by `db:seed:admin`) **and have an active membership in the organization** can access the panel. The membership is re-read on every request, so a deactivated member loses access immediately. An account that exists only in Supabase — including through its public sign-up — sees the "Esta conta não tem acesso ao painel" screen. No user is ever created from a login. It's also recommended to disable public sign-up under *Authentication → Providers → Email* in Supabase. Interim policy until Phase 1 invitations (decision D3 in `docs/DECISIONS.md`).
+> **Who can sign in.** Being authenticated in Supabase isn't enough: only people who already exist in the `users` table (created by `db:seed:admin`) **and have an active membership in the organization** can access the panel. The membership is re-read on every request, so a deactivated member loses access immediately. An account that exists only in Supabase — including through its public sign-up — sees the "Esta conta não tem acesso ao painel" screen. No user is ever created from a login. It's also recommended to disable public sign-up under *Authentication → Providers → Email* in Supabase. Everyone after the first administrator joins through an **invitation** (decision D12): an administrator creates it, copies the `/convite/<token>` link and sends it; the link is single-use, valid for 7 days and can be revoked. Accepting it creates the Supabase login account on the server, so public sign-up can stay off.
 
 ## How the API works
 

@@ -43,6 +43,21 @@ describe("parseServerEnv (NEW-03)", () => {
     if (result.ok) expect(result.warnings.join(" ")).toMatch(/DEV_ADMIN_EMAIL/);
   });
 
+  it("in production, a missing service role key is a warning, not an error (EP-04.4)", () => {
+    // Only accepting invitations needs it; refusing to start would take the
+    // whole panel down for one flow.
+    const without = parseServerEnv(prod, "production");
+    expect(without.ok).toBe(true);
+    if (without.ok) {
+      expect(without.env.supabaseAdminConfigured).toBe(false);
+      expect(without.warnings.join(" ")).toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
+    }
+
+    const withKey = parseServerEnv({ ...prod, SUPABASE_SERVICE_ROLE_KEY: "service" }, "production");
+    expect(withKey.ok && withKey.env.supabaseAdminConfigured).toBe(true);
+    expect(withKey.ok && withKey.warnings).toEqual([]);
+  });
+
   it("rejects an invalid public URL and an out-of-range TTL", () => {
     const result = parseServerEnv(
       { ...base, NEXT_PUBLIC_APP_URL: "localhost:3000", BRIEFING_LINK_TTL_DAYS: "0" },

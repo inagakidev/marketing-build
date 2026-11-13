@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MEMBERSHIP_ROLES } from "@/modules/identity/domain/membership";
 
 /**
  * Validation schemas for the API boundaries.
@@ -40,3 +41,22 @@ export const saveAnswersSchema = z.object({
 });
 
 export type AnswerEntryInput = z.infer<typeof answerEntrySchema>;
+
+/** Inviting a member (EP-04.4). The role list mirrors MembershipRole. */
+export const invitationInputSchema = z.object({
+  email: z.email("E-mail inválido.").max(200),
+  role: z.enum(MEMBERSHIP_ROLES, { message: "Escolha um papel válido." }),
+});
+
+/**
+ * Accepting an invitation: the public form where the invitee sets up the
+ * account. 72 is bcrypt's limit, which Supabase Auth uses.
+ */
+export const acceptInvitationSchema = z.object({
+  name: z.string().trim().min(1, "Informe o seu nome.").max(200),
+  password: z
+    .string()
+    .min(8, "A senha precisa ter pelo menos 8 caracteres.")
+    .max(72, "A senha pode ter no máximo 72 caracteres."),
+});
+

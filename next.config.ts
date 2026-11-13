@@ -59,6 +59,8 @@ const nextConfig: NextConfig = {
       { source: "/print/:path*", headers: [noIndex] },
       { source: "/api/:path*", headers: [noIndex] },
       { source: "/briefing/:path*", headers: tokenSurfaceHeaders },
+      // The invitation token is a credential too (D12).
+      { source: "/convite/:path*", headers: tokenSurfaceHeaders },
       { source: "/api/public/:path*", headers: tokenSurfaceHeaders },
     ];
   },
