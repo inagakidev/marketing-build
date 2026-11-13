@@ -1,6 +1,6 @@
 # Briefing Inteligente
 
-Plataforma de gestão estratégica de marketing para equipes. Transforma informações de clientes em diagnósticos explicáveis, planos de ação e resultados acompanháveis — do briefing à avaliação da estratégia.
+A strategic marketing management platform for teams. It turns client information into explainable diagnoses, action plans and trackable results — from the briefing to the evaluation of the strategy.
 
 ## Register
 
@@ -8,152 +8,153 @@ product
 
 ## Users
 
-Equipes de marketing que atendem clientes e precisam trabalhar de forma coordenada, padronizada e orientada por estratégia. Inclui administradores responsáveis pela organização e configuração do espaço, líderes que coordenam equipes e projetos, e colaboradores que executam atividades e acompanham resultados.
+Marketing teams that serve clients and need to work in a coordinated, standardized and strategy-driven way. This includes administrators responsible for organizing and configuring the workspace, leaders who coordinate teams and projects, and members who carry out activities and track results.
 
-Os clientes da equipe participam como respondentes externos: recebem um link seguro, preenchem o briefing sem criar uma conta e podem receber relatórios compartilháveis. Não precisam acessar o ambiente interno da plataforma.
+The team's clients take part as external respondents: they receive a secure link, fill in the briefing without creating an account, and may receive shareable reports. They don't need access to the platform's internal environment.
 
-O trabalho é organizado em **Organização → Cliente → Projeto/Campanha → Briefing**. Um cliente não pertence obrigatoriamente a uma equipe específica. Cada projeto tem uma pessoa responsável principal e pode ter colaboradores.
+Work is organized as **Organization → Client → Project/Campaign → Briefing**. A client doesn't necessarily belong to a specific team. Each project has one main owner and may have collaborators.
 
 ## Problem
 
-Equipes de marketing frequentemente trabalham com informações fragmentadas entre formulários, reuniões, mensagens, documentos e ferramentas de tarefas. Isso gera briefings inconsistentes, diagnósticos dependentes da interpretação individual, decisões sem rastreabilidade e pouca continuidade entre planejamento e execução.
+Marketing teams often work with information scattered across forms, meetings, messages, documents and task tools. This leads to inconsistent briefings, diagnoses that depend on individual interpretation, untraceable decisions and little continuity between planning and execution.
 
-O problema não termina quando o briefing é preenchido. Sem uma ligação clara entre respostas, diagnóstico, recomendações, objetivos, tarefas e resultados, a equipe perde contexto, repete alinhamentos e tem dificuldade para demonstrar o impacto do trabalho.
+The problem doesn't end when the briefing is filled in. Without a clear link between answers, diagnosis, recommendations, objectives, tasks and results, the team loses context, repeats alignments and struggles to demonstrate the impact of its work.
 
 ## Product Purpose
 
-O Briefing Inteligente centraliza a jornada estratégica de marketing. O briefing é a porta de entrada; a plataforma acompanha o trabalho desde a coleta de informações até a avaliação dos resultados.
+Briefing Inteligente centralizes the strategic marketing journey. The briefing is the entry point; the platform follows the work from information gathering to the evaluation of results.
 
-A jornada principal é:
+The main journey is:
 
-1. **Coletar:** criar briefings adaptativos para cada cliente e projeto.
-2. **Diagnosticar:** interpretar respostas por meio de regras determinísticas e sinais explicáveis.
-3. **Recomendar:** produzir recomendações contextuais, rastreáveis às respostas e regras que as originaram.
-4. **Priorizar:** organizar recomendações considerando severidade, impacto estratégico, urgência e esforço.
-5. **Planejar:** agrupar recomendações em objetivos e planos de ação.
-6. **Executar:** transformar ações em tarefas com responsáveis, colaboradores, prazos, prioridades e status.
-7. **Avaliar:** acompanhar indicadores, evidências, resultados e impacto.
-8. **Aprender:** preservar histórico e usar dados e feedback para orientar a evolução do trabalho.
+1. **Collect:** create adaptive briefings for each client and project.
+2. **Diagnose:** interpret answers through deterministic rules and explainable signals.
+3. **Recommend:** produce contextual recommendations, traceable to the answers and rules that originated them.
+4. **Prioritize:** organize recommendations by severity, strategic impact, urgency and effort.
+5. **Plan:** group recommendations into objectives and action plans.
+6. **Execute:** turn actions into tasks with owners, collaborators, deadlines, priorities and statuses.
+7. **Evaluate:** track indicators, evidence, results and impact.
+8. **Learn:** preserve history and use data and feedback to guide how the work evolves.
 
-### Princípios funcionais
+### Functional principles
 
-- O diagnóstico da primeira versão é determinístico, reproduzível e auditável; não depende de IA generativa.
-- Recomendações são geradas por combinações de respostas, sinais, categorias e regras predefinidas. A equipe pode editar e personalizar as recomendações sem perder sua origem.
-- Recomendações são organizadas por categoria de diagnóstico, agrupadas em objetivos estratégicos e ordenadas por prioridade.
-- A prioridade inicial é calculada considerando severidade, impacto estratégico, urgência e esforço. Integrantes podem sugerir mudanças; somente pessoas autorizadas podem confirmá-las, com justificativa e histórico.
-- A aprovação de recomendações não cria compromissos automaticamente. O sistema sugere objetivos, ações, tarefas, responsáveis e prazos; a equipe revisa e confirma a conversão.
-- Cada projeto possui um plano estratégico principal, dividido em objetivos. A equipe também pode criar planos complementares vinculados ao projeto.
-- O progresso operacional (tarefas concluídas) deve ser distinguido do resultado estratégico (metas e indicadores alcançados).
-- Qualquer integrante autorizado no projeto pode registrar resultados e evidências; responsáveis designados validam os registros.
-- O acompanhamento de indicadores pode ser configurado individualmente. A equipe pode atualizá-los quando necessário, sem uma periodicidade obrigatória imposta pelo produto.
-- Objetivos não atingidos podem ser revisados. O sistema pode sugerir ajustes com base em regras, mas mudanças estratégicas dependem de aprovação humana.
-- Objetivos cancelados ou substituídos permanecem no histórico, com motivo, responsável e impacto registrados.
-- O encerramento de um projeto inclui revisão estratégica, resultados, aprovação e relatório final.
+- The first version's diagnosis is deterministic, reproducible and auditable; it doesn't depend on generative AI.
+- Recommendations are generated from combinations of answers, signals, categories and predefined rules. The team can edit and customize recommendations without losing their origin.
+- Recommendations are organized by diagnosis category, grouped into strategic objectives and ordered by priority.
+- The initial priority is calculated from severity, strategic impact, urgency and effort. Members can suggest changes; only authorized people can confirm them, with justification and history.
+- Approving recommendations doesn't create commitments automatically. The system suggests objectives, actions, tasks, owners and deadlines; the team reviews and confirms the conversion.
+- Each project has one main strategic plan, split into objectives. The team can also create complementary plans linked to the project.
+- Operational progress (completed tasks) must be distinguished from strategic results (targets and indicators achieved).
+- Any authorized project member can record results and evidence; designated owners validate the records.
+- Indicator tracking can be configured individually. The team can update indicators whenever needed, with no mandatory frequency imposed by the product.
+- Objectives that aren't met can be revised. The system may suggest adjustments based on rules, but strategic changes require human approval.
+- Cancelled or replaced objectives remain in the history, with reason, owner and impact recorded.
+- Closing a project includes a strategic review, results, approval and a final report.
 
-### Organização e colaboração
+### Organization and collaboration
 
-A plataforma começa preparada para uma organização, mas sua arquitetura deve permitir múltiplas organizações independentes no futuro. A organização é a fronteira de isolamento dos dados.
+The platform starts out prepared for one organization, but its architecture must allow multiple independent organizations in the future. The organization is the data isolation boundary.
 
-O modelo de colaboração é híbrido: membros compartilham visibilidade conforme o escopo de acesso, enquanto ações e aprovações dependem de permissões. Há funções padrão de administrador, líder e colaborador; as permissões e funções exatas devem ser detalhadas no documento de requisitos.
+The collaboration model is hybrid: members share visibility according to their access scope, while actions and approvals depend on permissions. There are default roles of administrator, leader and member; exact permissions and roles must be detailed in the requirements document.
 
-Os painéis se adaptam à função:
-- **Administrador:** visão geral da organização, equipes, clientes, projetos e operação.
-- **Líder:** visão dos projetos e da equipe sob sua responsabilidade.
-- **Colaborador:** projetos, tarefas e atividades em que participa.
+Dashboards adapt to the role:
+- **Administrator:** overview of the organization, teams, clients, projects and operations.
+- **Leader:** view of the projects and team under their responsibility.
+- **Member:** projects, tasks and activities they take part in.
 
-### Gestão contextual de clientes
+### Contextual client management
 
-A plataforma mantém histórico de reuniões, observações, interações, decisões e documentos, além de uma visão dos projetos e resultados associados ao cliente. Isso não pretende substituir um CRM completo.
+The platform keeps a history of meetings, notes, interactions, decisions and documents, plus a view of the projects and results associated with the client. It doesn't aim to replace a full CRM.
 
-Documentos são associados ao contexto de cliente ou projeto e possuem categoria, descrição, arquivo, autor e data. A plataforma permite visualizar e baixar arquivos, sem se propor a ser um sistema completo de gestão documental.
+Documents are associated with the client or project context and have a category, description, file, author and date. The platform allows viewing and downloading files, without aiming to be a full document management system.
 
-### Relatórios e compartilhamento
+### Reports and sharing
 
-A plataforma oferece relatórios operacionais, estratégicos e de desempenho, com filtros por período, cliente, projeto e integrante, além de gráficos, tabelas, comparações e exportações.
+The platform offers operational, strategic and performance reports, with filters by period, client, project and member, plus charts, tables, comparisons and exports.
 
-Clientes não acessam o ambiente interno. A primeira versão permite compartilhar relatórios com eles. O escopo de informações exibidas, a validade e a revogação dos compartilhamentos devem ser definidos nos requisitos.
+Clients don't access the internal environment. The first version allows sharing reports with them. The scope of information shown, validity and revocation of shares must be defined in the requirements.
 
-### Indicadores de sucesso
+### Success indicators
 
-A métrica norteadora deve refletir valor estratégico entregue, não apenas volume de atividade. Acompanhar, entre outras:
-- projetos com diagnóstico revisado e plano estratégico validado;
-- objetivos com indicadores e resultados atualizados;
-- evolução entre metas e resultados;
-- recomendações aprovadas que avançaram para execução;
-- percepção da equipe sobre utilidade dos diagnósticos e recomendações;
-- conclusão e abandono dos briefings;
-- qualidade, confiabilidade e uso dos relatórios.
+The north-star metric must reflect strategic value delivered, not just activity volume. Track, among others:
+- projects with a reviewed diagnosis and a validated strategic plan;
+- objectives with updated indicators and results;
+- progress between targets and results;
+- approved recommendations that moved into execution;
+- the team's perception of how useful diagnoses and recommendations are;
+- briefing completion and abandonment;
+- quality, reliability and use of reports.
 
-As metas quantitativas devem ser calibradas com dados reais após a implantação, evitando assumir metas de volume ou produtividade sem uma linha de base.
+Quantitative targets must be calibrated with real data after rollout, avoiding volume or productivity targets without a baseline.
 
 ## Brand Personality
 
-Clara, estratégica, confiável e colaborativa. A plataforma deve transmitir organização e segurança sem parecer burocrática, punitiva ou excessivamente corporativa.
+Clear, strategic, trustworthy and collaborative. The platform should convey organization and security without feeling bureaucratic, punitive or overly corporate.
 
 ### Tone
 
-Escrever em português do Brasil, com linguagem direta, humana e profissional. Explicar termos estratégicos quando necessário. Preferir instruções acionáveis a mensagens vagas. O diagnóstico deve apontar oportunidades e riscos sem julgar o cliente ou tratar uma pontuação como verdade absoluta.
+All user-facing text is written in **Brazilian Portuguese (pt-BR)**, in direct, human and professional language. Explain strategic terms when needed. Prefer actionable instructions over vague messages. The diagnosis should point out opportunities and risks without judging the client or treating a score as absolute truth.
 
-Mensagens de erro devem explicar o que aconteceu e como resolver. Estados vazios devem orientar o próximo passo. A interface deve distinguir claramente sugestões automáticas, decisões humanas, tarefas em execução e resultados confirmados.
+Error messages must explain what happened and how to fix it. Empty states must guide the next step. The interface must clearly distinguish automatic suggestions, human decisions, tasks in progress and confirmed results.
 
 ## Anti-references
 
-- MUST NOT parecer apenas um criador de formulários ou uma ferramenta isolada de diagnóstico.
-- MUST NOT se transformar em um CRM genérico ou em um gerenciador de tarefas sem contexto estratégico.
-- MUST NOT apresentar recomendações automáticas como verdades incontestáveis ou decisões finais.
-- MUST NOT confundir tarefas concluídas com objetivos alcançados ou impacto comprovado.
-- MUST NOT classificar clientes ou negócios de forma pejorativa, nem apresentar categorias sem dados como resultados negativos.
-- MUST NOT usar IA generativa como autoridade autônoma para diagnóstico, aprovação ou decisão estratégica na primeira versão.
-- MUST NOT expor dados de uma organização a outra, nem informações internas em links públicos ou relatórios compartilhados sem autorização.
-- MUST NOT incentivar competição improdutiva entre colaboradores por contagem bruta de tarefas.
-- MUST NOT depender de uma interface exclusivamente desktop ou esconder estados importantes em elementos visuais ambíguos.
+- MUST NOT look like just a form builder or an isolated diagnosis tool.
+- MUST NOT turn into a generic CRM or a task manager without strategic context.
+- MUST NOT present automatic recommendations as unquestionable truths or final decisions.
+- MUST NOT confuse completed tasks with achieved objectives or proven impact.
+- MUST NOT classify clients or businesses pejoratively, or present categories without data as negative results.
+- MUST NOT use generative AI as an autonomous authority for diagnosis, approval or strategic decisions in the first version.
+- MUST NOT expose one organization's data to another, or internal information in public links or shared reports without authorization.
+- MUST NOT encourage unproductive competition between members based on raw task counts.
+- MUST NOT depend on a desktop-only interface or hide important states in ambiguous visual elements.
 
 ## Design Principles
 
-1. **Estratégia antes de atividade.** Toda recomendação, objetivo e tarefa deve manter vínculo com o diagnóstico e com o resultado que pretende produzir.
-2. **Humano no controle.** O sistema organiza evidências e sugere caminhos; pessoas autorizadas revisam, decidem e aprovam.
-3. **Explicabilidade por padrão.** Diagnósticos, prioridades e recomendações devem mostrar de onde vieram e quais regras ou evidências os sustentam.
-4. **Continuidade do contexto.** Informações de briefing, decisões, documentos, planos e resultados devem permanecer conectados ao cliente e ao projeto.
-5. **Colaboração com responsabilidade.** A visibilidade compartilhada não elimina permissões, atribuições, aprovações ou trilhas de auditoria.
-6. **Simplicidade progressiva.** A primeira versão cobre a jornada estratégica completa, mas cada módulo começa com o conjunto mínimo de capacidades necessário.
-7. **Personalização com limites claros.** Equipes podem adaptar campos, status, categorias, modelos de briefing, diagnóstico e relatórios sem comprometer integridade, segurança ou consistência dos dados.
-8. **Histórico preservado.** Alterações relevantes, aprovações, cancelamentos, resultados e reprocessamentos devem ser rastreáveis.
-9. **Confiabilidade operacional.** Integridade de dados, backups, recuperação, monitoramento e segurança são requisitos do produto, não melhorias cosméticas.
-10. **Métricas com contexto.** Indicadores de desempenho devem considerar resultados, qualidade e contexto, não apenas quantidade de entregas.
+1. **Strategy before activity.** Every recommendation, objective and task must stay linked to the diagnosis and to the result it aims to produce.
+2. **Humans in control.** The system organizes evidence and suggests paths; authorized people review, decide and approve.
+3. **Explainable by default.** Diagnoses, priorities and recommendations must show where they came from and which rules or evidence support them.
+4. **Continuity of context.** Briefing information, decisions, documents, plans and results must stay connected to the client and the project.
+5. **Collaboration with accountability.** Shared visibility doesn't remove permissions, assignments, approvals or audit trails.
+6. **Progressive simplicity.** The first version covers the full strategic journey, but each module starts with the minimum set of capabilities needed.
+7. **Customization within clear limits.** Teams can adapt fields, statuses, categories, briefing templates, diagnosis and reports without compromising data integrity, security or consistency.
+8. **Preserved history.** Relevant changes, approvals, cancellations, results and reprocessing must be traceable.
+9. **Operational reliability.** Data integrity, backups, recovery, monitoring and security are product requirements, not cosmetic improvements.
+10. **Metrics with context.** Performance indicators must consider results, quality and context, not just the number of deliverables.
 
 ## Accessibility & Inclusion
 
-- MUST funcionar em dispositivos móveis e desktop, com experiência responsiva.
-- MUST oferecer navegação por teclado, foco visível, rótulos programáticos e estrutura semântica.
-- MUST manter contraste adequado e não depender exclusivamente de cor para comunicar status, prioridade ou diagnóstico.
-- MUST permitir ampliação de texto e respeitar preferências de movimento reduzido.
-- MUST apresentar mensagens, validações e estados de salvamento de forma perceptível e compreensível.
-- MUST usar linguagem simples, inclusiva e não estigmatizante.
-- SHOULD seguir WCAG 2.2 nível AA como referência de qualidade e validação.
+- MUST work on mobile and desktop devices, with a responsive experience.
+- MUST offer keyboard navigation, visible focus, programmatic labels and semantic structure.
+- MUST keep adequate contrast and not rely solely on color to communicate status, priority or diagnosis.
+- MUST allow text zoom and respect reduced-motion preferences.
+- MUST present messages, validations and save states in a perceivable and understandable way.
+- MUST use simple, inclusive and non-stigmatizing language.
+- SHOULD follow WCAG 2.2 level AA as the quality and validation reference.
 
 ## Offer
 
-O Briefing Inteligente é, neste estágio, uma plataforma de uso interno para equipes de marketing. Não há preço público, plano comercial ou modelo de cobrança definido. A prioridade é validar a jornada de trabalho e a utilidade estratégica do produto antes de estabelecer uma oferta comercial.
+At this stage, Briefing Inteligente is a platform for internal use by marketing teams. There's no public price, commercial plan or billing model defined. The priority is to validate the workflow and the product's strategic usefulness before establishing a commercial offer.
 
 ## Boundaries
 
-- A primeira versão não é um CRM completo, uma plataforma de automação de marketing, um gerenciador genérico de projetos ou um construtor de formulários independente.
-- A primeira versão não usa IA generativa como núcleo do diagnóstico nem executa decisões estratégicas sem validação humana.
-- Clientes respondem briefings por links externos e podem receber relatórios compartilháveis; não possuem acesso geral ao ambiente interno na V1.
-- A primeira versão começa com uma organização, mas deve ser construída com isolamento de dados por organização desde o início.
-- A plataforma começa standalone. Integrações com Drive, calendário, comunicação, CRM, gestão de projetos e plataformas de marketing são possibilidades futuras, não dependências para o fluxo central.
-- Aplicativo mobile nativo, white-label, billing e cadastro público de organizações não fazem parte da primeira versão.
-- A V1 entrega a jornada central completa — briefing, diagnóstico, recomendações, planejamento, execução e avaliação — com profundidade inicial controlada em cada módulo.
-- Detalhes de implementação, contratos de API, critérios de aceite, modelo de dados físico e decisões de infraestrutura pertencem aos documentos técnicos relacionados, não a este arquivo.
+- The first version is not a full CRM, a marketing automation platform, a generic project manager or a standalone form builder.
+- The first version doesn't use generative AI as the core of the diagnosis, nor does it execute strategic decisions without human validation.
+- Clients answer briefings through external links and may receive shareable reports; they have no general access to the internal environment in V1.
+- The first version starts with one organization but must be built with per-organization data isolation from the start.
+- The platform starts standalone. Integrations with Drive, calendar, communication, CRM, project management and marketing platforms are future possibilities, not dependencies of the core flow.
+- Native mobile app, white-label, billing and public organization sign-up are not part of the first version.
+- V1 delivers the complete core journey — briefing, diagnosis, recommendations, planning, execution and evaluation — with controlled initial depth in each module.
+- Implementation details, API contracts, acceptance criteria, physical data model and infrastructure decisions belong in the related technical documents, not in this file.
 
 ## Stack
 
-Este arquivo define identidade, público, propósito, princípios e limites do produto. Não substitui a documentação de implementação.
+This file defines the product's identity, audience, purpose, principles and boundaries. It doesn't replace implementation documentation.
 
-- `README.md` — visão técnica e instruções para executar o projeto.
-- `AGENTS.md` — convenções e instruções para agentes de desenvolvimento.
-- `docs/02-requisitos.md` — requisitos funcionais e não funcionais, permissões, fluxos, critérios de aceite e contratos.
-- `docs/03-inspecao-e-arquitetura.md` — estado técnico, arquitetura, segurança, integridade, riscos e decisões arquiteturais.
-- `docs/04-roadmap-melhorias.md` — sequência de implementação, prioridades, fases e definição de pronto.
-- `design.md` — tokens, componentes, padrões visuais e comportamento da interface, quando criado.
-- `auth.md` — modelo detalhado de autenticação, autorização e acesso, quando criado.
+- `README.md` — technical overview and instructions to run the project.
+- `AGENTS.md` — conventions and instructions for development agents (details in `docs/guidelines/`).
+- `docs/REQUIREMENTS.md` — functional and non-functional requirements, permissions, flows, acceptance criteria and contracts.
+- `docs/ARCHITECTURE.md` — technical state, architecture, security, integrity, risks and architectural decisions.
+- `docs/ROADMAP.md` — implementation sequence, priorities, phases and definition of done.
+- `docs/DECISIONS.md` — decisions made during development.
+- `DESIGN.md` — tokens, components, visual patterns and interface behavior, once created.
+- `AUTH.md` — detailed authentication, authorization and access model, once created.

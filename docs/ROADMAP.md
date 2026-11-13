@@ -1,704 +1,708 @@
-# Briefing Inteligente — Roadmap de Produto e Evolução Técnica
+# Briefing Inteligente — Product Roadmap and Technical Evolution
 
-> **Versão:** 2.0  
-> **Data:** 13/11/2026  
-> **Status:** proposta de evolução alinhada à visão e aos requisitos da plataforma  
-> **Documentos de referência:** `PRODUCT.md`, `02-requisitos.md` v2.0 e `03-inspecao-e-arquitetura.md` v2.0  
-> **Princípio de planejamento:** priorizar dependências, riscos e valor entregue; estimativas de calendário só devem ser definidas após confirmar capacidade e estado real do repositório.
-
----
-
-## 1. Resumo executivo
-
-O Briefing Inteligente está evoluindo de um MVP centrado em formulário, respostas e diagnóstico para uma **plataforma de gestão estratégica de marketing para equipes**.
-
-O briefing continua sendo a porta de entrada. O valor do produto passa a estar na jornada completa:
-
-**Organização → Cliente → Projeto/Campanha → Briefing → Diagnóstico → Recomendações → Objetivos → Ações e tarefas → Indicadores → Resultados → Relatórios e aprendizado.**
-
-O roadmap precisa, portanto, deixar de tratar multiusuário, planejamento e execução como uma expansão distante e passar a organizá-los como partes do produto-alvo. Ao mesmo tempo, não é viável construir tudo de uma vez. A evolução será incremental, com entregas verticais e critérios de saída claros.
-
-### 1.1 Estratégia de evolução
-
-1. Confirmar o estado real do código e proteger o MVP.
-2. Construir os fundamentos de organização, membros, permissões e projetos.
-3. Tornar briefing e diagnóstico versionados e rastreáveis.
-4. Transformar diagnóstico em recomendações revisáveis.
-5. Permitir planejamento, execução e acompanhamento de resultados.
-6. Consolidar relatórios, documentos, privacidade e operação.
-7. Melhorar continuamente com dados de uso e feedback das equipes.
-
-### 1.2 O que este roadmap não presume
-
-- Não presume que os achados da inspeção de 12/11/2026 ainda estejam presentes.
-- Não presume que os módulos descritos na arquitetura-alvo já existam.
-- Não define pesos de priorização, matriz final de permissões ou políticas ainda pendentes de decisão.
-- Não transforma estimativas antigas de semanas em compromissos de prazo.
-- Não inclui IA generativa, integrações externas ou microserviços como dependências da V1.
+> **Version:** 2.0  
+> **Date:** 2026-11-13  
+> **Status:** evolution proposal aligned with the platform's vision and requirements  
+> **Reference documents:** `PRODUCT.md`, `docs/REQUIREMENTS.md` v2.0 and `docs/ARCHITECTURE.md` v2.0  
+> **Planning principle:** prioritize dependencies, risks and delivered value; calendar estimates should only be set after confirming capacity and the real state of the repository.
 
 ---
 
-## 2. Direção do produto e resultado esperado
+## 1. Executive summary
 
-### 2.1 Resultado que queremos entregar
+Briefing Inteligente is evolving from an MVP centered on forms, answers and diagnosis into a **strategic marketing management platform for teams**.
 
-Uma equipe de marketing deve conseguir:
+The briefing remains the entry point. The product's value now lies in the complete journey:
 
-- organizar clientes e projetos em um espaço de trabalho compartilhado;
-- coletar informações estratégicas por meio de briefings adaptativos;
-- analisar respostas com diagnóstico determinístico e explicável;
-- revisar recomendações, prioridades e decisões;
-- transformar recomendações em objetivos, ações e tarefas;
-- acompanhar responsáveis, prazos, indicadores e evidências;
-- avaliar resultados e comunicar o trabalho ao cliente;
-- consultar o histórico para aprender com projetos anteriores.
+**Organization → Client → Project/Campaign → Briefing → Diagnosis → Recommendations → Objectives → Actions and tasks → Indicators → Results → Reports and learning.**
 
-O produto deve apoiar o raciocínio e a colaboração da equipe, sem substituir a decisão profissional por automações opacas.
+The roadmap therefore needs to stop treating multi-user support, planning and execution as a distant expansion and instead organize them as parts of the target product. At the same time, building everything at once isn't feasible. Evolution will be incremental, with vertical deliveries and clear exit criteria.
 
-### 2.2 Métrica norteadora
+### 1.1 Evolution strategy
 
-**Projetos com ciclo estratégico acompanhado e revisado.**
+1. Confirm the real state of the code and protect the MVP.
+2. Build the foundations of organization, members, permissions and projects.
+3. Make briefing and diagnosis versioned and traceable.
+4. Turn diagnosis into reviewable recommendations.
+5. Enable planning, execution and results tracking.
+6. Consolidate reports, documents, privacy and operations.
+7. Improve continuously with usage data and team feedback.
 
-Um projeto conta como acompanhado quando possui:
-1. briefing ou contexto estratégico registrado;
-2. diagnóstico revisado quando aplicável;
-3. objetivos e ações definidos;
-4. ao menos uma atualização de execução ou indicador;
-5. revisão de resultados em um marco relevante ou no encerramento.
+### 1.2 What this roadmap does not assume
 
-Essa métrica representa melhor a proposta da plataforma do que contar apenas briefings concluídos. Métricas auxiliares devem medir adoção, qualidade e saúde do fluxo.
+- It doesn't assume the findings of the 2026-11-12 inspection are still present.
+- It doesn't assume the modules described in the target architecture already exist.
+- It doesn't define prioritization weights, the final permission matrix or policies still pending decision.
+- It doesn't turn old week estimates into deadline commitments.
+- It doesn't include generative AI, external integrations or microservices as V1 dependencies.
 
-### 2.3 Métricas auxiliares
+---
 
-| Dimensão | Indicadores |
+## 2. Product direction and expected outcome
+
+### 2.1 The outcome we want to deliver
+
+A marketing team should be able to:
+
+- organize clients and projects in a shared workspace;
+- gather strategic information through adaptive briefings;
+- analyze answers with a deterministic, explainable diagnosis;
+- review recommendations, priorities and decisions;
+- turn recommendations into objectives, actions and tasks;
+- track owners, deadlines, indicators and evidence;
+- evaluate results and communicate the work to the client;
+- consult history to learn from previous projects.
+
+The product should support the team's reasoning and collaboration, without replacing professional judgment with opaque automation.
+
+### 2.2 North-star metric
+
+**Projects with a tracked and reviewed strategic cycle.**
+
+A project counts as tracked when it has:
+1. a recorded briefing or strategic context;
+2. a reviewed diagnosis when applicable;
+3. defined objectives and actions;
+4. at least one execution or indicator update;
+5. a results review at a relevant milestone or at closing.
+
+This metric represents the platform's proposition better than counting completed briefings alone. Auxiliary metrics should measure adoption, quality and flow health.
+
+### 2.3 Auxiliary metrics
+
+| Dimension | Indicators |
 |---|---|
-| Ativação | Organizações configuradas, membros ativos, clientes e projetos criados |
-| Briefing | Taxa de início/conclusão, abandono por etapa, tempo de preenchimento, falhas de autosave |
-| Diagnóstico | Diagnósticos revisados, tempo até revisão, recomendações aceitas/ajustadas/descartadas |
-| Planejamento | Projetos com objetivos, objetivos com métricas e responsáveis definidos |
-| Execução | Ações e tarefas atualizadas, tarefas atrasadas, participação dos membros |
-| Resultados | Indicadores atualizados, metas avaliadas, objetivos atingidos/parcialmente atingidos/não atingidos |
-| Comunicação | Relatórios gerados/compartilhados, revisões finais realizadas |
-| Confiança | Erros de autorização, falhas de persistência, incidentes, satisfação da equipe |
+| Activation | Organizations set up, active members, clients and projects created |
+| Briefing | Start/completion rate, abandonment per step, completion time, autosave failures |
+| Diagnosis | Diagnoses reviewed, time to review, recommendations accepted/adjusted/discarded |
+| Planning | Projects with objectives, objectives with metrics and defined owners |
+| Execution | Actions and tasks updated, overdue tasks, member participation |
+| Results | Indicators updated, targets evaluated, objectives achieved/partially achieved/not achieved |
+| Communication | Reports generated/shared, final reviews completed |
+| Trust | Authorization errors, persistence failures, incidents, team satisfaction |
 
-Metas numéricas devem ser estabelecidas depois de instrumentar o produto e obter uma linha de base. Não adotar metas arbitrárias antes de ter dados.
+Numeric targets should be set after instrumenting the product and establishing a baseline. Don't adopt arbitrary targets before having data.
 
 ---
 
-## 3. Princípios de priorização
+## 3. Prioritization principles
 
-### 3.1 Ordem de decisão
+### 3.1 Decision order
 
-Ao decidir o que entra primeiro, considerar nesta ordem:
+When deciding what comes first, consider in this order:
 
-1. **Segurança e integridade:** risco de acesso indevido, perda ou corrupção de dados.
-2. **Dependências estruturais:** capacidades necessárias para mais de um módulo.
-3. **Jornada principal:** funcionalidades que permitem concluir uma etapa de valor.
-4. **Usabilidade e adoção:** reduzir fricção para equipe e cliente.
-5. **Escala e otimização:** somente quando uso e evidências justificarem.
+1. **Security and integrity:** risk of improper access, data loss or corruption.
+2. **Structural dependencies:** capabilities needed by more than one module.
+3. **Main journey:** features that allow completing a value step.
+4. **Usability and adoption:** reduce friction for the team and the client.
+5. **Scale and optimization:** only when usage and evidence justify it.
 
-### 3.2 Classes de prioridade
+### 3.2 Priority classes
 
-| Classe | Significado |
+| Class | Meaning |
 |---|---|
-| **P0 — Bloqueador** | Risco crítico de segurança, perda de dados ou impossibilidade de operar |
-| **P1 — Essencial** | Necessário para a jornada V1 ou para cumprir requisito obrigatório |
-| **P2 — Importante** | Melhora adoção, eficiência, governança ou qualidade |
-| **P3 — Evolutivo** | Refinamento ou capacidade que pode esperar por evidência de uso |
+| **P0 — Blocker** | Critical security risk, data loss or inability to operate |
+| **P1 — Essential** | Required for the V1 journey or to meet a mandatory requirement |
+| **P2 — Important** | Improves adoption, efficiency, governance or quality |
+| **P3 — Evolutionary** | Refinement or capability that can wait for evidence of use |
 
-A classificação deve ser aplicada aos itens depois da auditoria do repositório. O roadmap indica sequência e dependências, não substitui a avaliação de cada tarefa.
+The classification should be applied to items after the repository audit. The roadmap indicates sequence and dependencies; it doesn't replace the evaluation of each task.
 
-### 3.3 Critérios para ordenar itens da mesma classe
+### 3.3 Criteria for ordering items within the same class
 
-- Quantos fluxos e módulos desbloqueia?
-- Reduz risco ou retrabalho?
-- É pré-requisito de migração de dados?
-- Entrega valor utilizável de ponta a ponta?
-- Pode ser validado com uma equipe real?
-- O custo de adiar é maior que o custo de implementar agora?
+- How many flows and modules does it unlock?
+- Does it reduce risk or rework?
+- Is it a prerequisite for a data migration?
+- Does it deliver end-to-end usable value?
+- Can it be validated with a real team?
+- Is the cost of postponing higher than the cost of implementing now?
 
 ---
 
-## 4. Estado atual: baseline a confirmar
+## 4. Current state: baseline to confirm
 
-A inspeção técnica de 12/11/2026 registrou um MVP com núcleo de domínio puro, formulário público, autosave, diagnóstico determinístico, token opaco, painel administrativo e testes unitários. Também apontou riscos em autenticação, envio transacional, versionamento, validação, observabilidade, privacidade e deploy.
+The 2026-11-12 technical inspection recorded an MVP with a pure domain core, public form, autosave, deterministic diagnosis, opaque token, admin panel and unit tests. It also pointed out risks in authentication, transactional submission, versioning, validation, observability, privacy and deploy.
 
-Esses dados são uma fotografia histórica. A primeira atividade do roadmap é revalidá-los no repositório.
+These data are a historical snapshot. The roadmap's first activity is to revalidate them in the repository.
 
-### 4.1 Auditoria de confirmação
+> **Update:** the confirmation audit was done on 2026-11-12 (`docs/PHASE-0-AUDIT.md`) and Phase 0 was merged into `main`.
 
-| Área | O que verificar | Resultado esperado |
+### 4.1 Confirmation audit
+
+| Area | What to check | Expected result |
 |---|---|---|
-| Repositório | Branch, commit, alterações locais, estrutura atual | Baseline reproduzível |
-| Banco | Schema Prisma, migrações, constraints e índices | Modelo atual documentado |
-| Autenticação | Signup, sessão, provisionamento e redirects | Fluxo de entrada conhecido |
-| Autorização | Proteção de páginas, rotas, consultas e mutações | Matriz de lacunas |
-| Briefing | Autosave, envio, status, token e concorrência | Invariantes confirmadas |
-| Diagnóstico | Regras, persistência, ordenação e reprocessamento | Reprodutibilidade verificada |
-| Testes | Unitários, integração, API, E2E e CI | Cobertura real conhecida |
-| Operação | Deploy, PDF, storage, logs, backups e env | Limitações do ambiente conhecidas |
-| Privacidade | Dados coletados, logs, retenção e exclusão | Mapa inicial de dados |
+| Repository | Branch, commit, local changes, current structure | Reproducible baseline |
+| Database | Prisma schema, migrations, constraints and indexes | Current model documented |
+| Authentication | Signup, session, provisioning and redirects | Known entry flow |
+| Authorization | Protection of pages, routes, queries and mutations | Gap matrix |
+| Briefing | Autosave, submission, status, token and concurrency | Invariants confirmed |
+| Diagnosis | Rules, persistence, ordering and reprocessing | Reproducibility verified |
+| Tests | Unit, integration, API, E2E and CI | Real coverage known |
+| Operations | Deploy, PDF, storage, logs, backups and env | Environment limitations known |
+| Privacy | Data collected, logs, retention and deletion | Initial data map |
 
-Classificar cada achado como `confirmado`, `corrigido`, `não reproduzido`, `parcial` ou `substituído por decisão nova`.
+Classify each finding as `confirmed`, `fixed`, `not reproduced`, `partial` or `superseded by a new decision`.
 
-### 4.2 Regra de conversão em backlog
+### 4.2 Backlog conversion rule
 
-Nenhum achado histórico deve virar tarefa automaticamente. Antes:
-1. reproduzir ou localizar a condição no código;
-2. identificar os dados e fluxos afetados;
-3. definir correção e critério de aceite;
-4. avaliar migração e compatibilidade;
-5. criar testes;
-6. atualizar documentação se a decisão arquitetural mudar.
+No historical finding should automatically become a task. First:
+1. reproduce or locate the condition in the code;
+2. identify the affected data and flows;
+3. define the fix and acceptance criteria;
+4. assess migration and compatibility;
+5. write tests;
+6. update documentation if the architectural decision changes.
 
 ---
 
 ## 5. Workstreams
 
-Os workstreams são linhas contínuas de trabalho. Cada fase pode envolver mais de um deles.
+Workstreams are continuous lines of work. Each phase may involve more than one of them.
 
-| Workstream | Escopo |
+| Workstream | Scope |
 |---|---|
-| **A. Fundamentos e arquitetura** | Modularização pragmática, casos de uso, contratos, configuração e migrações |
-| **B. Segurança e governança** | Autenticação, autorização, tenant isolation, auditoria e privacidade |
-| **C. Clientes e projetos** | Estrutura organizacional, histórico, responsáveis e colaboração |
-| **D. Briefing e diagnóstico** | Formulários, versões, respostas, regras e revisão |
-| **E. Estratégia e recomendações** | Sugestões, priorização, aprovação e conversão em plano |
-| **F. Planejamento e execução** | Objetivos, ações, tarefas, responsáveis, comentários e notificações |
-| **G. Medição e resultados** | Indicadores, metas, medições, evidências e avaliação de impacto |
-| **H. Experiência e design** | Arquitetura de informação, acessibilidade, conteúdo e design system |
-| **I. Qualidade e operação** | Testes, CI, observabilidade, backups, deploy e suporte |
-| **J. Relatórios e documentos** | Histórico, arquivos, relatórios internos e compartilhamento externo |
+| **A. Foundations and architecture** | Pragmatic modularization, use cases, contracts, configuration and migrations |
+| **B. Security and governance** | Authentication, authorization, tenant isolation, auditing and privacy |
+| **C. Clients and projects** | Organizational structure, history, owners and collaboration |
+| **D. Briefing and diagnosis** | Forms, versions, answers, rules and review |
+| **E. Strategy and recommendations** | Suggestions, prioritization, approval and conversion into a plan |
+| **F. Planning and execution** | Objectives, actions, tasks, owners, comments and notifications |
+| **G. Measurement and results** | Indicators, targets, measurements, evidence and impact evaluation |
+| **H. Experience and design** | Information architecture, accessibility, content and design system |
+| **I. Quality and operations** | Tests, CI, observability, backups, deploy and support |
+| **J. Reports and documents** | History, files, internal reports and external sharing |
 
 ---
 
-## 6. Roadmap por fases
+## 6. Roadmap by phase
 
-As fases são marcos de capacidade. Podem ser divididas em sprints menores. Não há duração fixa até que a capacidade da equipe e o estado do código sejam conhecidos.
+Phases are capability milestones. They can be split into smaller sprints. There's no fixed duration until the team's capacity and the state of the code are known.
 
-### Fase 0 — Auditoria, estabilização e proteção do MVP
+### Phase 0 — Audit, stabilization and MVP protection
 
-<badge color="danger">P0</badge> **Objetivo:** confirmar o que existe e remover riscos que impedem evoluir com segurança.
+<badge color="danger">P0</badge> **Goal:** confirm what exists and remove risks that prevent evolving safely.
 
-**Entregas**
+**Deliverables**
 
-- Auditoria de confirmação do repositório, schema, migrações e deploy.
-- Correção de falhas críticas de autenticação e provisionamento, se confirmadas.
-- Autorização no servidor para todas as rotas e mutações existentes.
-- Proteção de origem/CSRF adequada ao modelo de sessão.
-- Rate limiting nas rotas públicas sensíveis.
-- Headers de segurança, política de referrer e `noindex` nas superfícies privadas.
-- Validação de variáveis de ambiente e configuração com falha explícita.
-- Validação semântica das respostas do briefing.
-- Envio atômico com transição de estado consistente.
-- Coordenação entre autosave e envio.
-- Logs sem tokens, respostas livres ou PII desnecessária.
-- CI mínimo com lint, typecheck, testes e build.
-- Verificação do PDF no ambiente real de deploy.
+- Confirmation audit of the repository, schema, migrations and deploy.
+- Fix critical authentication and provisioning flaws, if confirmed.
+- Server-side authorization for all existing routes and mutations.
+- Origin/CSRF protection appropriate to the session model.
+- Rate limiting on sensitive public routes.
+- Security headers, referrer policy and `noindex` on private surfaces.
+- Validation of environment variables and configuration with explicit failure.
+- Semantic validation of briefing answers.
+- Atomic submission with consistent state transitions.
+- Coordination between autosave and submission.
+- Logs without tokens, free-text answers or unnecessary PII.
+- Minimum CI with lint, typecheck, tests and build.
+- PDF verified in the real deploy environment.
 
-**Critérios de saída**
+**Exit criteria**
 
-- Achados históricos classificados e backlog atualizado.
-- Nenhuma conta não autorizada obtém acesso administrativo.
-- Consultas e mutações existentes exigem autenticação/autorização adequada.
-- Envio não deixa briefing em estado parcial.
-- Respostas inválidas são rejeitadas antes de afetar o diagnóstico.
-- CI bloqueia regressões básicas.
-- Limitações de deploy, PDF e storage estão documentadas.
+- Historical findings classified and backlog updated.
+- No unauthorized account obtains administrative access.
+- Existing queries and mutations require appropriate authentication/authorization.
+- Submission doesn't leave a briefing in a partial state.
+- Invalid answers are rejected before affecting the diagnosis.
+- CI blocks basic regressions.
+- Deploy, PDF and storage limitations are documented.
 
-**Não fazer nesta fase:** construir novos módulos estratégicos antes de estabilizar os fluxos e dados existentes.
-
----
-
-### Fase 1 — Fundamentos da organização e colaboração
-
-<badge color="warning">P1</badge> **Objetivo:** transformar o modelo de uma administradora em um espaço de trabalho de equipe.
-
-**Entregas**
-
-- Entidade Organization e associação de usuários por Membership.
-- Modelo de papéis e permissões centralizado.
-- Convites e entrada controlada de membros.
-- Isolamento de dados por organização desde as consultas e mutações.
-- Estratégia RLS, se adotada, alinhada ao modelo de membership.
-- Cliente associado à organização.
-- Projeto/Campanha como unidade de trabalho.
-- Responsável principal e colaboradores por projeto.
-- Estados e histórico básico do projeto.
-- Migração dos dados existentes para uma organização inicial.
-- Testes negativos de acesso cruzado entre organizações e projetos.
-- Auditoria de mudanças de membros, papéis e permissões.
-
-**Critérios de saída**
-
-- Uma organização pode convidar e administrar membros conforme a matriz aprovada.
-- Clientes e projetos pertencem a uma organização.
-- Projetos possuem responsável e colaboradores.
-- Usuários não acessam dados de outra organização.
-- Acesso a projeto respeita papel e participação.
-- Dados do MVP são migrados sem perda e com integridade.
-
-**Dependências:** matriz de permissões, escopo de acesso a projetos e política de migração.
+**Don't do in this phase:** build new strategic modules before stabilizing existing flows and data.
 
 ---
 
-### Fase 2 — Briefing e diagnóstico versionados
+### Phase 1 — Organization and collaboration foundations
 
-<badge color="warning">P1</badge> **Objetivo:** preservar a origem e a reprodutibilidade da informação estratégica.
+<badge color="warning">P1</badge> **Goal:** turn the single-administrator model into a team workspace.
 
-**Entregas**
+**Deliverables**
 
-- Briefings vinculados a projetos.
-- Suporte a mais de um briefing ao longo da vida de um projeto.
-- Catálogo de perguntas versionado.
-- Perguntas e regras publicadas como versões imutáveis.
-- Snapshot das respostas no envio.
-- Versão de catálogo e regras associadas a cada diagnóstico.
-- Histórico de envio, revogação, reabertura e reprocessamento.
-- Diagnóstico determinístico com explicação e origem dos sinais.
-- Revisão humana e aprovação do diagnóstico.
-- Reprocessamento criando nova execução, sem sobrescrever diagnóstico aprovado.
-- Formulário público com link seguro, autosave, retomada e revisão.
-- Testes de compatibilidade com briefings antigos.
+- Organization entity and user association through Membership.
+- Centralized roles and permissions model.
+- Invitations and controlled member onboarding.
+- Per-organization data isolation from queries and mutations.
+- RLS strategy, if adopted, aligned with the membership model.
+- Client associated with the organization.
+- Project/Campaign as the unit of work.
+- Main owner and collaborators per project.
+- Project statuses and basic history.
+- Migration of existing data into an initial organization.
+- Negative tests for cross-access between organizations and projects.
+- Auditing of changes to members, roles and permissions.
 
-**Critérios de saída**
+**Exit criteria**
 
-- Mudança no catálogo não altera respostas históricas.
-- Cada diagnóstico informa quais respostas e versões contribuíram para o resultado.
-- Reprocessamento é rastreável e reproduzível.
-- Briefing enviado não aceita autosave indevido.
-- Revisão e aprovação ficam registradas.
-- Cliente consegue preencher sem criar conta interna.
+- An organization can invite and manage members according to the approved matrix.
+- Clients and projects belong to an organization.
+- Projects have an owner and collaborators.
+- Users don't access another organization's data.
+- Project access respects role and participation.
+- MVP data is migrated without loss and with integrity.
 
-**Dependências:** Fase 0; organização e projeto da Fase 1.
-
----
-
-### Fase 3 — Recomendações e priorização estratégica
-
-<badge color="warning">P1</badge> **Objetivo:** transformar o diagnóstico em decisões estratégicas que a equipe pode revisar.
-
-**Entregas**
-
-- Entidade Recommendation persistida.
-- Recomendações contextualizadas por sinais, categorias e combinações de respostas.
-- Registro da regra e versão que originaram cada recomendação.
-- Agrupamento por categoria e objetivo estratégico.
-- Estados de revisão: sugerida, em análise, aprovada, ajustada, descartada ou substituída, conforme decisão de produto.
-- Prioridade calculada com fatores explícitos.
-- Prioridade aprovada separada da prioridade calculada.
-- Justificativa, autor, data e histórico de alterações.
-- Sugestão de responsáveis e próximos passos sem criar compromissos automaticamente.
-- Tratamento de duplicidade, conflito e recomendações de diagnósticos sucessivos.
-
-**Critérios de saída**
-
-- Toda recomendação é explicável e rastreável.
-- Equipe pode aceitar, editar ou descartar recomendações conforme permissão.
-- Alterações de prioridade preservam cálculo original e justificativa.
-- Recomendações não viram tarefas sem confirmação humana.
-- Regras de deduplicação e atualização estão documentadas.
-
-**Dependências:** diagnóstico versionado; fórmula e política de priorização aprovadas.
+**Dependencies:** permission matrix, project access scope and migration policy.
 
 ---
 
-### Fase 4 — Planejamento estratégico e execução
+### Phase 2 — Versioned briefing and diagnosis
 
-<badge color="warning">P1</badge> **Objetivo:** transformar decisões aprovadas em trabalho organizado e acompanhável.
+<badge color="warning">P1</badge> **Goal:** preserve the origin and reproducibility of strategic information.
 
-**Entregas**
+**Deliverables**
 
-- Um plano estratégico principal por projeto e suporte a planos complementares.
-- Objetivos com descrição, responsável, período e estado.
-- Ações vinculadas a objetivos.
-- Conversão assistida de recomendações em objetivos, ações e tarefas.
-- Revisão humana antes de confirmar a conversão.
-- Tarefas com responsáveis, colaboradores, prioridade, prazo e estado.
-- Comentários internos, menções e histórico de mudanças.
-- Visões por projeto, objetivo, responsável e estado.
-- Arquivamento de objetivos cancelados/substituídos com motivo.
-- Distinção visual e conceitual entre tarefa concluída e objetivo alcançado.
+- Briefings linked to projects.
+- Support for more than one briefing over a project's lifetime.
+- Versioned question catalog.
+- Questions and rules published as immutable versions.
+- Snapshot of answers on submission.
+- Catalog and rules version associated with each diagnosis.
+- History of submission, revocation, reopening and reprocessing.
+- Deterministic diagnosis with explanation and signal origin.
+- Human review and approval of the diagnosis.
+- Reprocessing creates a new run, without overwriting an approved diagnosis.
+- Public form with secure link, autosave, resume and review.
+- Compatibility tests with old briefings.
 
-**Critérios de saída**
+**Exit criteria**
 
-- Equipe consegue criar plano a partir de recomendações revisadas.
-- Cada objetivo possui responsável e estado.
-- Ações e tarefas mantêm relação rastreável com objetivos.
-- Alterações relevantes ficam no histórico.
-- Conclusão de tarefa não altera automaticamente o resultado do objetivo.
-- Permissões são aplicadas a criação, edição, aprovação e arquivamento.
+- A catalog change doesn't alter historical answers.
+- Each diagnosis states which answers and versions contributed to the result.
+- Reprocessing is traceable and reproducible.
+- A submitted briefing doesn't accept improper autosave.
+- Review and approval are recorded.
+- The client can fill in the form without creating an internal account.
 
-**Dependências:** Fases 1 e 3; decisões de papéis e aprovação.
-
----
-
-### Fase 5 — Indicadores, evidências e avaliação de impacto
-
-<badge color="warning">P1</badge> **Objetivo:** acompanhar se o trabalho está produzindo os resultados esperados.
-
-**Entregas**
-
-- Definição de indicadores com tipo, unidade e método de atualização.
-- Metas com período e histórico de alteração.
-- Registro de medições com período de referência, autor e data.
-- Validação de medições por pessoa autorizada.
-- Evidências anexadas às medições e avaliações.
-- Comparação entre linha de base, meta e resultado.
-- Avaliação quantitativa e qualitativa do impacto.
-- Revisão de objetivos e ações quando metas não forem atingidas.
-- Sugestões de ajuste baseadas em regras, sujeitas à aprovação humana.
-- Histórico de resultados por projeto e objetivo.
-
-**Critérios de saída**
-
-- Uma medição mantém unidade, período, autor e evidência.
-- Metas antigas continuam disponíveis para comparação.
-- A equipe consegue avaliar resultados sem depender apenas do status das tarefas.
-- Mudanças de meta ou objetivo são rastreáveis.
-- Sugestões de ajuste não alteram o plano sem aprovação.
-
-**Dependências:** Fase 4; decisões sobre tipos de indicadores, validação e histórico de metas.
+**Dependencies:** Phase 0; organization and project from Phase 1.
 
 ---
 
-### Fase 6 — Histórico, documentos, relatórios e comunicação
+### Phase 3 — Recommendations and strategic prioritization
 
-<badge color="warning">P1</badge> **Objetivo:** dar contexto ao trabalho, comunicar resultados e fechar o ciclo do projeto.
+<badge color="warning">P1</badge> **Goal:** turn the diagnosis into strategic decisions the team can review.
 
-**Entregas**
+**Deliverables**
 
-- Histórico do cliente com reuniões, decisões, observações e atividades.
-- Documentos associados a cliente e projeto, com metadados e controle de acesso.
-- Dashboards por organização, cliente, projeto, objetivo e membro.
-- Relatórios operacionais, estratégicos e de desempenho.
-- Filtros por período, cliente, projeto e responsável.
-- Comparações entre meta e resultado.
-- Exportações e PDF compatíveis com o ambiente de deploy.
-- Compartilhamento de relatórios com escopo explícito, expiração e revogação.
-- Relatório final e revisão de encerramento de projeto.
-- Arquivamento de projetos com resultados e histórico preservados.
+- Persisted Recommendation entity.
+- Recommendations contextualized by signals, categories and answer combinations.
+- Record of the rule and version that originated each recommendation.
+- Grouping by category and strategic objective.
+- Review states: suggested, under review, approved, adjusted, discarded or replaced, per product decision.
+- Priority calculated with explicit factors.
+- Approved priority kept separate from calculated priority.
+- Justification, author, date and change history.
+- Suggestion of owners and next steps without creating commitments automatically.
+- Handling of duplicates, conflicts and recommendations from successive diagnoses.
 
-**Critérios de saída**
+**Exit criteria**
 
-- Relatórios respeitam organização e permissões.
-- Link externo não expõe comentários internos ou outros projetos.
-- Compartilhamentos podem ser revogados e expiram conforme política.
-- Documentos privados só são acessíveis por usuários autorizados.
-- Projeto pode ser encerrado com revisão e relatório final.
+- Every recommendation is explainable and traceable.
+- The team can accept, edit or discard recommendations according to permission.
+- Priority changes preserve the original calculation and justification.
+- Recommendations don't become tasks without human confirmation.
+- Deduplication and update rules are documented.
 
-**Dependências:** Fases 1 a 5; decisões de compartilhamento externo e retenção.
-
----
-
-### Fase 7 — Templates, notificações e melhoria contínua
-
-<badge color="info">P2</badge> **Objetivo:** reduzir trabalho repetitivo e facilitar adoção consistente pela equipe.
-
-**Entregas**
-
-- Modelos de projeto/campanha.
-- Modelos de briefing, diagnóstico e relatório.
-- Duplicação de projetos com regras explícitas sobre o que copiar.
-- Recorrência configurável, com confirmação ou criação automática conforme decisão.
-- Campos, categorias e estados configuráveis dentro de limites definidos.
-- Notificações internas de eventos relevantes.
-- Preferências de notificação por usuário.
-- Painéis de atividade e pendências.
-- Coleta de feedback e análise de uso.
-- Experimentos de UX e melhorias com base em evidências.
-
-**Critérios de saída**
-
-- Duplicar um projeto não mistura dados históricos nem responsáveis indevidamente.
-- Modelos têm versão e política de atualização.
-- Notificações são configuráveis e não geram ruído excessivo.
-- Recorrência tem comportamento previsível e auditável.
-- Melhorias de produto são priorizadas com dados de uso e feedback.
-
-**Dependências:** fluxos principais estáveis; decisões de templates, recorrência e notificações.
+**Dependencies:** versioned diagnosis; approved prioritization formula and policy.
 
 ---
 
-### Fase 8 — Integrações e capacidades avançadas (pós-V1)
+### Phase 4 — Strategic planning and execution
 
-<badge color="secondary">P3</badge> **Objetivo:** ampliar o ecossistema apenas quando houver demanda comprovada.
+<badge color="warning">P1</badge> **Goal:** turn approved decisions into organized, trackable work.
 
-Possíveis evoluções:
+**Deliverables**
 
-- Integração com Drive e armazenamento externo.
-- Calendários e ferramentas de comunicação.
-- CRM e plataformas de automação.
-- Plataformas de anúncios e analytics.
-- Webhooks e API pública.
-- IA assistiva para interpretação e elaboração de recomendações, sempre com revisão humana.
-- Benchmarking agregado, somente com base legal, privacidade e volume suficientes.
-- Separação de serviços ou infraestrutura adicional quando métricas operacionais justificarem.
+- One main strategic plan per project and support for complementary plans.
+- Objectives with description, owner, period and status.
+- Actions linked to objectives.
+- Assisted conversion of recommendations into objectives, actions and tasks.
+- Human review before confirming the conversion.
+- Tasks with owners, collaborators, priority, deadline and status.
+- Internal comments, mentions and change history.
+- Views by project, objective, owner and status.
+- Archiving of cancelled/replaced objectives with a reason.
+- Visual and conceptual distinction between a completed task and an achieved objective.
 
-**Critério de entrada:** caso de uso validado, demanda recorrente, risco avaliado, custo de manutenção conhecido e benefício superior à complexidade adicionada.
+**Exit criteria**
+
+- The team can create a plan from reviewed recommendations.
+- Each objective has an owner and a status.
+- Actions and tasks keep a traceable relationship with objectives.
+- Relevant changes are kept in the history.
+- Completing a task doesn't automatically change the objective's result.
+- Permissions apply to creation, editing, approval and archiving.
+
+**Dependencies:** Phases 1 and 3; role and approval decisions.
 
 ---
 
-## 7. Backlog estruturado por épicos
+### Phase 5 — Indicators, evidence and impact evaluation
 
-Os épicos abaixo são unidades de planejamento. As tarefas técnicas devem ser criadas depois da auditoria e refinadas em histórias menores.
+<badge color="warning">P1</badge> **Goal:** track whether the work is producing the expected results.
 
-| ID | Épico | Resultado | Fase |
+**Deliverables**
+
+- Indicator definition with type, unit and update method.
+- Targets with period and change history.
+- Measurement records with reference period, author and date.
+- Measurement validation by an authorized person.
+- Evidence attached to measurements and evaluations.
+- Comparison between baseline, target and result.
+- Quantitative and qualitative impact evaluation.
+- Review of objectives and actions when targets aren't met.
+- Rule-based adjustment suggestions, subject to human approval.
+- Results history per project and objective.
+
+**Exit criteria**
+
+- A measurement keeps unit, period, author and evidence.
+- Old targets remain available for comparison.
+- The team can evaluate results without relying only on task status.
+- Target or objective changes are traceable.
+- Adjustment suggestions don't change the plan without approval.
+
+**Dependencies:** Phase 4; decisions on indicator types, validation and target history.
+
+---
+
+### Phase 6 — History, documents, reports and communication
+
+<badge color="warning">P1</badge> **Goal:** give the work context, communicate results and close the project cycle.
+
+**Deliverables**
+
+- Client history with meetings, decisions, notes and activities.
+- Documents associated with client and project, with metadata and access control.
+- Dashboards by organization, client, project, objective and member.
+- Operational, strategic and performance reports.
+- Filters by period, client, project and owner.
+- Comparisons between target and result.
+- Exports and PDFs compatible with the deploy environment.
+- Report sharing with explicit scope, expiration and revocation.
+- Final report and project closing review.
+- Project archiving with results and history preserved.
+
+**Exit criteria**
+
+- Reports respect organization and permissions.
+- External links don't expose internal comments or other projects.
+- Shares can be revoked and expire according to policy.
+- Private documents are accessible only to authorized users.
+- A project can be closed with a review and a final report.
+
+**Dependencies:** Phases 1 to 5; decisions on external sharing and retention.
+
+---
+
+### Phase 7 — Templates, notifications and continuous improvement
+
+<badge color="info">P2</badge> **Goal:** reduce repetitive work and make consistent team adoption easier.
+
+**Deliverables**
+
+- Project/campaign templates.
+- Briefing, diagnosis and report templates.
+- Project duplication with explicit rules about what to copy.
+- Configurable recurrence, with confirmation or automatic creation per decision.
+- Configurable fields, categories and statuses within defined limits.
+- Internal notifications for relevant events.
+- Notification preferences per user.
+- Activity and pending-items dashboards.
+- Feedback collection and usage analysis.
+- UX experiments and evidence-based improvements.
+
+**Exit criteria**
+
+- Duplicating a project doesn't mix historical data or owners improperly.
+- Templates have versions and an update policy.
+- Notifications are configurable and don't create excessive noise.
+- Recurrence behaves predictably and auditably.
+- Product improvements are prioritized with usage data and feedback.
+
+**Dependencies:** stable main flows; decisions on templates, recurrence and notifications.
+
+---
+
+### Phase 8 — Integrations and advanced capabilities (post-V1)
+
+<badge color="secondary">P3</badge> **Goal:** expand the ecosystem only when there is proven demand.
+
+Possible evolutions:
+
+- Integration with Drive and external storage.
+- Calendars and communication tools.
+- CRM and automation platforms.
+- Ad and analytics platforms.
+- Webhooks and a public API.
+- Assistive AI for interpreting and drafting recommendations, always with human review.
+- Aggregated benchmarking, only with legal basis, privacy and sufficient volume.
+- Service separation or additional infrastructure when operational metrics justify it.
+
+**Entry criterion:** validated use case, recurring demand, assessed risk, known maintenance cost and benefit greater than the added complexity.
+
+---
+
+## 7. Backlog structured by epics
+
+The epics below are planning units. Technical tasks should be created after the audit and refined into smaller stories.
+
+| ID | Epic | Outcome | Phase |
 |---|---|---|---:|
-| EP-00 | Baseline e auditoria | Estado real do repositório e riscos confirmados | 0 |
-| EP-01 | Segurança do MVP | Fluxos existentes protegidos | 0 |
-| EP-02 | Integridade do briefing | Envio e respostas consistentes | 0 |
-| EP-03 | Qualidade e operação mínima | CI, testes e deploy verificável | 0 |
-| EP-04 | Organização e membros | Espaço de trabalho com membros e papéis | 1 |
-| EP-05 | Clientes e projetos | Estrutura de trabalho por cliente/campanha | 1 |
-| EP-06 | Isolamento e autorização | Acesso por organização e projeto | 1 |
-| EP-07 | Catálogo versionado | Formulários históricos reproduzíveis | 2 |
-| EP-08 | Diagnóstico versionado | Resultado explicável e reprocessável | 2 |
-| EP-09 | Revisão do briefing | Aprovação e histórico | 2 |
-| EP-10 | Recomendações | Sugestões persistidas e rastreáveis | 3 |
-| EP-11 | Priorização | Decisões de prioridade justificadas | 3 |
-| EP-12 | Plano e objetivos | Estratégia estruturada por projeto | 4 |
-| EP-13 | Ações e tarefas | Execução colaborativa | 4 |
-| EP-14 | Indicadores e metas | Medição estruturada | 5 |
-| EP-15 | Evidências e impacto | Avaliação de resultados | 5 |
-| EP-16 | Histórico e documentos | Contexto contínuo de cliente/projeto | 6 |
-| EP-17 | Relatórios e encerramento | Comunicação e fechamento do ciclo | 6 |
-| EP-18 | Templates e recorrência | Reutilização de processos | 7 |
-| EP-19 | Notificações | Colaboração com alertas relevantes | 7 |
-| EP-20 | Integrações e IA assistiva | Expansão pós-V1 | 8 |
+| EP-00 | Baseline and audit | Real state of the repository and risks confirmed | 0 |
+| EP-01 | MVP security | Existing flows protected | 0 |
+| EP-02 | Briefing integrity | Consistent submission and answers | 0 |
+| EP-03 | Minimum quality and operations | CI, tests and verifiable deploy | 0 |
+| EP-04 | Organization and members | Workspace with members and roles | 1 |
+| EP-05 | Clients and projects | Work structure by client/campaign | 1 |
+| EP-06 | Isolation and authorization | Access by organization and project | 1 |
+| EP-07 | Versioned catalog | Reproducible historical forms | 2 |
+| EP-08 | Versioned diagnosis | Explainable, reprocessable result | 2 |
+| EP-09 | Briefing review | Approval and history | 2 |
+| EP-10 | Recommendations | Persisted, traceable suggestions | 3 |
+| EP-11 | Prioritization | Justified priority decisions | 3 |
+| EP-12 | Plan and objectives | Strategy structured by project | 4 |
+| EP-13 | Actions and tasks | Collaborative execution | 4 |
+| EP-14 | Indicators and targets | Structured measurement | 5 |
+| EP-15 | Evidence and impact | Results evaluation | 5 |
+| EP-16 | History and documents | Continuous client/project context | 6 |
+| EP-17 | Reports and closing | Communication and cycle closing | 6 |
+| EP-18 | Templates and recurrence | Process reuse | 7 |
+| EP-19 | Notifications | Collaboration with relevant alerts | 7 |
+| EP-20 | Integrations and assistive AI | Post-V1 expansion | 8 |
 
 ---
 
-## 8. Dependências entre fases
+## 8. Dependencies between phases
 
 ```text
-Fase 0 — Auditoria e proteção
+Phase 0 — Audit and protection
    ↓
-Fase 1 — Organização, permissões, clientes e projetos
+Phase 1 — Organization, permissions, clients and projects
    ↓
-Fase 2 — Briefing e diagnóstico versionados
+Phase 2 — Versioned briefing and diagnosis
    ↓
-Fase 3 — Recomendações e priorização
+Phase 3 — Recommendations and prioritization
    ↓
-Fase 4 — Planejamento e execução
+Phase 4 — Planning and execution
    ↓
-Fase 5 — Indicadores e avaliação de impacto
+Phase 5 — Indicators and impact evaluation
    ↓
-Fase 6 — Relatórios, documentos e encerramento
+Phase 6 — Reports, documents and closing
    ↓
-Fase 7 — Templates, notificações e melhoria contínua
+Phase 7 — Templates, notifications and continuous improvement
    ↓
-Fase 8 — Integrações e capacidades avançadas
+Phase 8 — Integrations and advanced capabilities
 ```
 
-Algumas atividades podem ocorrer em paralelo:
-- design system e acessibilidade acompanham todas as fases;
-- CI, observabilidade e segurança evoluem continuamente;
-- privacidade e LGPD são requisitos transversais, não uma entrega isolada;
-- testes e documentação acompanham cada módulo;
-- relatórios operacionais simples podem surgir antes dos relatórios estratégicos completos, desde que respeitem permissões e qualidade dos dados.
+Some activities can happen in parallel:
+- design system and accessibility accompany every phase;
+- CI, observability and security evolve continuously;
+- privacy and LGPD are cross-cutting requirements, not an isolated delivery;
+- tests and documentation accompany each module;
+- simple operational reports can appear before full strategic reports, as long as they respect permissions and data quality.
 
 ---
 
-## 9. Trilha transversal de experiência e design
+## 9. Cross-cutting experience and design track
 
-A experiência deve acompanhar o crescimento funcional. Não deixar para “embelezar” o produto ao final.
+The experience must keep pace with functional growth. Don't leave "polishing" the product for the end.
 
-### 9.1 Fundamentos
+### 9.1 Foundations
 
-- Definir identidade visual consistente com `PRODUCT.md`.
-- Formalizar tokens semânticos de cor, tipografia, espaçamento, raio e elevação.
-- Documentar componentes e estados.
-- Manter experiência responsiva e acessível.
-- Projetar estados vazios, carregamento, erro, sucesso e permissões insuficientes.
-- Garantir linguagem direta, humana e não julgadora.
-- Diferenciar visualmente sugestão, decisão aprovada e resultado observado.
+- Define a visual identity consistent with `PRODUCT.md`.
+- Formalize semantic tokens for color, typography, spacing, radius and elevation.
+- Document components and states.
+- Keep the experience responsive and accessible.
+- Design empty, loading, error, success and insufficient-permission states.
+- Ensure direct, human and non-judgmental language.
+- Visually differentiate suggestion, approved decision and observed result.
 
-### 9.2 Experiência por superfície
+### 9.2 Experience by surface
 
-| Superfície | Prioridade de UX |
+| Surface | UX priority |
 |---|---|
-| Formulário público | Clareza, confiança, progresso, autosave e retomada |
-| Painel da equipe | Visibilidade de prioridades, pendências e próximos passos |
-| Cliente | Histórico e contexto sem virar CRM excessivo |
-| Projeto | Visão integrada de briefing, diagnóstico, plano, tarefas e resultados |
-| Diagnóstico | Explicabilidade, evidências e revisão humana |
-| Objetivos | Progresso estratégico distinto de tarefas concluídas |
-| Indicadores | Atualização simples, unidade clara e comparação com meta |
-| Relatórios | Síntese, contexto, transparência e compartilhamento seguro |
+| Public form | Clarity, trust, progress, autosave and resume |
+| Team dashboard | Visibility of priorities, pending items and next steps |
+| Client | History and context without becoming an overloaded CRM |
+| Project | Integrated view of briefing, diagnosis, plan, tasks and results |
+| Diagnosis | Explainability, evidence and human review |
+| Objectives | Strategic progress distinct from completed tasks |
+| Indicators | Simple updates, clear units and comparison with the target |
+| Reports | Synthesis, context, transparency and secure sharing |
 
-### 9.3 Acessibilidade
+### 9.3 Accessibility
 
-Adotar WCAG 2.2 AA como referência do produto, conforme `PRODUCT.md`.
+Adopt WCAG 2.2 AA as the product reference, per `PRODUCT.md`.
 
-Checklist contínuo:
-- teclado e foco visível;
-- estrutura semântica e headings;
-- labels e instruções;
-- contraste;
-- leitor de tela;
-- mensagens de estado anunciadas;
-- zoom e layouts responsivos;
-- alvos de interação adequados;
-- respeito a movimento reduzido.
+Continuous checklist:
+- keyboard and visible focus;
+- semantic structure and headings;
+- labels and instructions;
+- contrast;
+- screen readers;
+- announced status messages;
+- zoom and responsive layouts;
+- adequate interaction targets;
+- respect for reduced motion.
 
 ---
 
-## 10. Segurança, privacidade e operação como trabalho contínuo
+## 10. Security, privacy and operations as continuous work
 
-Não concentrar segurança e LGPD em uma única fase. Cada épico deve incluir seus requisitos transversais.
+Don't concentrate security and LGPD in a single phase. Each epic should include its cross-cutting requirements.
 
-### Segurança
+### Security
 
-- autenticação e autorização no servidor;
-- isolamento por organização e projeto;
-- princípio do menor privilégio;
-- validação de entrada;
-- rate limiting e proteção de origem;
-- gestão de segredos;
-- links externos seguros, expirados e revogáveis;
-- arquivos privados;
-- auditoria de ações críticas.
+- server-side authentication and authorization;
+- isolation by organization and project;
+- principle of least privilege;
+- input validation;
+- rate limiting and origin protection;
+- secrets management;
+- secure, expiring and revocable external links;
+- private files;
+- auditing of critical actions.
 
-### Privacidade
+### Privacy
 
-- minimização de dados;
-- aviso de privacidade e base legal adequada;
-- retenção por categoria;
-- acesso, correção, exportação e exclusão/anonimização quando aplicáveis;
-- logs sem dados pessoais desnecessários;
-- gestão de suboperadores;
-- documentação do ciclo de vida dos dados.
+- data minimization;
+- privacy notice and appropriate legal basis;
+- retention by category;
+- access, correction, export and deletion/anonymization where applicable;
+- logs without unnecessary personal data;
+- sub-processor management;
+- documentation of the data lifecycle.
 
-Consentimento não deve ser tratado como base legal universal. A aplicação de cada base legal e os prazos de retenção precisam de validação adequada ao contexto.
+Consent should not be treated as a universal legal basis. The application of each legal basis and the retention periods need validation appropriate to the context.
 
-### Operação
+### Operations
 
-- CI com lint, typecheck, testes e build;
-- testes de integração com PostgreSQL;
-- E2E da jornada principal;
-- logs estruturados e request ID;
-- error tracking e health checks;
-- alertas para falhas importantes;
-- backups automáticos e testes de restauração;
+- CI with lint, typecheck, tests and build;
+- integration tests with PostgreSQL;
+- E2E of the main journey;
+- structured logs and request ID;
+- error tracking and health checks;
+- alerts for important failures;
+- automatic backups and restore tests;
 - runbooks;
-- RPO/RTO definidos com base no impacto de negócio e capacidade da infraestrutura.
+- RPO/RTO defined based on business impact and infrastructure capacity.
 
 ---
 
-## 11. Decisões de produto que bloqueiam refinamento técnico
+## 11. Product decisions blocking technical refinement
 
-As decisões abaixo já estão identificadas nos requisitos e na arquitetura. Devem ser fechadas antes de implementar os respectivos módulos.
+The decisions below are already identified in the requirements and the architecture. They must be settled before implementing the respective modules.
 
-| Decisão pendente | Impacto | Fase limite |
+| Pending decision | Impact | Deadline phase |
 |---|---|---:|
-| Matriz detalhada de permissões | Políticas de acesso e interface | 1 |
-| Escopo de acesso a projetos: individual, equipe ou ambos | Consultas e autorização | 1 |
-| Fórmula, pesos e escalas de prioridade | Cálculo e histórico | 3 |
-| Deduplicação e versionamento de recomendações | Persistência e atualização | 3 |
-| Tipos, unidades e validação de indicadores | Schema e medições | 5 |
-| Quem valida medições e em quais condições | Autorização e fluxo | 5 |
-| Compartilhamento externo de relatórios | Token, expiração, escopo e autenticação | 6 |
-| Herança e duplicação de modelos | Comportamento de templates | 7 |
-| Recorrência: criação automática ou confirmação | Jobs e ciclo de vida | 7 |
-| Eventos e preferências de notificação | Canais e regras | 7 |
-| Política de arquivamento e exclusão | Integridade e privacidade | Transversal |
-| RPO/RTO e retenção de backup | Operação e custo | 0–6 |
+| Detailed permission matrix | Access policies and interface | 1 |
+| Project access scope: individual, team or both | Queries and authorization | 1 |
+| Priority formula, weights and scales | Calculation and history | 3 |
+| Recommendation deduplication and versioning | Persistence and updates | 3 |
+| Indicator types, units and validation | Schema and measurements | 5 |
+| Who validates measurements and under which conditions | Authorization and flow | 5 |
+| External report sharing | Token, expiration, scope and authentication | 6 |
+| Template inheritance and duplication | Template behavior | 7 |
+| Recurrence: automatic creation or confirmation | Jobs and lifecycle | 7 |
+| Notification events and preferences | Channels and rules | 7 |
+| Archiving and deletion policy | Integrity and privacy | Cross-cutting |
+| RPO/RTO and backup retention | Operations and cost | 0–6 |
 
 ---
 
 ## 12. Definition of Ready
 
-Uma história está pronta para desenvolvimento quando:
+A story is ready for development when:
 
-- [ ] Está ligada a um requisito ou problema observado.
-- [ ] Tem usuário/ator e contexto definidos.
-- [ ] Tem resultado esperado e critério de aceite verificável.
-- [ ] Dependências de produto e arquitetura estão identificadas.
-- [ ] Regras de permissão e organização foram consideradas.
-- [ ] Estados de erro, vazio e carregamento foram pensados.
-- [ ] Impacto em dados, migrações e histórico foi avaliado.
-- [ ] Decisões pendentes foram resolvidas ou explicitamente isoladas.
-- [ ] Escopo cabe em uma entrega revisável.
+- [ ] It is linked to a requirement or an observed problem.
+- [ ] It has a defined user/actor and context.
+- [ ] It has an expected outcome and verifiable acceptance criteria.
+- [ ] Product and architecture dependencies are identified.
+- [ ] Permission and organization rules were considered.
+- [ ] Error, empty and loading states were thought through.
+- [ ] Impact on data, migrations and history was assessed.
+- [ ] Pending decisions were resolved or explicitly isolated.
+- [ ] The scope fits in a reviewable delivery.
 
 ---
 
 ## 13. Definition of Done
 
-Uma entrega só está pronta quando:
+A delivery is only done when:
 
-- [ ] Critérios de aceite foram atendidos.
-- [ ] Regras de negócio estão no domínio/caso de uso adequado.
-- [ ] Autenticação, autorização e isolamento foram testados.
-- [ ] Entradas são validadas no servidor.
-- [ ] Transações e concorrência foram avaliadas.
-- [ ] Histórico/auditoria foi implementado quando necessário.
-- [ ] Testes automatizados cobrem caminho feliz e falhas relevantes.
-- [ ] Lint, typecheck, testes e build passam no CI.
-- [ ] Interface é responsiva e acessível.
-- [ ] Logs não expõem tokens ou PII desnecessária.
-- [ ] Migração, rollback e compatibilidade foram avaliados.
-- [ ] Documentação de produto, requisitos, arquitetura e roadmap foi atualizada.
-- [ ] Impacto operacional e de privacidade foi considerado.
-
----
-
-## 14. Métricas de sucesso e revisão do roadmap
-
-Revisar o roadmap ao final de cada fase e sempre que houver mudança significativa de escopo.
-
-### Perguntas para a revisão
-
-1. A fase entregou uma capacidade utilizável de ponta a ponta?
-2. A equipe consegue executar o fluxo sem depender de contornos manuais?
-3. O produto ficou mais seguro e rastreável?
-4. Há evidência de uso e valor?
-5. O que deve ser simplificado, adiado ou removido?
-6. Alguma decisão pendente bloqueia a fase seguinte?
-7. O roadmap ainda reflete `PRODUCT.md` e `02-requisitos.md`?
-
-### Regras de mudança
-
-- Não adicionar uma funcionalidade apenas porque é tecnicamente interessante.
-- Não antecipar IA ou integração sem caso de uso validado.
-- Não ampliar personalização antes de estabilizar o fluxo padrão.
-- Não sacrificar isolamento e integridade para acelerar interface.
-- Atualizar este roadmap quando uma decisão de produto alterar sequência, dependência ou escopo.
+- [ ] Acceptance criteria were met.
+- [ ] Business rules are in the appropriate domain/use case.
+- [ ] Authentication, authorization and isolation were tested.
+- [ ] Inputs are validated on the server.
+- [ ] Transactions and concurrency were assessed.
+- [ ] History/auditing was implemented when needed.
+- [ ] Automated tests cover the happy path and relevant failures.
+- [ ] Lint, typecheck, tests and build pass in CI.
+- [ ] The interface is responsive and accessible.
+- [ ] Logs don't expose tokens or unnecessary PII.
+- [ ] Migration, rollback and compatibility were assessed.
+- [ ] Product, requirements, architecture and roadmap documentation was updated.
+- [ ] Operational and privacy impact was considered.
 
 ---
 
-## 15. Mapa de rastreabilidade dos documentos
+## 14. Success metrics and roadmap review
 
-| Documento | Responsabilidade | Como influencia o roadmap |
+Review the roadmap at the end of each phase and whenever there's a significant scope change.
+
+### Review questions
+
+1. Did the phase deliver an end-to-end usable capability?
+2. Can the team run the flow without manual workarounds?
+3. Did the product become safer and more traceable?
+4. Is there evidence of use and value?
+5. What should be simplified, postponed or removed?
+6. Does any pending decision block the next phase?
+7. Does the roadmap still reflect `PRODUCT.md` and `docs/REQUIREMENTS.md`?
+
+### Change rules
+
+- Don't add a feature just because it's technically interesting.
+- Don't bring AI or integrations forward without a validated use case.
+- Don't expand customization before stabilizing the standard flow.
+- Don't sacrifice isolation and integrity to speed up the interface.
+- Update this roadmap when a product decision changes sequence, dependency or scope.
+
+---
+
+## 15. Document traceability map
+
+| Document | Responsibility | How it influences the roadmap |
 |---|---|---|
-| `PRODUCT.md` | Visão, usuários, problema, princípios, limites e direção | Define o resultado que as fases devem construir |
-| `02-requisitos.md` | Atores, requisitos, regras, dados, segurança e critérios de aceite | Define o comportamento e o que precisa ser validado |
-| `03-inspecao-e-arquitetura.md` | Estado técnico histórico, arquitetura-alvo, riscos e evolução | Define dependências e abordagem técnica |
-| `04-roadmap-melhorias.md` | Sequenciamento e acompanhamento das entregas | Organiza fases, épicos, critérios e decisões |
+| `PRODUCT.md` | Vision, users, problem, principles, boundaries and direction | Defines the outcome the phases must build |
+| `docs/REQUIREMENTS.md` | Actors, requirements, rules, data, security and acceptance criteria | Defines behavior and what needs to be validated |
+| `docs/ARCHITECTURE.md` | Historical technical state, target architecture, risks and evolution | Defines dependencies and technical approach |
+| `docs/ROADMAP.md` | Sequencing and tracking of deliveries | Organizes phases, epics, criteria and decisions |
 
-### Regras de consistência
+### Consistency rules
 
-- Se o roadmap propuser algo que não está na visão do produto, revisar antes de implementar.
-- Se um requisito mudar, avaliar impacto nas fases e dependências.
-- Se a arquitetura mudar, atualizar os épicos e critérios técnicos.
-- Se o código divergir dos documentos, registrar o estado real e decidir se o documento ou o código deve mudar.
-- Não manter estimativas, métricas ou decisões antigas como verdade sem validação.
+- If the roadmap proposes something that isn't in the product vision, review it before implementing.
+- If a requirement changes, assess the impact on phases and dependencies.
+- If the architecture changes, update the epics and technical criteria.
+- If the code diverges from the documents, record the real state and decide whether the document or the code should change.
+- Don't keep old estimates, metrics or decisions as truth without validation.
 
 ---
 
-## 16. Próxima atividade recomendada
+## 16. Next recommended activity
 
-A próxima atividade não é começar todos os módulos. É executar a **Fase 0 — Auditoria, estabilização e proteção do MVP**.
+The next activity is not to start every module. It is to execute **Phase 0 — Audit, stabilization and MVP protection**.
 
-Ordem sugerida:
+> **Update:** Phase 0 was completed and merged into `main` (see `docs/PHASE-0-AUDIT.md`). The next step is **Phase 1**, which depends on the permission matrix (PD-01, PD-02, PD-13).
 
-1. confirmar commit, branch e alterações locais;
-2. revisar schema Prisma e migrações;
-3. auditar autenticação, autorização e escopo das rotas;
-4. validar autosave, envio e reprocessamento;
-5. executar a suíte de testes e identificar lacunas;
-6. verificar CI, deploy, PDF, storage e variáveis de ambiente;
-7. classificar achados e converter apenas problemas confirmados em tarefas;
-8. revisar a matriz de permissões necessária à Fase 1.
+Suggested order:
 
-**Recomendação final:** construir a plataforma por capacidades completas e conectadas. Primeiro garantir que a equipe possa trabalhar com segurança em organizações, clientes e projetos; depois conectar briefing e diagnóstico a recomendações, planejamento, execução e resultados. Isso preserva a identidade do produto e evita que ele se transforme em um conjunto de telas sem uma jornada estratégica coerente.
+1. confirm commit, branch and local changes;
+2. review the Prisma schema and migrations;
+3. audit authentication, authorization and route scope;
+4. validate autosave, submission and reprocessing;
+5. run the test suite and identify gaps;
+6. check CI, deploy, PDF, storage and environment variables;
+7. classify findings and turn only confirmed problems into tasks;
+8. review the permission matrix needed for Phase 1.
+
+**Final recommendation:** build the platform as complete, connected capabilities. First ensure the team can work safely across organizations, clients and projects; then connect briefing and diagnosis to recommendations, planning, execution and results. This preserves the product's identity and keeps it from becoming a set of screens without a coherent strategic journey.

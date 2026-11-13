@@ -16,7 +16,7 @@ These apply to people and agents. Each topic is detailed in `docs/guidelines/`. 
 
 ## Rules that always apply
 
-- **Sources of truth:** `PRODUCT.md` > `docs/02-requisitos.md` > `docs/03-inspecao-e-arquitetura.md` > `docs/04-roadmap-melhorias.md`. A divergence between code and documents is recorded and decided, never resolved silently.
+- **Sources of truth:** `PRODUCT.md` > `docs/REQUIREMENTS.md` > `docs/ARCHITECTURE.md` > `docs/ROADMAP.md`. A divergence between code and documents is recorded and decided, never resolved silently.
 - **Pending decisions (PD-xx) are never decided for technical convenience:** stop and ask.
 - **No generative AI in the product (V1).** Diagnosis and recommendations are deterministic code.
 - **Plan before coding; test first** for domain rules and bug fixes.

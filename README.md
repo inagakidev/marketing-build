@@ -1,168 +1,184 @@
 # Briefing Inteligente
 
-Ferramenta interna para coleta adaptativa de briefings de clientes, com diagnóstico automático gerado por um motor de regras determinístico (sem IA generativa nesta fase). Uma administradora cadastra clientes e gera links únicos de briefing; cada cliente responde um formulário que se ajusta ao tipo de negócio dele, e a administradora recebe um diagnóstico pronto (sinais de alerta + pontuação por categoria) assim que ele é enviado.
+Strategic marketing management platform for teams (see `PRODUCT.md`). The current code is the MVP plus the Phase 0 hardening: an internal tool for adaptive client briefings, with an automatic diagnosis produced by a deterministic rules engine (no generative AI in this phase). An administrator registers clients and generates unique briefing links; each client answers a form that adapts to their type of business, and the administrator receives a ready diagnosis (warning signals + per-category score) as soon as it's submitted.
+
+The user interface is in Brazilian Portuguese (pt-BR); code and documentation are in English (`docs/guidelines/CODE-AND-UI.md`).
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| `PRODUCT.md` | Vision, users, principles and boundaries |
+| `docs/REQUIREMENTS.md` | Functional and non-functional requirements |
+| `docs/ARCHITECTURE.md` | Technical state and target architecture |
+| `docs/ROADMAP.md` | Phases, epics and priorities |
+| `docs/PHASE-0-AUDIT.md` | Phase 0 audit and progress |
+| `docs/DECISIONS.md` | Decisions made during development |
+| `AGENTS.md` + `docs/guidelines/` | Development guidelines |
 
 ## Stack
 
-| Camada | Tecnologia |
+| Layer | Technology |
 |---|---|
-| Frontend + Backend | Next.js 16 (App Router) + TypeScript, projeto único full-stack |
+| Frontend + Backend | Next.js 16 (App Router) + TypeScript, single full-stack project |
 | UI | Tailwind CSS + shadcn/ui |
-| Banco de dados | PostgreSQL (local via Docker; Supabase em produção) |
+| Database | PostgreSQL (local via Docker; Supabase in production) |
 | ORM | Prisma 7 |
-| Autenticação | Supabase Auth (usuário administrador único) |
-| PDF | Playwright (renderiza a própria página do briefing e exporta) |
-| Testes | Vitest (unitários) + Vitest contra Postgres real (integração) |
+| Authentication | Supabase Auth |
+| PDF | Playwright (renders the briefing's own page and exports it); `@sparticuz/chromium` on serverless |
+| Tests | Vitest (unit) + Vitest against a real Postgres (integration) |
 
-Não há um servidor de API separado: o "backend" é a camada de rotas do Next (`src/app/api/**/route.ts`), rodando no mesmo processo do frontend. Não existe integração com LLM/IA generativa nesta versão — todo o diagnóstico é código determinístico em `src/core`.
+There's no separate API server: the "backend" is Next's route layer (`src/app/api/**/route.ts`), running in the same process as the frontend. There's no LLM/generative AI integration in this version — the whole diagnosis is deterministic code in `src/core`.
 
-## Pré-requisitos
+## Prerequisites
 
-- Node.js 20+ (testado com Node 24)
-- Docker (para o Postgres local) — ou uma connection string de um Postgres já existente
-- Uma conta Supabase (opcional para desenvolver; obrigatória para login real)
+- Node.js 22.17+ or 24 (CI runs on Node 24)
+- Docker (for the local Postgres) — or a connection string to an existing Postgres
+- A Supabase account (optional for development; required for real login)
 
-## Setup do zero
+## Setup from scratch
 
 ```bash
-# 1. Instalar dependências
+# 1. Install dependencies
 npm install
 
-# 2. Copiar o template de variáveis de ambiente
+# 2. Copy the environment variables template
 cp .env.example .env
 
-# 3. Subir o Postgres local
+# 3. Start the local Postgres
 npm run db:up
 
-# 4. Rodar as migrations e o client do Prisma
+# 4. Run the migrations and generate the Prisma client
 npm run db:migrate
 
-# 5. Popular o catálogo de perguntas (núcleo fixo + ramificações por tipo de negócio)
+# 5. Seed the question catalog (fixed core + branches by business type)
 npm run db:seed
 
-# 6. Criar a conta da administradora
+# 6. Create the administrator account
 npm run db:seed:admin
 
-# 7. Subir a aplicação
+# 7. Start the application
 npm run dev
 ```
 
-Abra [http://localhost:3000/admin](http://localhost:3000/admin).
+Open [http://localhost:3000/admin](http://localhost:3000/admin).
 
-Se `NEXT_PUBLIC_SUPABASE_URL` ainda não estiver preenchida no `.env`, o painel libera acesso sem login enquanto `DEV_ADMIN_EMAIL` estiver definido — só para desenvolver antes de configurar o Supabase de verdade (veja abaixo). Sem Supabase configurado e sem `DEV_ADMIN_EMAIL`, o login por senha não funciona.
+If `NEXT_PUBLIC_SUPABASE_URL` isn't set in `.env` yet, the panel allows access without login while `DEV_ADMIN_EMAIL` is set — only for development before setting up Supabase for real (see below). Without Supabase configured and without `DEV_ADMIN_EMAIL`, password login doesn't work.
 
-Para ter um cliente e um link de briefing de exemplo sem passar pelo painel:
+To get a sample client and briefing link without going through the panel:
 
 ```bash
 npm run dev:data
 ```
 
-O script imprime o link público (`/briefing/<token>`) no terminal.
+The script prints the public link (`/briefing/<token>`) in the terminal.
 
-## Variáveis de ambiente
+## Environment variables
 
-Todas estão documentadas com comentários em `.env.example`. Resumo:
+All of them are documented with comments in `.env.example`. Summary:
 
-| Variável | Para quê |
+| Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Connection string do Postgres. Local por padrão (`docker-compose.yml`); trocar por uma URI do Supabase migra o banco sem mudar código. |
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Credenciais públicas do Supabase Auth (Settings → API do seu projeto). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave privada, usada só no servidor pelo seed para criar a administradora no Supabase Auth. **Nunca** expor ao cliente. |
-| `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Dados usados por `npm run db:seed:admin` para criar o único usuário do MVP. |
-| `NEXT_PUBLIC_APP_URL` | Base pública da aplicação — monta o link do briefing e é para onde o Playwright navega ao gerar o PDF. |
-| `BRIEFING_LINK_TTL_DAYS` | Validade padrão, em dias, de um link de briefing recém-criado. |
-| `DEV_ADMIN_EMAIL` | Bypass de login em desenvolvimento. Só funciona com Supabase **não** configurado; some assim que `NEXT_PUBLIC_SUPABASE_URL` é preenchida. Deixe vazio para exigir login sempre. |
-| `CHROMIUM_EXECUTABLE_PATH` | Caminho do Chromium já instalado, para distros onde `playwright install` não funciona. |
+| `DATABASE_URL` | Postgres connection string. Local by default (`docker-compose.yml`); switching to a Supabase URI migrates the database without code changes. |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public Supabase Auth credentials (your project's Settings → API). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Private key, used only on the server by the seed to create the administrator in Supabase Auth. **Never** expose it to the client. |
+| `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Data used by `npm run db:seed:admin` to create the administrator account. |
+| `NEXT_PUBLIC_APP_URL` | The application's public base URL — builds the briefing link and is where Playwright navigates to generate the PDF. Required in production. |
+| `BRIEFING_LINK_TTL_DAYS` | Default validity, in days, of a newly created briefing link (1–365). |
+| `DEV_ADMIN_EMAIL` | Login bypass in development. Only works with Supabase **not** configured and `NODE_ENV=development`. Leave empty to always require login. |
+| `CHROMIUM_EXECUTABLE_PATH` | Path to an installed Chromium, for distros where `playwright install` doesn't work. Ignored on serverless. |
 
-### Configurando o Supabase (login real)
+### Validated environment
 
-1. Crie um projeto em [supabase.com](https://supabase.com).
-2. Copie `Project URL`, `anon public key` e `service_role key` (Settings → API) para o `.env`.
-3. Troque `DATABASE_URL` pela connection string do Postgres do projeto (Settings → Database → Connection string → URI) — só essa linha muda, o schema é o mesmo.
-4. Rode `npm run db:migrate` e `npm run db:seed:admin` novamente apontando para o Supabase — isso cria a administradora tanto no Supabase Auth quanto na tabela local `users`, com o vínculo entre os dois.
-5. Apague/deixe vazio o `DEV_ADMIN_EMAIL`.
+`src/server/env.ts` validates the environment when the server starts (`src/instrumentation.ts`). With an invalid configuration, the server **doesn't start** and lists what to fix, without echoing values. In production, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are required.
 
-> **Quem pode entrar.** Estar autenticado no Supabase não basta: só acessa o painel quem já existe na tabela `users` (criado por `db:seed:admin`). Uma conta criada apenas no Supabase — inclusive pelo signup público dele — vê a tela "Esta conta não tem acesso ao painel". Nenhum usuário é criado a partir de um login. Recomenda-se também desligar o signup público em *Authentication → Providers → Email* no Supabase. Política provisória até os convites da Fase 1 (decisão D3 em `docs/decisoes.md`).
+### Setting up Supabase (real login)
 
-## Como a API funciona
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy the `Project URL`, `anon public key` and `service_role key` (Settings → API) into `.env`.
+3. Replace `DATABASE_URL` with the project's Postgres connection string (Settings → Database → Connection string → URI) — only that line changes; the schema is the same.
+4. Run `npm run db:migrate` and `npm run db:seed:admin` again against Supabase — this creates the administrator both in Supabase Auth and in the local `users` table, linked together.
+5. Clear `DEV_ADMIN_EMAIL`.
 
-Cada rota vive em `src/app/api/**/route.ts` e segue o mesmo formato: recebe a requisição, chama uma função de `src/server/*.ts` (acesso a banco via Prisma) e/ou `src/core/*.ts` (motor de regras, puro e sem I/O), e devolve JSON.
+> **Who can sign in.** Being authenticated in Supabase isn't enough: only people who already exist in the `users` table (created by `db:seed:admin`) can access the panel. An account that exists only in Supabase — including through its public sign-up — sees the "Esta conta não tem acesso ao painel" screen. No user is ever created from a login. It's also recommended to disable public sign-up under *Authentication → Providers → Email* in Supabase. Interim policy until Phase 1 invitations (decision D3 in `docs/DECISIONS.md`).
 
-### Rotas autenticadas (painel da administradora)
+## How the API works
 
-Protegidas por `src/proxy.ts` (middleware do Next 16) + `requireUser`/`getSessionUser` em cada rota — a checagem existe nos dois lugares de propósito, porque o proxy não cobre toda navegação interna.
+Each route lives in `src/app/api/**/route.ts` and follows the same shape: it receives the request, calls a function in `src/server/*.ts` (database access via Prisma) and/or `src/core/*.ts` (pure rules engine with no I/O), and returns JSON.
 
-As rotas que alteram dados (e o PDF) também recusam requisições de outra origem com `403` (`src/server/security/origin.ts`), como proteção contra CSRF.
+### Authenticated routes (administrator panel)
 
-| Rota | Método | Função |
+Protected by `src/proxy.ts` (Next 16 middleware) + `requireUser`/`getSessionUser` in each route — the check exists in both places on purpose, because the proxy doesn't cover every internal navigation.
+
+Routes that change data (and the PDF) also reject requests from another origin with `403` (`src/server/security/origin.ts`), as CSRF protection.
+
+| Route | Method | Purpose |
 |---|---|---|
-| `/api/clients` | `GET`, `POST` | Listar clientes / cadastrar cliente |
-| `/api/clients/[id]` | `GET`, `PATCH`, `DELETE` | Detalhe, edição e remoção de um cliente |
-| `/api/briefings` | `POST` | Criar um briefing (gera o token único do link) para um cliente |
-| `/api/briefings/[id]` | `GET` | Detalhe processado do briefing: respostas por categoria, sinais e diagnóstico |
-| `/api/briefings/[id]/reprocess` | `POST` | Recalcula sinais/diagnóstico com as regras atuais (ação explícita — o resultado gravado no envio não muda sozinho) |
-| `/api/briefings/[id]/pdf` | `GET` | Gera e baixa o PDF do briefing (Playwright renderiza `/print/briefing/[id]`) |
+| `/api/clients` | `GET`, `POST` | List clients / create a client |
+| `/api/clients/[id]` | `GET`, `PATCH`, `DELETE` | Detail, edit and delete a client |
+| `/api/briefings` | `POST` | Create a briefing (generates the link's unique token) for a client |
+| `/api/briefings/[id]` | `GET` | Processed briefing detail: answers by category, signals and diagnosis |
+| `/api/briefings/[id]/reprocess` | `POST` | Recompute signals/diagnosis with the current rules (explicit action — the result stored on submission doesn't change on its own) |
+| `/api/briefings/[id]/pdf` | `GET` | Generate and download the briefing PDF (Playwright renders `/print/briefing/[id]`) |
 
-### Rotas públicas (o cliente respondendo, sem login)
+### Public routes (the client answering, no login)
 
-Autenticadas apenas pelo token opaco na URL — a única credencial do respondente.
+Authenticated only by the opaque token in the URL — the respondent's only credential.
 
-Têm rate limiting por IP (e o PDF, por usuário), com contador no próprio Postgres (`src/server/security/rateLimit.ts`, tabela `rate_limit_buckets`). Ao estourar o limite, a resposta é `429` com `Retry-After`. Os limites ficam em `RATE_LIMITS` (`rateLimitRules.ts`).
+They're rate-limited per IP (and the PDF per user), with the counter in Postgres itself (`src/server/security/rateLimit.ts`, table `rate_limit_buckets`). When the limit is exceeded, the response is `429` with `Retry-After`. Limits live in `RATE_LIMITS` (`rateLimitRules.ts`).
 
-| Rota | Método | Função |
+| Route | Method | Purpose |
 |---|---|---|
-| `/api/public/briefing/[token]` | `GET` | Carrega o formulário: perguntas visíveis para o `businessType` já respondido + respostas salvas até agora |
-| `/api/public/briefing/[token]/answers` | `PUT` | Autosave: grava um lote de respostas (debounce no cliente agrupa a rajada de digitação num único PUT) |
-| `/api/public/briefing/[token]/submit` | `POST` | Envio final: roda o motor de sinais e o diagnóstico, muda o status do briefing e trava novas edições |
+| `/api/public/briefing/[token]` | `GET` | Load the form: questions visible for the `businessType` already answered + answers saved so far |
+| `/api/public/briefing/[token]/answers` | `PUT` | Autosave: store a batch of answers (client-side debounce groups bursts of typing into a single PUT) |
+| `/api/public/briefing/[token]/submit` | `POST` | Final submission: runs the signal engine and diagnosis, changes the briefing status and locks further edits — atomically |
 
-### O motor de regras (`src/core`)
+### The rules engine (`src/core`)
 
-Não depende de Next, Prisma ou Supabase — recebe objetos simples (`EvalContext`) e devolve objetos simples, o que permite testá-lo sem banco (é onde ficam os 130+ testes unitários). Três peças:
+It doesn't depend on Next, Prisma or Supabase — it takes plain objects (`EvalContext`) and returns plain objects, which allows testing it without a database. Three parts:
 
-- **Visibilidade** (`core/visibility.ts`): decide quais perguntas aparecem, avaliando a `visibilityRule` (JSON) de cada `Question` contra as respostas já dadas. A ramificação por tipo de negócio é dado, não `if/else` no código.
-- **Sinais** (`core/signals/rules/*.ts`): funções puras `(ctx) => Signal | null`, uma por regra (`vague_goal`, `broad_audience`, etc.), registradas em `core/signals/registry.ts`.
-- **Diagnóstico** (`core/diagnosis/score.ts`): pontua cada categoria a partir dos sinais encontrados e classifica em `green`/`yellow`/`red`/`gray`.
+- **Visibility** (`core/visibility.ts`): decides which questions appear by evaluating each `Question`'s `visibilityRule` (JSON) against the answers already given. Branching by business type is data, not `if/else` in code.
+- **Signals** (`core/signals/rules/*.ts`): pure functions `(ctx) => Signal | null`, one per rule (`vague_goal`, `broad_audience`, etc.), registered in `core/signals/registry.ts`.
+- **Diagnosis** (`core/diagnosis/score.ts`): scores each category from the signals found and classifies it as `green`/`yellow`/`red`/`gray`.
 
-### Geração de PDF
+Answers are also validated against the catalog (`core/answerValidation.ts`) before being stored.
 
-`src/server/pdf.ts` abre um Chromium via Playwright, navega até `NEXT_PUBLIC_APP_URL/print/briefing/[id]` autenticado (reaproveita o cookie de sessão da requisição) e exporta a página renderizada para PDF — o mesmo layout que aparece na tela, sem template duplicado.
+### PDF generation
 
-## Scripts disponíveis
+`src/server/pdf.ts` opens a Chromium (chosen by `src/server/pdfBrowser.ts`), navigates to `NEXT_PUBLIC_APP_URL/print/briefing/[id]` authenticated (reusing the request's session cookie) and exports the rendered page to PDF — the same layout shown on screen, with no duplicated template.
 
-| Comando | O que faz |
+## Available scripts
+
+| Command | What it does |
 |---|---|
-| `npm run dev` | Sobe a aplicação em desenvolvimento (Turbopack) |
-| `npm run build` | Gera o client do Prisma e faz o build de produção |
-| `npm run start` | Serve o build de produção |
+| `npm run dev` | Start the application in development (Turbopack) |
+| `npm run build` | Generate the Prisma client and build for production |
+| `npm run start` | Serve the production build |
 | `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Testes unitários (Vitest, sem banco) |
-| `npm run test:db` | Testes de integração contra Postgres real (exige `npm run db:up`) |
-| `npm run db:up` / `db:down` | Sobe/derruba o Postgres local (Docker) |
-| `npm run db:migrate` | Aplica migrations do Prisma |
-| `npm run db:reset` | Reseta o banco local e reaplica migrations + seed (destrutivo) |
-| `npm run db:seed` | Popula o catálogo de perguntas |
-| `npm run db:seed:admin` | Cria/atualiza a conta da administradora |
-| `npm run db:studio` | Abre o Prisma Studio |
-| `npm run dev:data` | Cria um cliente + briefing de exemplo e imprime o link público |
+| `npm run typecheck` | `next typegen && tsc --noEmit` |
+| `npm test` | Unit tests (Vitest, no database) |
+| `npm run test:db` | Integration tests against a real Postgres (requires `npm run db:up`) |
+| `npm run db:up` / `db:down` | Start/stop the local Postgres (Docker) |
+| `npm run db:migrate` | Apply Prisma migrations |
+| `npm run db:reset` | Reset the local database and reapply migrations + seed (destructive) |
+| `npm run db:seed` | Seed the question catalog |
+| `npm run db:seed:admin` | Create/update the administrator account |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run dev:data` | Create a sample client + briefing and print the public link |
 
-## Variáveis de ambiente validadas
-
-`src/server/env.ts` valida o ambiente quando o servidor sobe (`src/instrumentation.ts`). Com configuração inválida, o servidor **não sobe** e lista o que corrigir, sem repetir valores. Em produção, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` são obrigatórias.
-
-## Testes
+## Tests
 
 ```bash
-npm test          # unitários — motor de regras, visibilidade, diagnóstico, textos
+npm test          # unit — rules engine, visibility, diagnosis, validation, security rules
 npm run db:up
-npm run test:db   # integração — exercita as rotas de servidor contra Postgres real
+npm run test:db   # integration — server layer and API routes against a real Postgres
 ```
 
-Os testes de API (`src/app/api/__tests__/routes.itest.ts`) chamam os route handlers de verdade contra o Postgres e simulam só a sessão. Cobrem principalmente os casos negativos: sem sessão, outra origem, recurso de outra conta, link enviado e corpo inválido.
+The API tests (`src/app/api/__tests__/routes.itest.ts`) call the real route handlers against Postgres and simulate only the session. They mostly cover negative cases: no session, other origin, another account's resource, submitted link and invalid body.
 
-O CI (`.github/workflows/ci.yml`) roda tudo isso em cada PR, com um Postgres de serviço.
+CI (`.github/workflows/ci.yml`) runs all of this on every PR, with a Postgres service.
 
-Antes de considerar uma mudança pronta, o gate completo (ver `AGENTS.md`) é:
+Before calling a change done, the full gate (see `AGENTS.md`) is:
 
 ```bash
 npm run lint && npm run typecheck && npm test && npm run test:db && npm run build
@@ -170,10 +186,10 @@ npm run lint && npm run typecheck && npm test && npm run test:db && npm run buil
 
 ## Deploy
 
-Alvo é a Vercel serverless (decisão D1).
+The target is Vercel serverless (decision D1). The production Postgres is Supabase's (same `DATABASE_URL`, no schema change). Before the first deploy, run the migrations (`prisma migrate deploy`) and both seeds (`db:seed` and `db:seed:admin`) against the production database.
 
-**PDF em serverless (decisão D6):** na Vercel, `src/server/pdfBrowser.ts` usa `@sparticuz/chromium` com `playwright-core`; localmente, o Chromium do Playwright (ou `CHROMIUM_EXECUTABLE_PATH`). Para funcionar em produção:
+**PDF on serverless (decision D6):** on Vercel, `src/server/pdfBrowser.ts` uses `@sparticuz/chromium` with `playwright-core`; locally, Playwright's Chromium (or `CHROMIUM_EXECUTABLE_PATH`). For it to work in production:
 
-- Dê pelo menos **1,6 GB de memória** às funções (Vercel → Settings → Functions). Com menos, o Chromium pode ser encerrado no meio da geração.
-- `playwright-core` e `@sparticuz/chromium` estão fixados em par (1.63.0 ↔ Chromium 153). Atualize os dois juntos.
-- A função do PDF navega até a própria URL pública (`NEXT_PUBLIC_APP_URL`). Em deploys de preview com *Deployment Protection* ligada, essa navegação é bloqueada. Use a URL de produção ou um bypass de proteção. O Postgres de produção é o do Supabase (mesma `DATABASE_URL`, sem mudança de schema). Antes do primeiro deploy, rode as migrations e os dois seeds (`db:seed` e `db:seed:admin`) apontando para o banco de produção.
+- Give functions at least **1.6 GB of memory** (Vercel → Settings → Functions). With less, Chromium may be killed mid-generation.
+- `playwright-core` and `@sparticuz/chromium` are pinned as a pair (1.63.0 ↔ Chromium 153). Upgrade both together.
+- The PDF function navigates to its own public URL (`NEXT_PUBLIC_APP_URL`). On preview deploys with *Deployment Protection* enabled, that navigation is blocked. Use the production URL or a protection bypass.

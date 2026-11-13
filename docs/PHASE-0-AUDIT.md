@@ -1,149 +1,148 @@
-# Briefing Inteligente — Auditoria de Confirmação (Fase 0 / EP-00)
+# Briefing Inteligente — Confirmation Audit (Phase 0 / EP-00)
 
-> **Data:** 12/11/2026  
-> **Base auditada:** branch `front`, commit `5f27745` + documentação v2.0 (`a2d8607`)  
-> **Referências:** `docs/03-inspecao-e-arquitetura.md` §3.2, `docs/04-roadmap-melhorias.md` §4 e §16  
-> **Status:** revisada. Decisões D1–D5 registradas em `docs/decisoes.md` (12/11/2026).
+> **Date:** 2026-11-12  
+> **Audited base:** branch `front`, commit `5f27745` + v2.0 documentation (`a2d8607`)  
+> **References:** `docs/ARCHITECTURE.md` §3.2, `docs/ROADMAP.md` §4 and §16  
+> **Status:** reviewed. Decisions D1–D5 recorded in `docs/DECISIONS.md` (2026-11-12). Phase 0 merged into `main` (PR #6).
 
-Classificação usada: `confirmado`, `corrigido`, `não reproduzido`, `parcial`, `substituído por decisão nova`.
+Classification used: `confirmed`, `fixed`, `not reproduced`, `partial`, `superseded by a new decision`.
 
 ---
 
 ## 1. Baseline
 
-| Item | Resultado |
+| Item | Result |
 |---|---|
-| Branches | Só existe `front` (local e `origin`). **Não há `main`.** |
-| Estado local | Limpo antes da auditoria |
-| Schema | 1 migração (`20260907161804_init`); modelos `User`, `Client`, `Briefing`, `Question`, `Answer`, `Signal`, `Diagnosis` |
-| Modelo de dono | `Client.userId` → isolamento por usuário, sem organização nem projeto |
-| `npm run lint` | ✅ passa |
-| `npm run typecheck` | ✅ passa |
-| `npm test` | ✅ 133 testes em 7 arquivos (só `src/core`) |
-| `npm run test:db` | ✅ 12 testes em 1 arquivo (`src/server/briefing.itest.ts`) |
-| `npm run build` | ✅ passa (Next 16.4.6, Turbopack) |
-| CI | ❌ inexistente (sem `.github/`) |
-| Deploy | Nenhuma configuração de deploy no repositório; o ambiente real não pode ser verificado daqui |
+| Branches | Only `front` exists (local and `origin`). **No `main`.** |
+| Local state | Clean before the audit |
+| Schema | 1 migration (`20260907161804_init`); models `User`, `Client`, `Briefing`, `Question`, `Answer`, `Signal`, `Diagnosis` |
+| Ownership model | `Client.userId` → isolation per user, no organization or project |
+| `npm run lint` | ✅ passes |
+| `npm run typecheck` | ✅ passes |
+| `npm test` | ✅ 133 tests in 7 files (only `src/core`) |
+| `npm run test:db` | ✅ 12 tests in 1 file (`src/server/briefing.itest.ts`) |
+| `npm run build` | ✅ passes (Next 16.4.6, Turbopack) |
+| CI | ❌ none (no `.github/`) |
+| Deploy | No deploy configuration in the repository; the real environment can't be verified from here |
 
-Pontos fortes registrados na inspeção anterior (§3.1) foram **confirmados**: `src/core` puro, visibilidade por dados, registro de sinais, estado cinza, `sourceAnswerIds`, token de 24 caracteres (~124 bits), `processAndPersist` transacional e idempotente.
+Strengths recorded in the previous inspection (§3.1) were **confirmed**: pure `src/core`, data-driven visibility, signal registry, gray status, `sourceAnswerIds`, 24-character token (~124 bits), transactional and idempotent `processAndPersist`.
 
 ---
 
-## 2. Achados históricos
+## 2. Historical findings
 
-| ID | Classificação | Evidência | Prioridade proposta |
+| ID | Classification | Evidence | Proposed priority |
 |---|---|---|---|
-| **SEC-01** | **confirmado** | `src/server/auth.ts` `getSessionUser`: qualquer conta autenticada no Supabase vira `User` na primeira visita (`prisma.user.create`). Se o signup do Supabase estiver ligado (padrão do Supabase, não verificável pelo repo), qualquer pessoa obtém um painel. O isolamento por `userId` impede ver clientes alheios, mas o acesso em si não deveria existir. | **P0** |
-| **SEC-02** | **confirmado** | `src/app/login/page.tsx:17` faz `redirect(redirectTo)` e `LoginForm.tsx:78` faz `router.push(redirectTo)` com o valor cru do query string. `/login?redirect=https://site-malicioso` funciona como open redirect. | P1 |
-| **SEC-03** | **parcial** | Não há verificação de `Origin` nas mutações. Mitigação existente: cookies do Supabase são `SameSite=Lax` (`@supabase/ssr`), que bloqueiam POST/PATCH/DELETE cross-site. Resta: subdomínios same-site e o `GET /api/briefings/[id]/pdf`, que é caro (abre um Chromium) e aceita navegação top-level cross-site. | P1 |
-| **SEC-04** | **confirmado** | Nenhum rate limiting em `/api/public/**` nem no PDF. | P1 |
-| **SEC-05** | **confirmado** | Sem `robots`, `noindex` ou `Referrer-Policy` explícita. O token está na URL `/briefing/<token>`; a política padrão dos navegadores já não vaza o caminho cross-origin, mas isso deve ser explícito. | P1 |
-| **SEC-06** | **confirmado** | `next.config.ts` não define `headers()`; sem CSP, `X-Frame-Options`/`frame-ancestors`, `X-Content-Type-Options`. | P1 |
-| **DATA-01** | **confirmado** | `submitBriefing` (`src/server/briefing.ts`): valida → `update` de status → `processAndPersist` em **três passos fora de uma transação única**. (a) se o diagnóstico falhar, o briefing fica fechado sem diagnóstico; (b) `saveAnswers` não checa de novo o status dentro da transação, então um autosave concorrente pode alterar respostas depois do cálculo; (c) dois envios simultâneos passam pela checagem e disputam a unique `(briefingId, code)` de `Signal`, e um deles devolve 500. | **P0** |
-| **DATA-02** | **confirmado** | `Question` é catálogo global sem versão; editar uma pergunta muda briefings antigos. Entrega estrutural na Fase 2 (EP-07). Mitigação até lá: não editar o catálogo em produção, só adicionar. | P0 (mitigar na Fase 0, resolver na Fase 2) |
-| **DATA-03** | **confirmado** | `saveAnswersSchema` só valida "string ou array de strings". Não confere tipo × `answerType` nem valor × `options`. Um `business_type` inválido chega ao `prisma.briefing.update` como enum desconhecido → **500**. | P1 |
-| **DATA-04** | **confirmado** | `missingRequiredKeys` das categorias cinzas é recalculado na leitura (`briefingDetail.ts:197`) contra o catálogo **atual**; não é persistido. | P1 (Fase 2, junto com DATA-02) |
-| **DATA-05** | **confirmado** | Não há revogação, regeneração, reabertura nem aprovação. Os status `draft`, `submitted` e `approved` existem no enum, mas nenhum fluxo os usa. | P1 (Fase 2, EP-09; BRF-04 é Must) |
-| **DATA-06** | **confirmado** (baixo impacto) | `loadBriefingDetail` lê `signals` e `diagnoses` sem `orderBy`; o sumário ordena por pontuação e, no empate, herda a ordem do banco. A ordem das perguntas é determinística (`order` global no seed). | P2 |
-| **PERF-01** | **confirmado** | O `matcher` do `src/proxy.ts` inclui `/briefing/*` e `/api/public/*`; com Supabase configurado, cada autosave público faz uma chamada `auth.getUser()` à toa. | P1 |
-| **QUAL-04** | **confirmado** | Não há testes de API, de componentes nem E2E. O único teste de acesso cruzado é "não devolve briefing de outra conta". | P2 → parte do DoD de cada correção |
-| **QUAL-05** | **confirmado** | Sem pipeline de CI. | P1 (a Fase 0 exige "CI bloqueia regressões") |
-| **QUAL-06** | **confirmado** | Só `console.error("[api]", error)`; sem logs estruturados, request ID ou health check. | P2 |
-| **LGPD-01** | **confirmado** | A única exclusão é o hard delete em cascata do cliente (`DELETE /api/clients/[id]`); não há exportação, retenção nem anonimização. | P1 (transversal; depende de PD-12) |
-| **DEPLOY-01** | **confirmado** (código) | `src/server/pdf.ts` usa o Chromium completo do Playwright; o próprio arquivo registra que isso não roda em função serverless da Vercel. O ambiente de deploy real não está definido no repositório. | P1, depende da decisão D1 |
+| **SEC-01** | **confirmed** | `src/server/auth.ts` `getSessionUser`: any account authenticated in Supabase becomes a `User` on first visit (`prisma.user.create`). If Supabase signup is enabled (Supabase default, not verifiable from the repo), anyone gets a dashboard. Isolation by `userId` prevents seeing other people's clients, but the access itself shouldn't exist. | **P0** |
+| **SEC-02** | **confirmed** | `src/app/login/page.tsx:17` calls `redirect(redirectTo)` and `LoginForm.tsx:78` calls `router.push(redirectTo)` with the raw query-string value. `/login?redirect=https://malicious-site` works as an open redirect. | P1 |
+| **SEC-03** | **partial** | No `Origin` check on mutations. Existing mitigation: Supabase cookies are `SameSite=Lax` (`@supabase/ssr`), which blocks cross-site POST/PATCH/DELETE. Remaining: same-site subdomains and `GET /api/briefings/[id]/pdf`, which is expensive (launches a Chromium) and accepts cross-site top-level navigation. | P1 |
+| **SEC-04** | **confirmed** | No rate limiting on `/api/public/**` or on the PDF. | P1 |
+| **SEC-05** | **confirmed** | No `robots`, `noindex` or explicit `Referrer-Policy`. The token is in the URL `/briefing/<token>`; browsers' default policy already doesn't leak the path cross-origin, but it should be explicit. | P1 |
+| **SEC-06** | **confirmed** | `next.config.ts` doesn't define `headers()`; no CSP, `X-Frame-Options`/`frame-ancestors`, `X-Content-Type-Options`. | P1 |
+| **DATA-01** | **confirmed** | `submitBriefing` (`src/server/briefing.ts`): validate → status `update` → `processAndPersist` in **three steps outside a single transaction**. (a) if the diagnosis fails, the briefing is closed without a diagnosis; (b) `saveAnswers` doesn't re-check the status inside the transaction, so a concurrent autosave can change answers after the calculation; (c) two simultaneous submissions pass the check and race on the `(briefingId, code)` unique constraint of `Signal`, and one of them returns 500. | **P0** |
+| **DATA-02** | **confirmed** | `Question` is a global, unversioned catalog; editing a question changes old briefings. Structural delivery in Phase 2 (EP-07). Mitigation until then: don't edit the catalog in production, only add. | P0 (mitigate in Phase 0, solve in Phase 2) |
+| **DATA-03** | **confirmed** | `saveAnswersSchema` only validates "string or array of strings". It doesn't check type × `answerType` or value × `options`. An invalid `business_type` reaches `prisma.briefing.update` as an unknown enum → **500**. | P1 |
+| **DATA-04** | **confirmed** | `missingRequiredKeys` for gray categories is recomputed on read (`briefingDetail.ts:197`) against the **current** catalog; it isn't persisted. | P1 (Phase 2, with DATA-02) |
+| **DATA-05** | **confirmed** | No revocation, regeneration, reopening or approval. The `draft`, `submitted` and `approved` statuses exist in the enum, but no flow uses them. | P1 (Phase 2, EP-09; BRF-04 is Must) |
+| **DATA-06** | **confirmed** (low impact) | `loadBriefingDetail` reads `signals` and `diagnoses` without `orderBy`; the summary sorts by score and, on ties, inherits the database order. Question order is deterministic (global `order` in the seed). | P2 |
+| **PERF-01** | **confirmed** | The `matcher` in `src/proxy.ts` includes `/briefing/*` and `/api/public/*`; with Supabase configured, every public autosave makes a pointless `auth.getUser()` call. | P1 |
+| **QUAL-04** | **confirmed** | No API, component or E2E tests. The only cross-access test is "doesn't return another account's briefing". | P2 → part of the DoD of each fix |
+| **QUAL-05** | **confirmed** | No CI pipeline. | P1 (Phase 0 requires "CI blocks regressions") |
+| **QUAL-06** | **confirmed** | Only `console.error("[api]", error)`; no structured logs, request ID or health check. | P2 |
+| **LGPD-01** | **confirmed** | The only deletion is the client's cascading hard delete (`DELETE /api/clients/[id]`); no export, retention or anonymization. | P1 (cross-cutting; depends on PD-12) |
+| **DEPLOY-01** | **confirmed** (code) | `src/server/pdf.ts` uses Playwright's full Chromium; the file itself notes this doesn't run in a Vercel serverless function. The real deploy environment isn't defined in the repository. | P1, depends on decision D1 |
 
 ---
 
-## 3. Achados novos
+## 3. New findings
 
-| ID | Achado | Evidência | Prioridade proposta |
+| ID | Finding | Evidence | Proposed priority |
 |---|---|---|---|
-| NEW-01 | JSON malformado no corpo devolve **500** em vez de 400 | `parseBody` lança `SyntaxError`, e `handle()` só traduz `UnauthorizedError` e `ZodError` | P1 |
-| NEW-02 | Payload público inclui o `id` interno do briefing | `GET /api/public/briefing/[token]` devolve `briefing.id` (FORM-14: só o necessário) | P3 |
-| NEW-03 | Link de briefing pode sair relativo/quebrado sem aviso | `POST /api/briefings` usa `NEXT_PUBLIC_APP_URL ?? ""`; não há validação de env na inicialização | P1 (entra na validação de env) |
-| NEW-04 | Excluir cliente apaga em cascata briefings, respostas e diagnósticos | `onDelete: Cascade` + `deleteMany`; conflita com "histórico preservado" (PRODUCT.md, princípio 8) | **Conflito com a v2**: depende de PD-12 |
+| NEW-01 | Malformed JSON body returns **500** instead of 400 | `parseBody` throws `SyntaxError`, and `handle()` only translates `UnauthorizedError` and `ZodError` | P1 |
+| NEW-02 | Public payload includes the briefing's internal `id` | `GET /api/public/briefing/[token]` returns `briefing.id` (FORM-14: only what's needed) | P3 |
+| NEW-03 | Briefing link can come out relative/broken without warning | `POST /api/briefings` uses `NEXT_PUBLIC_APP_URL ?? ""`; no env validation at startup | P1 (part of env validation) |
+| NEW-04 | Deleting a client cascades to briefings, answers and diagnoses | `onDelete: Cascade` + `deleteMany`; conflicts with "preserved history" (PRODUCT.md, principle 8) | **Conflict with v2**: depends on PD-12 |
 
 ---
 
-## 4. Backlog proposto para a Fase 0
+## 4. Proposed Phase 0 backlog
 
-Só achados confirmados/parciais. Ordem por risco (roadmap §3.1).
+Only confirmed/partial findings. Ordered by risk (roadmap §3.1).
 
-### EP-01 — Segurança do MVP
-1. **SEC-01**: parar de criar `User` automaticamente; só entra quem já existe na tabela `users` (criado por seed/ação administrativa). Conta desconhecida → sessão encerrada + mensagem clara. *Provisória até os convites da Fase 1.*
-2. **SEC-02**: aceitar em `redirect` apenas caminhos internos (`/…`, nunca `//…` nem URL absoluta), validado no servidor e no cliente.
-3. **SEC-05/06**: headers de segurança, `Referrer-Policy: no-referrer` no formulário público, `noindex` em `/admin`, `/briefing`, `/print`, `/login`, `robots.ts`.
-4. **SEC-03**: checagem de `Origin` nas mutações autenticadas; PDF via POST ou com checagem equivalente.
-5. **PERF-01**: excluir rotas públicas do `matcher` do proxy.
-6. **SEC-04**: rate limiting nas rotas públicas e no PDF (depende da decisão D2).
+### EP-01 — MVP security
+1. **SEC-01**: stop creating `User` automatically; only people already in the `users` table (created by seed/admin action) can sign in. Unknown account → session ended + clear message. *Interim until Phase 1 invitations.*
+2. **SEC-02**: accept only internal paths in `redirect` (`/…`, never `//…` or an absolute URL), validated on server and client.
+3. **SEC-05/06**: security headers, `Referrer-Policy: no-referrer` on the public form, `noindex` on `/admin`, `/briefing`, `/print`, `/login`, `robots.ts`.
+4. **SEC-03**: `Origin` check on authenticated mutations; PDF via POST or an equivalent check.
+5. **PERF-01**: exclude public routes from the proxy `matcher`.
+6. **SEC-04**: rate limiting on public routes and the PDF (depends on decision D2).
 
-### EP-02 — Integridade do briefing
-7. **DATA-01**: envio atômico: transição condicional de status + diagnóstico na **mesma transação**, com lock da linha do briefing; `saveAnswers` rechecando o status dentro da transação; reenvio concorrente idempotente.
-8. **DATA-03 / NEW-01**: validação semântica das respostas contra o catálogo (tipo, opções, `business_type`) → 400/422, nunca 500; JSON inválido → 400.
-9. **DATA-06**: ordenação determinística de sinais e diagnósticos.
+### EP-02 — Briefing integrity
+7. **DATA-01**: atomic submission: conditional status transition + diagnosis in the **same transaction**, with a lock on the briefing row; `saveAnswers` re-checking the status inside the transaction; idempotent concurrent resubmission.
+8. **DATA-03 / NEW-01**: semantic validation of answers against the catalog (type, options, `business_type`) → 400/422, never 500; invalid JSON → 400.
+9. **DATA-06**: deterministic ordering of signals and diagnoses.
 
-### EP-03 — Qualidade e operação mínima
-10. **QUAL-05**: CI (GitHub Actions) com lint, typecheck, unit, integração com Postgres e build.
-11. **NEW-03**: validação de variáveis de ambiente com falha explícita.
-12. Logs sem token/PII (`handle()` hoje loga o erro inteiro, e erros do Prisma podem carregar valores).
-13. Testes de API para as rotas existentes, incluindo os negativos (sem sessão, outro usuário, link expirado/enviado).
-14. **DEPLOY-01**: documentar a limitação e decidir a estratégia de PDF (depende de D1).
+### EP-03 — Minimum quality and operations
+10. **QUAL-05**: CI (GitHub Actions) with lint, typecheck, unit, integration with Postgres and build.
+11. **NEW-03**: environment variable validation with explicit failure.
+12. Logs without tokens/PII (`handle()` currently logs the whole error, and Prisma errors may carry values).
+13. API tests for existing routes, including negative ones (no session, other user, expired/submitted link).
+14. **DEPLOY-01**: document the limitation and decide the PDF strategy (depends on D1).
 
-### Andamento
+### Progress
 
-| Item | Situação | Onde |
+| Item | Status | Where |
 |---|---|---|
-| SEC-01 | **corrigido**: login nunca cria usuário; conta desconhecida vê "sem acesso" e pode sair; cadastro prévio `pending:` é vinculado só com e-mail confirmado | `src/server/security/provisioning.ts`, `src/server/auth.ts` |
-| SEC-02 | **corrigido**: `safeRedirectPath` no servidor e no cliente | `src/lib/safeRedirect.ts` |
-| SEC-03 | **corrigido**: checagem de `Origin`/`Sec-Fetch-Site` nas mutações autenticadas e no PDF → 403 | `src/server/security/origin.ts` |
-| SEC-04 | **corrigido**: rate limit no Postgres nas rotas públicas (por IP) e no PDF (por usuário) → 429 + `Retry-After`; autosave respeita o `Retry-After` | `src/server/security/rateLimit*.ts` |
-| SEC-05 | **corrigido**: `robots.txt`, `X-Robots-Tag: noindex` nas superfícies privadas, `Referrer-Policy: no-referrer` nas que carregam token | `src/app/robots.ts`, `next.config.ts` |
-| SEC-06 | **parcial**: headers de segurança e CSP sem `script-src`. Restringir scripts exige nonce por requisição e renderização dinâmica de todas as páginas; fica como evolução P2 | `next.config.ts` |
-| PERF-01 | **corrigido**: o proxy roda só nas superfícies autenticadas | `src/proxy.ts` |
-| DATA-01 | **corrigido**: autosave, envio e reprocessamento travam a linha do briefing (`SELECT … FOR UPDATE`); o envio valida, calcula, grava o diagnóstico e fecha numa única transação; autosave após o envio → 410; envios concorrentes são idempotentes | `src/server/briefing.ts`, `briefingIntegrity.itest.ts` |
-| DATA-03 | **corrigido**: respostas validadas contra o catálogo (tipo, opções, repetição, tamanho); o lote inteiro é recusado com 400 e `issues` por pergunta | `src/core/answerValidation.ts` |
-| NEW-01 | **corrigido**: JSON malformado → 400 | `src/server/api.ts` |
-| NEW-02 | **corrigido**: payload público sem o id interno | `api/public/briefing/[token]/route.ts` |
-| DATA-06 | **corrigido**: sinais e diagnósticos lidos com ordem explícita | `src/server/briefingDetail.ts` |
+| SEC-01 | **fixed**: sign-in never creates a user; unknown account sees "no access" and can sign out; a pre-registered `pending:` record is linked only with a confirmed email | `src/server/security/provisioning.ts`, `src/server/auth.ts` |
+| SEC-02 | **fixed**: `safeRedirectPath` on server and client | `src/lib/safeRedirect.ts` |
+| SEC-03 | **fixed**: `Origin`/`Sec-Fetch-Site` check on authenticated mutations and the PDF → 403 | `src/server/security/origin.ts` |
+| SEC-04 | **fixed**: Postgres rate limit on public routes (per IP) and the PDF (per user) → 429 + `Retry-After`; autosave honors `Retry-After` | `src/server/security/rateLimit*.ts` |
+| SEC-05 | **fixed**: `robots.txt`, `X-Robots-Tag: noindex` on private surfaces, `Referrer-Policy: no-referrer` on surfaces carrying the token | `src/app/robots.ts`, `next.config.ts` |
+| SEC-06 | **partial**: security headers and CSP without `script-src`. Restricting scripts requires a per-request nonce and dynamic rendering of every page; kept as a P2 improvement | `next.config.ts` |
+| PERF-01 | **fixed**: the proxy runs only on authenticated surfaces | `src/proxy.ts` |
+| DATA-01 | **fixed**: autosave, submission and reprocessing lock the briefing row (`SELECT … FOR UPDATE`); submission validates, computes, stores the diagnosis and closes in a single transaction; autosave after submission → 410; concurrent submissions are idempotent | `src/server/briefing.ts`, `briefingIntegrity.itest.ts` |
+| DATA-03 | **fixed**: answers validated against the catalog (type, options, duplicates, length); the whole batch is rejected with 400 and per-question `issues` | `src/core/answerValidation.ts` |
+| NEW-01 | **fixed**: malformed JSON → 400 | `src/server/api.ts` |
+| NEW-02 | **fixed**: public payload without the internal id | `api/public/briefing/[token]/route.ts` |
+| DATA-06 | **fixed**: signals and diagnoses read with explicit ordering | `src/server/briefingDetail.ts` |
+| NEW-03 | **fixed**: environment validated at startup (`instrumentation.ts`); the server doesn't start with an invalid configuration; links use the validated URL | `src/server/env.ts` |
+| Logs | **fixed**: `logError` records name, code and a redacted message (email, phone, token, credential); rendering errors go through it too | `src/server/log.ts`, `src/instrumentation.ts` |
+| QUAL-04 | **partial**: 19 API tests covering the negative cases of existing routes. Component and E2E tests still pending (E2E depends on a preview environment) | `src/app/api/__tests__/routes.itest.ts` |
+| QUAL-05 | **fixed**: CI with lint, typecheck (with `next typegen`), unit tests, migrations from scratch + seed, PostgreSQL integration and build. Green on PRs #5, #6 and #7 | `.github/workflows/ci.yml` |
+| DEPLOY-01 | **fixed (decision D6)**: `playwright-core` + `@sparticuz/chromium` on serverless, local Chromium otherwise. Both paths generated PDFs locally; the build includes the binaries in the function. **Still needs validation on a real Vercel deploy** | `src/server/pdfBrowser.ts`, `next.config.ts` |
 
-| NEW-03 | **corrigido**: ambiente validado na subida (`instrumentation.ts`); servidor não sobe com configuração inválida; links usam a URL validada | `src/server/env.ts` |
-| Logs | **corrigido**: `logError` grava nome, código e mensagem redigida (e-mail, telefone, token, credencial); erros de renderização também passam por ele | `src/server/log.ts`, `src/instrumentation.ts` |
-| QUAL-04 | **parcial**: 19 testes de API com os casos negativos das rotas existentes. Componentes e E2E continuam pendentes (E2E depende de ambiente de preview) | `src/app/api/__tests__/routes.itest.ts` |
-| QUAL-05 | **corrigido**: CI com lint, typecheck, unitários, migrações do zero + seed, integração com PostgreSQL e build. Passos validados localmente num banco novo; a primeira execução real acontece no primeiro PR | `.github/workflows/ci.yml` |
-| DEPLOY-01 | **corrigido (decisão D6)**: `playwright-core` + `@sparticuz/chromium` em serverless, Chromium local fora dele. Os dois caminhos geraram PDF nesta máquina; o build inclui os binários na função. **Falta validar num deploy real da Vercel** | `src/server/pdfBrowser.ts`, `next.config.ts` |
+#### DEPLOY-01: PDF on Vercel serverless
 
-#### DEPLOY-01: PDF na Vercel serverless
+Playwright's full Chromium doesn't fit in a Vercel serverless function. There's no way to produce a layout-faithful PDF without a browser and without adding a dependency. The options were:
 
-O Chromium completo do Playwright não cabe numa função serverless da Vercel. Não há como gerar PDF fiel ao layout sem um navegador e sem adicionar dependência. As opções:
+1. **`playwright-core` + `@sparticuz/chromium`** (recommended): Chromium compressed for serverless. The adapter is isolated in `src/server/pdf.ts`, so the swap stays in one file. Costs: two new dependencies, a function with more memory (~1 GB) and a cold start of a few seconds.
+2. **Browser printing:** the `/print/briefing/[id]` page already exists; the button would open it with `window.print()`. Zero dependencies and zero server cost. Costs: the PDF depends on the downloader's browser, and server-side PDFs for shared reports (Phase 6) become impossible.
+3. **External rendering service:** a new data sub-processor (LGPD) and recurring cost.
 
-1. **`playwright-core` + `@sparticuz/chromium`** (recomendada): Chromium compactado para serverless. O adaptador está isolado em `src/server/pdf.ts`, então a troca fica num arquivo só. Custos: duas dependências novas, função com mais memória (~1 GB) e cold start de alguns segundos.
-2. **Impressão pelo navegador:** a página `/print/briefing/[id]` já existe; o botão abriria a página com `window.print()`. Zero dependência e zero custo de servidor. Custos: o PDF depende do navegador de quem baixa, e não dá para gerar PDF no servidor para relatórios compartilhados (Fase 6).
-3. **Serviço externo de renderização:** novo suboperador de dados (LGPD) e custo recorrente.
+**Decided on 2026-11-13: option 1** (D6 in `docs/DECISIONS.md`).
 
-**Decidido em 13/11/2026: opção 1** (D6 em `docs/decisoes.md`).
+Notes:
+- "Already submitted" now takes precedence over "expired" in the message shown to the respondent.
+- Rendering of the `/briefing/[token]` page (SSR) isn't rate-limited, only the API is. Evaluate together with observability.
 
-Observações:
-- "Já enviado" passa a ter precedência sobre "expirado" na mensagem ao respondente.
-- A renderização da página `/briefing/[token]` (SSR) não passa pelo rate limit, só a API. Avaliar junto com observabilidade.
-
-**Fica para fases posteriores** (conforme roadmap): DATA-02/DATA-04 → Fase 2 (EP-07/08); DATA-05 → Fase 2 (EP-09); QUAL-06 → contínuo; LGPD-01 e NEW-04 → dependem de PD-12.
+**Deferred to later phases** (per the roadmap): DATA-02/DATA-04 → Phase 2 (EP-07/08); DATA-05 → Phase 2 (EP-09); QUAL-06 → ongoing; LGPD-01 and NEW-04 → depend on PD-12.
 
 ---
 
-## 5. Decisões necessárias
+## 5. Decisions needed
 
-### Para executar a Fase 0
-| ID | Pergunta | Por que importa |
+### To execute Phase 0 (all decided — see `docs/DECISIONS.md`)
+| ID | Question | Why it matters |
 |---|---|---|
-| D1 | Onde a aplicação vai rodar em produção (Vercel serverless, contêiner/VPS, outro)? | Define a estratégia de PDF (DEPLOY-01) e onde guardar o rate limit |
-| D2 | Rate limit: tabela no Postgres (sem dependência nova) ou serviço externo (ex.: Upstash/Redis)? | Memória local não funciona com várias instâncias serverless |
-| D3 | Confirma a política provisória do SEC-01 (só entra usuário pré-cadastrado até existirem convites)? | Fecha o P0 sem antecipar a Fase 1 |
-| D4 | Até a PD-12 ser decidida, excluir cliente continua sendo hard delete ou passa a arquivar? | NEW-04 / histórico preservado |
-| D5 | Criar uma branch `main` a partir da `front` para servir de base dos PRs? | Hoje não há branch principal |
+| D1 | Where will the application run in production (Vercel serverless, container/VPS, other)? | Defines the PDF strategy (DEPLOY-01) and where to store the rate limit |
+| D2 | Rate limit: Postgres table (no new dependency) or external service (e.g. Upstash/Redis)? | Local memory doesn't work with multiple serverless instances |
+| D3 | Confirm the interim SEC-01 policy (only pre-registered users sign in until invitations exist)? | Closes the P0 without bringing Phase 1 forward |
+| D4 | Until PD-12 is decided, does deleting a client stay a hard delete or become archiving? | NEW-04 / preserved history |
+| D5 | Create a `main` branch from `front` to serve as the PR base? | There's no main branch today |
 
-### Para preparar a Fase 1 (roadmap §16, item 8)
-- **PD-01**: matriz de permissões por função (admin, líder, integrante) × ação.
-- **PD-02**: como combinar permissões de quem tem mais de uma função.
-- **PD-13**: acesso a projeto por atribuição individual, por equipe ou ambos.
-- Líderes podem convidar membros? (pendência de AUTH, `02-requisitos.md` §2.2)
-- Política de migração dos dados atuais para a organização inicial.
+### To prepare Phase 1 (roadmap §16, item 8)
+- **PD-01**: permission matrix by role (admin, leader, member) × action.
+- **PD-02**: how to combine permissions for someone with more than one role.
+- **PD-13**: project access by individual assignment, by team, or both.
+- Can leaders invite members? (AUTH open item, `docs/REQUIREMENTS.md` §2.2)
+- Migration policy for current data into the initial organization.

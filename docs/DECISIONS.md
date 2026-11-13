@@ -1,23 +1,29 @@
-# Registro de decisões
+# Decision log
 
-Decisões de produto e arquitetura tomadas durante o desenvolvimento. Formato: data, contexto, decisão, alternativas consideradas, impacto.
+Product and architecture decisions made during development. Format: date, context, decision, alternatives considered, impact.
 
 ---
 
-## 2026-11-12 — Decisões para executar a Fase 0
+## 2026-11-12 — Decisions to execute Phase 0
 
-Contexto: auditoria de confirmação (`docs/05-auditoria-fase-0.md`, §5).
+Context: confirmation audit (`docs/PHASE-0-AUDIT.md`, §5).
 
-| ID | Decisão | Alternativas consideradas | Impacto |
+| ID | Decision | Alternatives considered | Impact |
 |---|---|---|---|
-| D1 | Produção roda em **Vercel serverless**. | Contêiner/VPS | O PDF precisa de Chromium compatível com serverless (DEPLOY-01); estado em memória não é compartilhado entre instâncias. |
-| D2 | Rate limiting com **tabela no PostgreSQL**, sem dependência nova. | Upstash/Redis; memória local | Uma escrita por requisição limitada; janela fixa por chave; limpeza periódica de registros antigos. |
-| D3 | **Acesso provisório:** só entra quem já existe na tabela `users` (criado por seed ou ação administrativa). Conta Supabase desconhecida é recusada. Vale até os convites da Fase 1. | Allowlist por e-mail em variável de ambiente | Fecha o SEC-01 sem antecipar organização/membros. |
-| D4 | Excluir cliente **continua sendo hard delete** em cascata até a PD-12 ser decidida. | Arquivamento lógico | NEW-04 permanece registrado como conflito com o princípio de histórico preservado; revisitar na PD-12. |
-| D5 | Branch `main` criada a partir da `front`; os épicos são desenvolvidos em branches próprias e integrados por PR. | Seguir só na `front` | `main` passa a ser a base dos PRs. |
+| D1 | Production runs on **Vercel serverless**. | Container/VPS | PDF needs a serverless-compatible Chromium (DEPLOY-01); in-memory state is not shared across instances. |
+| D2 | Rate limiting with a **PostgreSQL table**, no new dependency. | Upstash/Redis; local memory | One write per rate-limited request; fixed window per key; periodic cleanup of old rows. |
+| D3 | **Interim access:** only people who already exist in the `users` table (created by seed or an admin action) can sign in. Unknown Supabase accounts are rejected. Valid until Phase 1 invitations. | Email allowlist in an environment variable | Closes SEC-01 without bringing organization/members forward. |
+| D4 | Deleting a client **remains a cascading hard delete** until PD-12 is decided. | Soft delete (archiving) | NEW-04 stays recorded as a conflict with the preserved-history principle; revisit in PD-12. |
+| D5 | `main` branch created from `front`; epics are developed in their own branches and integrated through PRs. | Keep working only on `front` | `main` becomes the base for PRs. |
 
-## 2026-11-13 — PDF em serverless (DEPLOY-01)
+## 2026-11-13 — PDF on serverless (DEPLOY-01)
 
-| ID | Decisão | Alternativas consideradas | Impacto |
+| ID | Decision | Alternatives considered | Impact |
 |---|---|---|---|
-| D6 | PDF gerado com **`playwright-core` + `@sparticuz/chromium`**, versões fixadas em par (1.63.0 ↔ Chromium 153; `@sparticuz/chromium` 153.0.0). Local/contêiner continua usando o Chromium do Playwright. | Impressão pelo navegador (`window.print()`); serviço externo de renderização | Duas dependências de produção; função do PDF precisa de ~1,6 GB de memória; cold start de 1–2 s; atualizar uma versão exige atualizar a outra. |
+| D6 | PDF generated with **`playwright-core` + `@sparticuz/chromium`**, versions pinned as a pair (1.63.0 ↔ Chromium 153; `@sparticuz/chromium` 153.0.0). Local/container keeps using Playwright's Chromium. | Browser printing (`window.print()`); external rendering service | Two production dependencies; the PDF function needs ~1.6 GB of memory; 1–2 s cold start; upgrading one version requires upgrading the other. |
+
+## 2026-11-13 — Language and naming
+
+| ID | Decision | Alternatives considered | Impact |
+|---|---|---|---|
+| D7 | **Everything in English** (code, comments, documentation, commits, PRs, branches) **except user-facing text, which stays in pt-BR**. Documentation files in English UPPERCASE without numeric prefixes; variables, functions and code files in camelCase. Details in `docs/guidelines/CODE-AND-UI.md`. | Keep documentation in pt-BR | Existing docs translated and renamed (`docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/PHASE-0-AUDIT.md`); code comments translated in a follow-up PR. |

@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * A CSP aqui cobre só as diretivas que não dependem de nonce (framing, base,
  * form, plugins). Restringir `script-src` exige nonce por requisição no proxy
  * e renderização dinâmica de todas as páginas — fica registrado como evolução
- * em docs/05-auditoria-fase-0.md.
+ * em docs/PHASE-0-AUDIT.md.
  */
 const baseSecurityHeaders = [
   {

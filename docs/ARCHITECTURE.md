@@ -1,186 +1,188 @@
-# Briefing Inteligente — Inspeção Técnica e Arquitetura Evolutiva
+# Briefing Inteligente — Technical Inspection and Evolutionary Architecture
 
-> **Versão:** 2.0  
-> **Data:** 13/11/2026  
-> **Documentos de referência:** `PRODUCT.md` e `02-requisitos.md` — versão 2.0  
-> **Base técnica de origem:** inspeção registrada em 12/11/2026, commit `4804a91` + alterações não commitadas do MVP  
-> **Objetivo desta revisão:** alinhar a arquitetura técnica à evolução do produto de um sistema de briefing e diagnóstico para uma plataforma de gestão estratégica de marketing em equipes.
+> **Version:** 2.0  
+> **Date:** 2026-11-13  
+> **Reference documents:** `PRODUCT.md` and `docs/REQUIREMENTS.md` — version 2.0  
+> **Original technical base:** inspection recorded on 2026-11-12, commit `4804a91` + uncommitted MVP changes  
+> **Goal of this revision:** align the technical architecture with the product's evolution from a briefing and diagnosis system into a strategic marketing management platform for teams.
 
----
-
-## 1. Objetivo e leitura deste documento
-
-Este documento reúne duas perspectivas que não devem ser confundidas:
-
-1. **Estado observado:** aquilo que a inspeção técnica anterior registrou sobre o MVP em 12/11/2026.
-2. **Arquitetura-alvo:** a estrutura recomendada para sustentar a V1 ampliada descrita em `PRODUCT.md` e `02-requisitos.md`.
-
-A inspeção original foi feita sobre o MVP e não comprova o estado atual do repositório. Portanto, achados, caminhos de arquivos, comandos e métricas abaixo são evidências históricas que precisam ser revalidadas antes de abrir tarefas de implementação.
-
-A arquitetura-alvo é uma proposta de evolução, não uma afirmação de que esses módulos já existem.
-
-### 1.1 Direção arquitetural
-
-O produto passa a organizar o trabalho de marketing em uma jornada:
-
-**Organização → Cliente → Projeto/Campanha → Briefing → Diagnóstico → Recomendações → Objetivos → Ações e tarefas → Indicadores → Resultados → Relatório e aprendizado.**
-
-O briefing permanece como entrada estruturada. Ele não deve se tornar o centro rígido do modelo de dados: diagnóstico, objetivos, tarefas, indicadores, evidências e histórico precisam continuar existindo e evoluindo independentemente de uma versão específica do formulário.
-
-### 1.2 Princípios de decisão
-
-- Preservar o núcleo de domínio puro já identificado no MVP.
-- Evitar uma reescrita total: evoluir por módulos e casos de uso.
-- Tratar organização como limite de isolamento de dados desde o início.
-- Aplicar autorização no servidor e no acesso aos dados, não apenas na interface.
-- Registrar histórico das decisões que alteram prioridades, objetivos, resultados e permissões.
-- Manter diagnóstico e recomendações determinísticos e explicáveis na V1.
-- Não introduzir IA generativa como autoridade de decisão na V1.
-- Não antecipar integrações externas antes de estabilizar os fluxos internos.
-- Preferir consistência transacional e rastreabilidade a abstrações prematuras.
+> **Update:** the historical findings in §3.2 were re-audited on 2026-11-12 and the Phase 0 fixes were merged into `main`. Current status per finding: `docs/PHASE-0-AUDIT.md`.
 
 ---
 
-## 2. Resumo executivo
+## 1. Purpose and how to read this document
 
-### 2.1 Diagnóstico da base existente
+This document brings together two perspectives that must not be confused:
 
-A inspeção de 12/11/2026 registrou uma base de MVP com bons fundamentos:
+1. **Observed state:** what the previous technical inspection recorded about the MVP on 2026-11-12.
+2. **Target architecture:** the recommended structure to support the expanded V1 described in `PRODUCT.md` and `docs/REQUIREMENTS.md`.
 
-- domínio separado da infraestrutura em `src/core`;
-- regras de visibilidade orientadas a dados;
-- motor de sinais organizado por registro;
-- diagnóstico determinístico;
-- token público com boa entropia;
-- autosave e fluxo público funcional;
-- testes unitários relevantes para o núcleo;
-- separação inicial entre `core`, `server`, `components` e `app`.
+The original inspection was done on the MVP and doesn't prove the current state of the repository. Findings, file paths, commands and metrics below are therefore historical evidence that must be revalidated before opening implementation tasks.
 
-Também registrou riscos relevantes de segurança, integridade, privacidade, operação e qualidade. Esses riscos continuam sendo uma lista de verificação importante, mas devem ser confirmados no código antes de serem considerados pendências atuais.
+The target architecture is an evolution proposal, not a statement that these modules already exist.
 
-### 2.2 Mudança de escala do produto
+### 1.1 Architectural direction
 
-A ampliação do escopo muda principalmente quatro aspectos arquiteturais:
+The product organizes marketing work into a journey:
 
-| Antes: MVP de briefing | Agora: plataforma estratégica |
+**Organization → Client → Project/Campaign → Briefing → Diagnosis → Recommendations → Objectives → Actions and tasks → Indicators → Results → Report and learning.**
+
+The briefing remains the structured input. It must not become the rigid center of the data model: diagnosis, objectives, tasks, indicators, evidence and history need to keep existing and evolving independently of a specific form version.
+
+### 1.2 Decision principles
+
+- Preserve the pure domain core already identified in the MVP.
+- Avoid a full rewrite: evolve by modules and use cases.
+- Treat the organization as the data isolation boundary from the start.
+- Apply authorization on the server and in data access, not only in the UI.
+- Record the history of decisions that change priorities, objectives, results and permissions.
+- Keep diagnosis and recommendations deterministic and explainable in V1.
+- Don't introduce generative AI as a decision authority in V1.
+- Don't anticipate external integrations before stabilizing internal flows.
+- Prefer transactional consistency and traceability over premature abstractions.
+
+---
+
+## 2. Executive summary
+
+### 2.1 Diagnosis of the existing base
+
+The 2026-11-12 inspection recorded an MVP base with good foundations:
+
+- domain separated from infrastructure in `src/core`;
+- data-driven visibility rules;
+- signal engine organized by registry;
+- deterministic diagnosis;
+- high-entropy public token;
+- working autosave and public flow;
+- relevant unit tests for the core;
+- initial separation between `core`, `server`, `components` and `app`.
+
+It also recorded relevant security, integrity, privacy, operations and quality risks. Those risks remain an important checklist, but must be confirmed in the code before being treated as current issues.
+
+### 2.2 Change in product scale
+
+The scope expansion mainly changes four architectural aspects:
+
+| Before: briefing MVP | Now: strategic platform |
 |---|---|
-| Usuária administradora | Organização com administradores, líderes e membros |
-| Cliente ligado ao usuário | Cliente pertencente à organização |
-| Briefing como unidade principal | Projeto/campanha como unidade de trabalho |
-| Diagnóstico como resultado final | Diagnóstico como entrada para recomendações, objetivos, execução e avaliação |
-| Respostas e sinais | Respostas, versões, decisões, ações, tarefas, métricas e evidências |
-| Painel de briefings | Visões por organização, cliente, projeto, objetivo e desempenho |
+| Single administrator user | Organization with administrators, leaders and members |
+| Client tied to the user | Client belonging to the organization |
+| Briefing as the main unit | Project/campaign as the unit of work |
+| Diagnosis as the final result | Diagnosis as input to recommendations, objectives, execution and evaluation |
+| Answers and signals | Answers, versions, decisions, actions, tasks, metrics and evidence |
+| Briefing dashboard | Views by organization, client, project, objective and performance |
 
-A arquitetura deve acompanhar essa mudança sem transformar o sistema em um CRM completo ou em uma ferramenta genérica de gestão de tarefas.
+The architecture must follow this change without turning the system into a full CRM or a generic task management tool.
 
-### 2.3 Principais riscos arquiteturais para a V1
+### 2.3 Main architectural risks for V1
 
-1. **Isolamento multi-organização:** toda consulta e mutação precisa respeitar `organizationId`.
-2. **Autorização por papel e escopo:** acesso administrativo, liderança, participação em projeto e permissões específicas precisam ser definidos de forma consistente.
-3. **Versionamento:** briefings, perguntas, regras de diagnóstico, recomendações e modelos precisam preservar o contexto histórico.
-4. **Integridade de fluxo:** envio, diagnóstico, aprovação e conversão de recomendações em planos precisam ser operações consistentes.
-5. **Rastreabilidade:** mudanças estratégicas devem registrar autor, data, justificativa e valores anteriores/novos.
-6. **Medição:** conclusão de tarefas não pode ser confundida com alcance de objetivos.
-7. **Privacidade:** respostas livres, anexos e dados de contato exigem política de acesso, retenção e exclusão.
-8. **Operação:** relatórios, PDF, arquivos e processamento assíncrono precisam ser compatíveis com o ambiente real de deploy.
+1. **Multi-organization isolation:** every query and mutation must respect `organizationId`.
+2. **Authorization by role and scope:** admin access, leadership, project participation and specific permissions must be defined consistently.
+3. **Versioning:** briefings, questions, diagnosis rules, recommendations and templates must preserve historical context.
+4. **Flow integrity:** submission, diagnosis, approval and conversion of recommendations into plans must be consistent operations.
+5. **Traceability:** strategic changes must record author, date, justification and previous/new values.
+6. **Measurement:** completing tasks must not be confused with achieving objectives.
+7. **Privacy:** free-text answers, attachments and contact data require an access, retention and deletion policy.
+8. **Operations:** reports, PDFs, files and async processing must be compatible with the real deploy environment.
 
 ---
 
-## 3. Estado técnico observado no MVP
+## 3. Technical state observed in the MVP
 
-> Esta seção preserva a fotografia da inspeção anterior. Não representa uma nova auditoria do repositório.
+> This section preserves the snapshot of the previous inspection. It doesn't represent a new repository audit. Current status: `docs/PHASE-0-AUDIT.md`.
 
-### 3.1 Pontos fortes registrados
+### 3.1 Recorded strengths
 
-| Área | Evidência registrada | Valor arquitetural |
+| Area | Recorded evidence | Architectural value |
 |---|---|---|
-| Domínio | `src/core` sem dependência de Next, Prisma ou Supabase | Regras testáveis e reutilizáveis |
-| Formulário | `Question.visibilityRule` e `resolveVisibility` | Ramificação configurável por dados |
-| Respostas | Respostas invisíveis ignoradas no processamento | Evita dados condicionais contaminarem o diagnóstico |
-| Sinais | `src/core/signals/registry.ts` | Adição de regras com baixo acoplamento |
-| Diagnóstico | Pontuação por categoria e estado cinza | Distingue ausência de informação de resultado ruim |
-| Rastreabilidade | `Signal.sourceAnswerIds` | Explica a origem de um sinal |
-| Reprocessamento | `processAndPersist` transacional | Reprocessamento idempotente no fluxo registrado |
-| Link público | Token aleatório de 24 caracteres | Não deriva de dados do cliente |
-| UX | Autosave, etapas e estados de erro | Reduz perda de respostas |
-| Testes | 133 testes em 7 arquivos na inspeção | Cobertura relevante do núcleo |
+| Domain | `src/core` with no dependency on Next, Prisma or Supabase | Testable, reusable rules |
+| Form | `Question.visibilityRule` and `resolveVisibility` | Data-configurable branching |
+| Answers | Invisible answers ignored in processing | Prevents conditional data from contaminating the diagnosis |
+| Signals | `src/core/signals/registry.ts` | Low-coupling rule addition |
+| Diagnosis | Per-category scoring and gray status | Distinguishes missing information from a bad result |
+| Traceability | `Signal.sourceAnswerIds` | Explains a signal's origin |
+| Reprocessing | Transactional `processAndPersist` | Idempotent reprocessing in the recorded flow |
+| Public link | Random 24-character token | Not derived from client data |
+| UX | Autosave, steps and error states | Reduces lost answers |
+| Tests | 133 tests in 7 files at inspection time | Relevant core coverage |
 
-### 3.2 Problemas registrados que precisam de revalidação
+### 3.2 Recorded problems requiring revalidation
 
-| ID | Área | Achado histórico | Prioridade histórica |
+| ID | Area | Historical finding | Historical priority |
 |---|---|---|---|
-| SEC-01 | Autenticação | Auto-provisionamento de usuário sem allowlist | P0 |
-| SEC-02 | Autenticação | Redirecionamento de login sem validação de destino | P1 |
-| SEC-03 | HTTP | Ausência de verificação de origem/CSRF em mutações administrativas | P1 |
-| SEC-04 | HTTP | Ausência de rate limiting nas rotas públicas e PDF | P1 |
-| SEC-05 | Privacidade | Ausência de `noindex` e política de `referrer` em páginas privadas | P1 |
-| SEC-06 | HTTP | Cabeçalhos de segurança/CSP não configurados | P1 |
-| DATA-01 | Integridade | Envio sem atomicidade e com possível corrida com autosave | P0 |
-| DATA-02 | Versionamento | Catálogo global sem versão histórica | P0 |
-| DATA-03 | Validação | Respostas sem validação semântica suficiente | P1 |
-| DATA-04 | Diagnóstico | Perguntas faltantes de categorias cinzas não persistidas | P1 |
-| DATA-05 | Fluxo | Ciclo de vida do briefing incompleto | P1 |
-| DATA-06 | Consistência | Ordem do diagnóstico dependente da consulta | P1 |
-| PERF-01 | Performance | Proxy executando autenticação em rotas públicas | P1 |
-| QUAL-04 | Testes | Ausência de testes de API, componentes e E2E | P2 |
-| QUAL-05 | CI | Ausência de pipeline de CI | P2 |
-| QUAL-06 | Operação | Falta de logs estruturados, métricas e health check | P1 |
-| LGPD-01 | Privacidade | Ausência de ciclo de vida completo dos dados pessoais | P1 |
-| DEPLOY-01 | Deploy | Estratégia de PDF incompatível com Vercel serverless | P1 |
+| SEC-01 | Authentication | User auto-provisioning without an allowlist | P0 |
+| SEC-02 | Authentication | Login redirect without destination validation | P1 |
+| SEC-03 | HTTP | No origin/CSRF check on admin mutations | P1 |
+| SEC-04 | HTTP | No rate limiting on public routes and PDF | P1 |
+| SEC-05 | Privacy | No `noindex` or `referrer` policy on private pages | P1 |
+| SEC-06 | HTTP | Security headers/CSP not configured | P1 |
+| DATA-01 | Integrity | Non-atomic submission with a possible race with autosave | P0 |
+| DATA-02 | Versioning | Global catalog without historical versions | P0 |
+| DATA-03 | Validation | Answers without sufficient semantic validation | P1 |
+| DATA-04 | Diagnosis | Missing questions of gray categories not persisted | P1 |
+| DATA-05 | Flow | Incomplete briefing lifecycle | P1 |
+| DATA-06 | Consistency | Diagnosis order dependent on the query | P1 |
+| PERF-01 | Performance | Proxy running authentication on public routes | P1 |
+| QUAL-04 | Tests | No API, component or E2E tests | P2 |
+| QUAL-05 | CI | No CI pipeline | P2 |
+| QUAL-06 | Operations | No structured logs, metrics or health check | P1 |
+| LGPD-01 | Privacy | No complete personal data lifecycle | P1 |
+| DEPLOY-01 | Deploy | PDF strategy incompatible with Vercel serverless | P1 |
 
-### 3.3 Regra para transformar achados em tarefas
+### 3.3 Rule for turning findings into tasks
 
-Antes de implementar uma correção:
+Before implementing a fix:
 
-1. confirmar se o problema ainda existe no código;
-2. identificar se a expansão de produto alterou o contexto;
-3. verificar dependências e impacto em dados existentes;
-4. definir critério de aceite testável;
-5. criar migração reversível quando houver mudança de schema;
-6. atualizar este documento e `02-requisitos.md` quando a decisão mudar a arquitetura.
+1. confirm the problem still exists in the code;
+2. identify whether the product expansion changed the context;
+3. check dependencies and impact on existing data;
+4. define testable acceptance criteria;
+5. create a reversible migration when the schema changes;
+6. update this document and `docs/REQUIREMENTS.md` when the decision changes the architecture.
 
-Não usar a tabela histórica como backlog automático sem essa validação.
+Don't use the historical table as an automatic backlog without this validation.
 
 ---
 
-## 4. Arquitetura de domínio proposta
+## 4. Proposed domain architecture
 
-### 4.1 Contextos principais
+### 4.1 Main contexts
 
-A proposta organiza o domínio em módulos coesos. Isso não exige microserviços: a recomendação inicial é um **monólito modular**, com uma aplicação e um banco transacional, mantendo limites claros entre módulos.
+The proposal organizes the domain into cohesive modules. This doesn't require microservices: the initial recommendation is a **modular monolith**, with one application and one transactional database, keeping clear boundaries between modules.
 
-| Contexto | Responsabilidade | Entidades centrais |
+| Context | Responsibility | Core entities |
 |---|---|---|
-| Identity & Access | Identidade, organização, membros, papéis e permissões | User, Organization, Membership, Role, Permission |
-| Client Management | Cadastro e histórico contextual de clientes | Client, ClientContact, ClientActivity |
-| Project Management | Projetos/campanhas, responsáveis, colaboradores e ciclo de vida | Project, ProjectMember, ProjectStatusHistory |
-| Briefing | Convites, formulário público, perguntas, respostas e versões | Briefing, BriefingVersion, QuestionVersion, Answer |
-| Diagnosis | Sinais, avaliação por categoria, regras e versões | Signal, Diagnosis, DiagnosisSignal, RuleVersion |
-| Recommendations | Recomendações contextualizadas, origem, revisão e priorização | Recommendation, RecommendationSource, RecommendationRevision |
-| Planning | Objetivos, planos estratégicos e ações | StrategicPlan, Objective, Action |
-| Execution | Tarefas, responsáveis, prazos, dependências e comentários | Task, TaskAssignee, TaskDependency, Comment |
-| Measurement | Indicadores, metas, medições, evidências e avaliação | Metric, Target, Measurement, Evidence, ImpactReview |
-| Documents | Arquivos associados a clientes e projetos | Document, DocumentVersion |
-| Reporting | Consultas, snapshots e exportações de relatórios | ReportDefinition, ReportSnapshot, ExportJob |
-| Templates | Modelos reutilizáveis de briefing, diagnóstico, projeto e relatório | Template, TemplateVersion |
-| Notifications | Eventos e preferências de notificação | Notification, NotificationPreference |
-| Audit | Histórico de ações relevantes e trilha de segurança | AuditEvent |
+| Identity & Access | Identity, organization, members, roles and permissions | User, Organization, Membership, Role, Permission |
+| Client Management | Client registry and contextual history | Client, ClientContact, ClientActivity |
+| Project Management | Projects/campaigns, owners, collaborators and lifecycle | Project, ProjectMember, ProjectStatusHistory |
+| Briefing | Invitations, public form, questions, answers and versions | Briefing, BriefingVersion, QuestionVersion, Answer |
+| Diagnosis | Signals, per-category evaluation, rules and versions | Signal, Diagnosis, DiagnosisSignal, RuleVersion |
+| Recommendations | Contextual recommendations, origin, review and prioritization | Recommendation, RecommendationSource, RecommendationRevision |
+| Planning | Objectives, strategic plans and actions | StrategicPlan, Objective, Action |
+| Execution | Tasks, owners, deadlines, dependencies and comments | Task, TaskAssignee, TaskDependency, Comment |
+| Measurement | Indicators, targets, measurements, evidence and evaluation | Metric, Target, Measurement, Evidence, ImpactReview |
+| Documents | Files associated with clients and projects | Document, DocumentVersion |
+| Reporting | Queries, snapshots and report exports | ReportDefinition, ReportSnapshot, ExportJob |
+| Templates | Reusable briefing, diagnosis, project and report templates | Template, TemplateVersion |
+| Notifications | Notification events and preferences | Notification, NotificationPreference |
+| Audit | History of relevant actions and security trail | AuditEvent |
 
-Os nomes são conceituais. O schema final deve ser definido após revisar o schema Prisma real e os requisitos de cada fluxo.
+Names are conceptual. The final schema must be defined after reviewing the real Prisma schema and each flow's requirements.
 
-### 4.2 Limites de responsabilidade
+### 4.2 Responsibility boundaries
 
-- `Briefing` coleta contexto; não deve armazenar tarefas ou resultados de campanha.
-- `Diagnosis` registra uma interpretação versionada das respostas; não deve ser sobrescrito sem histórico.
-- `Recommendation` representa uma sugestão estratégica revisável; não é automaticamente uma tarefa.
-- `Objective` representa o resultado que se deseja alcançar.
-- `Action` representa uma iniciativa ou linha de trabalho para contribuir com o objetivo.
-- `Task` representa uma unidade executável de trabalho.
-- `Metric` define o que será medido; `Measurement` registra um valor observado em um momento.
-- `Evidence` sustenta uma avaliação, sem substituir o dado medido.
-- `AuditEvent` registra mudanças relevantes; não deve ser usado como substituto de histórico de domínio.
+- `Briefing` gathers context; it must not store tasks or campaign results.
+- `Diagnosis` records a versioned interpretation of the answers; it must not be overwritten without history.
+- `Recommendation` represents a reviewable strategic suggestion; it isn't automatically a task.
+- `Objective` represents the result to be achieved.
+- `Action` represents an initiative or line of work contributing to the objective.
+- `Task` represents an executable unit of work.
+- `Metric` defines what will be measured; `Measurement` records a value observed at a point in time.
+- `Evidence` supports an evaluation, without replacing the measured data.
+- `AuditEvent` records relevant changes; it must not be used as a substitute for domain history.
 
-### 4.3 Fluxo de domínio
+### 4.3 Domain flow
 
 ```text
 Organization
@@ -205,40 +207,40 @@ Organization
             └── Reports
 ```
 
-Um projeto pode ter mais de um briefing ao longo do tempo, por exemplo, briefing inicial e revisão de escopo. O relacionamento não deve pressupor que exista exatamente um briefing por projeto.
+A project may have more than one briefing over time, e.g. an initial briefing and a scope review. The relationship must not assume exactly one briefing per project.
 
 ---
 
-## 5. Arquitetura de aplicação
+## 5. Application architecture
 
-### 5.1 Estilo recomendado: monólito modular
+### 5.1 Recommended style: modular monolith
 
-Para a fase atual, microserviços aumentariam custo operacional, complexidade de deploy, observabilidade e consistência distribuída sem benefício proporcional.
+At the current stage, microservices would increase operating cost, deploy complexity, observability needs and distributed consistency problems without proportional benefit.
 
-Recomendação:
+Recommendation:
 
-- uma aplicação Next.js;
-- um banco PostgreSQL;
-- Prisma como acesso a dados;
-- Supabase Auth ou provedor de identidade equivalente;
-- armazenamento de arquivos privado;
-- processamento assíncrono apenas para tarefas que justifiquem fila;
-- módulos internos com contratos explícitos.
+- one Next.js application;
+- one PostgreSQL database;
+- Prisma for data access;
+- Supabase Auth or an equivalent identity provider;
+- private file storage;
+- async processing only for work that justifies a queue;
+- internal modules with explicit contracts.
 
-A separação modular deve ser lógica e testável, não necessariamente implantada em processos separados.
+Modular separation should be logical and testable, not necessarily deployed as separate processes.
 
-### 5.2 Estrutura de pastas sugerida
+### 5.2 Suggested folder structure
 
 ```text
 src/
-├── app/                         # Rotas, páginas e composição da interface
+├── app/                         # Routes, pages and UI composition
 │   ├── (auth)/
 │   ├── (workspace)/
 │   ├── public/
 │   │   └── briefing/[token]/
 │   ├── api/
 │   └── print/
-├── components/                  # Componentes visuais compartilhados
+├── components/                  # Shared visual components
 │   ├── ui/
 │   ├── layout/
 │   └── domain/
@@ -257,8 +259,8 @@ src/
 │   ├── templates/
 │   ├── notifications/
 │   └── audit/
-├── core/                        # Tipos e regras realmente compartilhados/puras
-├── infrastructure/              # Adaptadores externos
+├── core/                        # Truly shared/pure types and rules
+├── infrastructure/              # External adapters
 │   ├── database/
 │   ├── auth/
 │   ├── storage/
@@ -273,72 +275,72 @@ src/
     └── validation/
 ```
 
-Cada módulo pode adotar uma estrutura interna simples:
+Each module can adopt a simple internal structure (file names in camelCase, per `docs/guidelines/CODE-AND-UI.md`):
 
 ```text
 modules/projects/
 ├── domain/
 │   ├── project.ts
-│   ├── project-policy.ts
-│   └── project-status.ts
+│   ├── projectPolicy.ts
+│   └── projectStatus.ts
 ├── application/
-│   ├── create-project.ts
-│   ├── update-project.ts
-│   └── archive-project.ts
+│   ├── createProject.ts
+│   ├── updateProject.ts
+│   └── archiveProject.ts
 ├── infrastructure/
-│   └── project-repository.ts
+│   └── projectRepository.ts
 └── presentation/
-    └── project-dto.ts
+    └── projectDto.ts
 ```
 
-Não criar todas essas pastas vazias de uma vez. Introduzir a estrutura quando um fluxo for implementado ou refatorado.
+Don't create all these folders empty at once. Introduce the structure when a flow is implemented or refactored.
 
-### 5.3 Regras de dependência
+### 5.3 Dependency rules
 
-| Camada | Pode depender de | Não deve depender de |
+| Layer | May depend on | Must not depend on |
 |---|---|---|
-| Domain | Tipos e funções puras do domínio | Next.js, React, Prisma, Supabase, rede |
-| Application | Domain e contratos de portas | Componentes, Route Handlers e detalhes de fornecedor |
-| Infrastructure | Contratos de Application/Domain e SDKs externos | Interface visual |
-| Presentation | Application, DTOs e componentes | Prisma diretamente |
-| App / Route Handlers | Presentation e Application | Regras de negócio implementadas localmente |
+| Domain | Pure domain types and functions | Next.js, React, Prisma, Supabase, network |
+| Application | Domain and port contracts | Components, Route Handlers and vendor details |
+| Infrastructure | Application/Domain contracts and external SDKs | Visual interface |
+| Presentation | Application, DTOs and components | Prisma directly |
+| App / Route Handlers | Presentation and Application | Business rules implemented locally |
 
-As rotas devem ser finas: autenticar, validar formato, chamar caso de uso e converter resultado em HTTP.
+Routes should be thin: authenticate, validate shape, call the use case and convert the result into HTTP.
 
-### 5.4 Repositórios e consultas
+### 5.4 Repositories and queries
 
-Usar repositórios quando houver benefício claro de isolamento de persistência, consistência transacional ou teste. Não criar uma camada genérica que apenas repasse todos os métodos do Prisma.
+Use repositories when there's a clear benefit for persistence isolation, transactional consistency or testing. Don't create a generic layer that just forwards every Prisma method.
 
-Consultas de leitura complexas para dashboards e relatórios podem usar query services próprios, sem forçar toda leitura a passar pelo mesmo padrão de repositório de escrita.
+Complex read queries for dashboards and reports can use dedicated query services, without forcing every read through the same write-repository pattern.
 
 ---
 
-## 6. Multi-organização, autorização e isolamento
+## 6. Multi-organization, authorization and isolation
 
-### 6.1 Organização como tenant
+### 6.1 Organization as tenant
 
-Mesmo com implantação inicial para uma organização, o modelo deve conter `organizationId` nos dados organizacionais desde o início. Isso evita uma migração estrutural arriscada quando houver segunda organização.
+Even with an initial deployment for one organization, the model must contain `organizationId` on organizational data from the start. This avoids a risky structural migration when a second organization arrives.
 
-Entidades como cliente, projeto, briefing, plano, objetivo, tarefa, documento, modelo e relatório devem ser associadas à organização de forma direta ou por uma relação verificável.
+Entities such as client, project, briefing, plan, objective, task, document, template and report must be associated with the organization directly or through a verifiable relationship.
 
-### 6.2 Regras obrigatórias
+### 6.2 Mandatory rules
 
-- Toda consulta administrativa deve restringir o escopo à organização ativa.
-- Toda mutação deve validar organização e permissão no servidor.
-- Não confiar em `organizationId`, `userId`, `role` ou `projectId` enviados pelo cliente sem revalidar a relação no banco.
-- IDs difíceis de adivinhar não substituem autorização.
-- A interface pode ocultar ações, mas a API precisa rejeitá-las quando não autorizadas.
-- Acesso a arquivos deve verificar a mesma política do registro que os referencia.
-- Relatórios compartilhados externamente devem expor apenas o conteúdo explicitamente autorizado.
+- Every admin query must restrict scope to the active organization.
+- Every mutation must validate organization and permission on the server.
+- Don't trust `organizationId`, `userId`, `role` or `projectId` sent by the client without revalidating the relationship in the database.
+- Hard-to-guess IDs don't replace authorization.
+- The UI may hide actions, but the API must reject them when unauthorized.
+- File access must check the same policy as the record that references the file.
+- Externally shared reports must expose only explicitly authorized content.
 
-### 6.3 Modelo conceitual de acesso
+### 6.3 Conceptual access model
 
 ```text
 User
   └── Membership
        ├── Organization
        ├── Role
-       └── Permission overrides (quando necessário)
+       └── Permission overrides (when needed)
 
 Project
   └── ProjectMember
@@ -346,324 +348,324 @@ Project
        └── Project-level access
 ```
 
-A associação à organização define o acesso-base. A participação no projeto pode restringir ou ampliar ações conforme a matriz de permissões aprovada.
+Organization membership defines baseline access. Project participation can restrict or extend actions according to the approved permission matrix.
 
-### 6.4 Papéis e permissões
+### 6.4 Roles and permissions
 
-O produto prevê administradores, líderes e membros, mas a matriz detalhada ainda é uma decisão pendente. A implementação deve evitar condicionais espalhadas como `if (role === "admin")`.
+The product foresees administrators, leaders and members, but the detailed matrix is still a pending decision. The implementation must avoid scattered conditionals like `if (role === "admin")`.
 
-Recomendação:
+Recommendation:
 
-- centralizar políticas em funções como `canManageMembers`, `canApproveDiagnosis`, `canChangePriority`, `canManageProject` e `canValidateMeasurement`;
-- distinguir permissão de organização e permissão de projeto;
-- permitir que uma pessoa seja responsável por um projeto sem conceder acesso administrativo à organização;
-- registrar alterações de papel e concessões excepcionais no audit log;
-- aplicar princípio do menor privilégio.
+- centralize policies in functions such as `canManageMembers`, `canApproveDiagnosis`, `canChangePriority`, `canManageProject` and `canValidateMeasurement`;
+- distinguish organization permissions from project permissions;
+- allow a person to own a project without granting organization admin access;
+- record role changes and exceptional grants in the audit log;
+- apply the principle of least privilege.
 
-Não assumir que todo líder pode executar qualquer ação nem que todo membro só pode visualizar. Confirmar a matriz no documento de requisitos antes de codificar.
+Don't assume every leader can perform any action or that every member can only view. Confirm the matrix in the requirements document before coding.
 
 ### 6.5 Row Level Security
 
-Se PostgreSQL/Supabase RLS for usado como segunda barreira, as políticas devem refletir o modelo real de membership e escopo de projeto. Não habilitar RLS com políticas permissivas apenas para “marcar como protegido”.
+If PostgreSQL/Supabase RLS is used as a second barrier, policies must reflect the real membership and project-scope model. Don't enable RLS with permissive policies just to "mark it as protected".
 
-A autorização na aplicação continua obrigatória. Testes devem tentar acessar registros de outra organização usando IDs conhecidos e sessões de usuários distintos.
+Application-level authorization remains mandatory. Tests must try to access another organization's records using known IDs and sessions of different users.
 
 ---
 
-## 7. Integridade transacional e casos de uso
+## 7. Transactional integrity and use cases
 
-### 7.1 Casos de uso que exigem transação
+### 7.1 Use cases that require a transaction
 
-| Caso de uso | Operação consistente |
+| Use case | Consistent operation |
 |---|---|
-| Enviar briefing | Validar status, validar respostas visíveis, congelar versão, gerar diagnóstico e mudar status |
-| Reprocessar diagnóstico | Recalcular sinais e diagnóstico com versão explícita, preservando histórico |
-| Aprovar diagnóstico | Registrar aprovador, data, versão e estado |
-| Converter recomendação | Criar/associar objetivo, ação e tarefas após revisão humana |
-| Alterar prioridade | Registrar prioridade calculada, prioridade aprovada, justificativa e autor |
-| Atualizar objetivo | Registrar mudança de estado, meta e histórico de alteração |
-| Registrar medição | Validar métrica, unidade, período e permissão; gravar medição e evidência associada |
-| Fechar projeto | Validar objetivos, resultados, revisão final e aprovação de encerramento |
-| Excluir/anonimizar dados | Aplicar política de retenção e preservar integridade de registros que precisem ser mantidos |
+| Submit briefing | Validate status, validate visible answers, freeze version, generate diagnosis and change status |
+| Reprocess diagnosis | Recompute signals and diagnosis with an explicit version, preserving history |
+| Approve diagnosis | Record approver, date, version and state |
+| Convert recommendation | Create/associate objective, action and tasks after human review |
+| Change priority | Record calculated priority, approved priority, justification and author |
+| Update objective | Record state change, target and change history |
+| Record measurement | Validate metric, unit, period and permission; store measurement and associated evidence |
+| Close project | Validate objectives, results, final review and closing approval |
+| Delete/anonymize data | Apply retention policy and preserve integrity of records that must be kept |
 
-### 7.2 Exemplo de fluxo de envio de briefing
+### 7.2 Example briefing submission flow
 
 ```text
 submitBriefing(briefingId, actor/context)
-  1. carregar briefing dentro da organização autorizada
-  2. validar estado e prazo do link
-  3. carregar versão exata do catálogo associada ao briefing
-  4. calcular visibilidade e validar respostas obrigatórias visíveis
-  5. validar tipos, opções e limites de todas as respostas
-  6. congelar snapshot das respostas submetidas
-  7. executar motor determinístico com versão de regras definida
-  8. persistir sinais e diagnóstico
-  9. alterar status para ready_for_review
- 10. gravar evento de auditoria
- 11. confirmar transação
+  1. load the briefing within the authorized organization
+  2. validate the link's state and deadline
+  3. load the exact catalog version associated with the briefing
+  4. compute visibility and validate visible required answers
+  5. validate types, options and limits of all answers
+  6. freeze a snapshot of the submitted answers
+  7. run the deterministic engine with a defined rules version
+  8. persist signals and diagnosis
+  9. change status to ready_for_review
+ 10. write the audit event
+ 11. commit the transaction
 ```
 
-Se a transação falhar, o briefing não pode ficar marcado como enviado sem o diagnóstico correspondente.
+If the transaction fails, the briefing must not be marked as submitted without the corresponding diagnosis.
 
-### 7.3 Concorrência e idempotência
+### 7.3 Concurrency and idempotency
 
-- Autosave e envio precisam ter coordenação explícita.
-- Um envio deve impedir gravações posteriores de respostas, salvo fluxo autorizado de reabertura ou nova versão.
-- Operações repetidas precisam ter resultado previsível.
-- Reprocessamento deve ser idempotente para a mesma versão de entrada e regras, sem apagar a trilha histórica.
-- Usar controle otimista de versão (`version`/`updatedAt`) onde edições concorrentes forem possíveis.
-- Não confiar apenas no debounce do navegador para consistência.
+- Autosave and submission need explicit coordination.
+- A submission must prevent later answer writes, except through an authorized reopening flow or a new version.
+- Repeated operations must have predictable results.
+- Reprocessing must be idempotent for the same input and rules version, without erasing the historical trail.
+- Use optimistic version control (`version`/`updatedAt`) where concurrent edits are possible.
+- Don't rely only on browser debounce for consistency.
 
 ---
 
-## 8. Versionamento e reprodutibilidade
+## 8. Versioning and reproducibility
 
-### 8.1 O que precisa ser versionado
+### 8.1 What needs to be versioned
 
-| Artefato | Motivo |
+| Artifact | Reason |
 |---|---|
-| Catálogo de perguntas | Alterações não podem modificar briefings antigos |
-| Briefing submetido | Preservar exatamente o que foi respondido |
-| Regras de diagnóstico | Explicar por que um resultado foi produzido |
-| Recomendações e seus critérios | Rastrear origem e mudanças |
-| Modelos de briefing/projeto/relatório | Duplicações futuras não devem alterar instâncias existentes |
-| Metas e definições de indicadores | Comparar resultados com a meta vigente no período |
-| Relatórios finais | Preservar o material que foi compartilhado/aprovado |
+| Question catalog | Changes must not modify old briefings |
+| Submitted briefing | Preserve exactly what was answered |
+| Diagnosis rules | Explain why a result was produced |
+| Recommendations and their criteria | Trace origin and changes |
+| Briefing/project/report templates | Future duplications must not alter existing instances |
+| Targets and indicator definitions | Compare results against the target in force for the period |
+| Final reports | Preserve the material that was shared/approved |
 
-### 8.2 Estratégia recomendada
+### 8.2 Recommended strategy
 
-- Usar versões imutáveis para catálogos e regras publicadas.
-- Associar cada briefing a uma versão do catálogo.
-- Associar cada diagnóstico a uma versão de regras e ao snapshot de entrada.
-- Criar nova versão ao publicar mudanças relevantes; não editar a versão usada por registros existentes.
-- Manter autor, data, motivo e estado de publicação.
-- Definir política de compatibilidade e migração para versões antigas.
+- Use immutable versions for published catalogs and rules.
+- Associate each briefing with a catalog version.
+- Associate each diagnosis with a rules version and the input snapshot.
+- Create a new version when publishing relevant changes; don't edit the version used by existing records.
+- Keep author, date, reason and publication state.
+- Define a compatibility and migration policy for old versions.
 
-### 8.3 Reprocessamento histórico
+### 8.3 Historical reprocessing
 
-Reprocessar um briefing antigo não deve substituir silenciosamente seu diagnóstico aprovado. O sistema deve criar uma nova execução, registrar a versão de regras utilizada e permitir comparar o resultado anterior com o novo.
-
----
-
-## 9. Diagnóstico, recomendações e priorização
-
-### 9.1 Diagnóstico determinístico na V1
-
-O motor deve continuar sendo puro, testável e explicável. Regras precisam ter:
-
-- identificador estável;
-- versão;
-- categoria;
-- condições de disparo;
-- severidade;
-- explicação compreensível;
-- referências às respostas e sinais de origem;
-- testes para cenários positivos, negativos e limites.
-
-A interpretação humana permanece parte do processo. O sistema oferece evidências e uma proposta; a equipe revisa e valida.
-
-### 9.2 Recomendações como entidades revisáveis
-
-Uma recomendação deve preservar:
-
-- texto e objetivo sugerido;
-- categoria estratégica;
-- sinais/respostas que motivaram a sugestão;
-- versão da regra que a originou;
-- prioridade calculada;
-- prioridade aprovada;
-- justificativa de alteração;
-- estado de revisão;
-- responsável e histórico.
-
-Evitar gerar recomendações apenas como texto transitório na tela. Elas precisam existir como registros rastreáveis se forem discutidas, aprovadas ou convertidas em trabalho.
-
-### 9.3 Priorização
-
-A prioridade considera severidade, impacto estratégico, urgência e esforço. A fórmula e os pesos permanecem pendentes de decisão de produto.
-
-Requisitos arquiteturais:
-
-- guardar os fatores usados no cálculo;
-- guardar o resultado calculado original;
-- permitir revisão humana conforme permissão;
-- preservar justificativa, autor, data e valor anterior/novo;
-- evitar que esforço baixo ou alto, isoladamente, rebaixe uma iniciativa de grande valor;
-- permitir recalcular apenas quando a política de priorização mudar, sem apagar decisões anteriores.
-
-Não codificar pesos definitivos antes da aprovação da regra de negócio.
-
-### 9.4 Conversão assistida em plano
-
-A conversão de recomendação em objetivo, ação e tarefas deve ser uma etapa explícita de revisão:
-
-1. sistema propõe objetivo e estrutura inicial;
-2. equipe revisa e edita;
-3. responsáveis, prioridades e prazos são confirmados;
-4. só então os compromissos de execução são criados.
-
-Isso evita que uma sugestão diagnóstica vire automaticamente obrigação operacional.
+Reprocessing an old briefing must not silently replace its approved diagnosis. The system must create a new run, record the rules version used and allow comparing the previous result with the new one.
 
 ---
 
-## 10. Planejamento, execução e medição
+## 9. Diagnosis, recommendations and prioritization
 
-### 10.1 Separação entre objetivo, ação e tarefa
+### 9.1 Deterministic diagnosis in V1
 
-| Elemento | Pergunta que responde | Exemplo conceitual |
+The engine must remain pure, testable and explainable. Rules need:
+
+- a stable identifier;
+- a version;
+- a category;
+- trigger conditions;
+- severity;
+- an understandable explanation;
+- references to the originating answers and signals;
+- tests for positive, negative and edge scenarios.
+
+Human interpretation remains part of the process. The system offers evidence and a proposal; the team reviews and validates.
+
+### 9.2 Recommendations as reviewable entities
+
+A recommendation must preserve:
+
+- text and suggested objective;
+- strategic category;
+- signals/answers that motivated the suggestion;
+- version of the rule that originated it;
+- calculated priority;
+- approved priority;
+- change justification;
+- review state;
+- owner and history.
+
+Avoid generating recommendations only as transient on-screen text. They need to exist as traceable records if they're discussed, approved or converted into work.
+
+### 9.3 Prioritization
+
+Priority considers severity, strategic impact, urgency and effort. The formula and weights remain pending a product decision.
+
+Architectural requirements:
+
+- store the factors used in the calculation;
+- store the original calculated result;
+- allow human review according to permission;
+- preserve justification, author, date and previous/new value;
+- prevent low or high effort alone from demoting a high-value initiative;
+- allow recalculating only when the prioritization policy changes, without erasing previous decisions.
+
+Don't hard-code definitive weights before the business rule is approved.
+
+### 9.4 Assisted conversion into a plan
+
+Converting a recommendation into an objective, action and tasks must be an explicit review step:
+
+1. the system proposes an objective and an initial structure;
+2. the team reviews and edits;
+3. owners, priorities and deadlines are confirmed;
+4. only then are execution commitments created.
+
+This prevents a diagnostic suggestion from automatically becoming an operational obligation.
+
+---
+
+## 10. Planning, execution and measurement
+
+### 10.1 Separating objective, action and task
+
+| Element | Question it answers | Conceptual example |
 |---|---|---|
-| Objetivo | Qual resultado queremos alcançar? | Melhorar a geração de oportunidades qualificadas |
-| Ação | Que iniciativa contribui para o resultado? | Reestruturar a estratégia de conteúdo |
-| Tarefa | Qual trabalho concreto precisa ser feito? | Levantar temas e aprovar calendário editorial |
+| Objective | What result do we want to achieve? | Improve generation of qualified opportunities |
+| Action | Which initiative contributes to the result? | Restructure the content strategy |
+| Task | What concrete work needs to be done? | Gather topics and approve the editorial calendar |
 
-A tarefa pode ser concluída sem que o objetivo seja alcançado. O modelo e os dashboards devem representar essa diferença.
+A task can be completed without the objective being achieved. The model and dashboards must represent this difference.
 
-### 10.2 Plano estratégico
+### 10.2 Strategic plan
 
-- Um plano estratégico principal por projeto, com possibilidade de planos complementares.
-- Objetivos com estado, responsável, período, métricas, metas e histórico.
-- Ações vinculadas a objetivos.
-- Tarefas vinculadas a ações e, quando necessário, diretamente a objetivos.
-- Mudanças de escopo, cancelamento e substituição com justificativa.
-- Encerramento de projeto com avaliação de resultados e relatório final.
+- One main strategic plan per project, with the possibility of complementary plans.
+- Objectives with state, owner, period, metrics, targets and history.
+- Actions linked to objectives.
+- Tasks linked to actions and, when needed, directly to objectives.
+- Scope changes, cancellation and replacement with justification.
+- Project closing with results evaluation and a final report.
 
-### 10.3 Indicadores e medições
+### 10.3 Indicators and measurements
 
-Separar definição de indicador de observação de resultado:
+Separate indicator definition from result observation:
 
-- `Metric`: nome, descrição, tipo, unidade, método de atualização e regra de validação.
-- `Target`: valor-alvo, período, data de vigência e histórico.
-- `Measurement`: valor observado, período de referência, autor do registro e data.
-- `Evidence`: documento, link ou observação que sustenta a medição.
-- `ImpactReview`: avaliação qualitativa e quantitativa do impacto.
+- `Metric`: name, description, type, unit, update method and validation rule.
+- `Target`: target value, period, effective date and history.
+- `Measurement`: observed value, reference period, recording author and date.
+- `Evidence`: document, link or note supporting the measurement.
+- `ImpactReview`: qualitative and quantitative evaluation of impact.
 
-A equipe escolhe quando atualizar os indicadores; não impor periodicidade fixa na arquitetura. O registro de uma medição pode ser feito por membro autorizado, enquanto a validação cabe a pessoas com permissão definida.
+The team chooses when to update indicators; don't impose a fixed frequency in the architecture. A measurement can be recorded by an authorized member, while validation belongs to people with defined permission.
 
-### 10.4 Metas não atingidas
+### 10.4 Targets not met
 
-O sistema pode sugerir revisão com base em regras, mas não deve alterar automaticamente objetivos ou metas. Mudanças exigem decisão humana e histórico.
+The system may suggest a review based on rules, but must not change objectives or targets automatically. Changes require a human decision and history.
 
-Objetivos cancelados ou substituídos devem ser arquivados com motivo, responsável e impacto, não apagados como se nunca tivessem existido.
-
----
-
-## 11. Dados, arquivos e relatórios
-
-### 11.1 Histórico de cliente
-
-O histórico do cliente deve reunir atividades relevantes para o trabalho: reuniões, decisões, observações, documentos e projetos. Não é necessário transformar o produto em CRM completo.
-
-As atividades devem ter autor, data, tipo, conteúdo e vínculo com cliente/projeto quando aplicável.
-
-### 11.2 Armazenamento de arquivos
-
-- Usar bucket privado por padrão.
-- Persistir metadados no banco; armazenar bytes no serviço de storage.
-- Validar tamanho, extensão e MIME type no servidor.
-- Gerar URLs assinadas com validade curta.
-- Verificar autorização no registro relacionado antes de emitir URL.
-- Registrar upload, substituição e exclusão.
-- Definir retenção e política de remoção.
-- Não armazenar credenciais ou URLs públicas permanentes para documentos privados.
-
-### 11.3 Relatórios
-
-Relatórios operacionais, estratégicos e de desempenho devem consultar dados respeitando a organização e as permissões do usuário.
-
-Para relatórios compartilhados com clientes:
-
-- criar um artefato/snapshot com escopo explícito;
-- usar token aleatório e revogável;
-- permitir expiração;
-- não expor o painel interno;
-- registrar criação, acesso e revogação;
-- não incluir comentários internos ou dados de outros projetos;
-- definir se o destinatário pode baixar, imprimir ou apenas visualizar.
-
-O mecanismo de compartilhamento, autenticação e expiração ainda precisa de decisão de produto. A arquitetura deve suportar revogação e escopo mínimo.
-
-### 11.4 Exportações e PDFs
-
-Exportações longas ou caras podem usar job assíncrono. A geração de PDF deve ficar atrás de uma interface de serviço para permitir trocar Playwright/Chromium por worker ou serviço compatível sem alterar os módulos de negócio.
-
-Não assumir que Chromium completo funciona em funções serverless. Validar a estratégia no ambiente de deploy escolhido.
+Cancelled or replaced objectives must be archived with reason, owner and impact, not deleted as if they had never existed.
 
 ---
 
-## 12. Segurança, privacidade e auditoria
+## 11. Data, files and reports
 
-### 12.1 Autenticação e autorização
+### 11.1 Client history
 
-- Desativar cadastro aberto se o modelo de entrada exigir convite.
-- Não provisionar usuário local sem autorização explícita para ingressar na organização.
-- Validar redirect de login para destinos internos permitidos.
-- Proteger mutações contra CSRF/origem cruzada conforme o modelo de sessão.
-- Aplicar rate limiting em formulário público, autosave, envio, login, compartilhamento e exportação.
-- Não registrar tokens, respostas livres ou dados pessoais em logs comuns.
-- Usar segredos apenas no servidor e rotacionar credenciais em incidentes.
+Client history should gather activities relevant to the work: meetings, decisions, notes, documents and projects. There's no need to turn the product into a full CRM.
 
-### 12.2 Auditoria
+Activities must have author, date, type, content and a link to client/project when applicable.
 
-Registrar, no mínimo, eventos relevantes:
+### 11.2 File storage
 
-- convite, entrada e remoção de membro;
-- mudança de papel/permissão;
-- criação, alteração, arquivamento e exclusão de cliente/projeto;
-- envio, aprovação, revogação e reprocessamento de briefing;
-- alteração de recomendação/prioridade;
-- aprovação e mudança de objetivo/meta;
-- validação de medição;
-- compartilhamento, acesso e revogação de relatório;
-- exportação e exclusão de dados.
+- Use a private bucket by default.
+- Persist metadata in the database; store bytes in the storage service.
+- Validate size, extension and MIME type on the server.
+- Generate short-lived signed URLs.
+- Check authorization on the related record before issuing a URL.
+- Record upload, replacement and deletion.
+- Define retention and a removal policy.
+- Don't store credentials or permanent public URLs for private documents.
 
-Cada evento deve conter ator, organização, entidade, ação, data/hora e metadados mínimos necessários. Evitar copiar conteúdo pessoal sensível para o log.
+### 11.3 Reports
 
-### 12.3 LGPD e ciclo de vida de dados
+Operational, strategic and performance reports must query data respecting the organization and the user's permissions.
 
-A arquitetura deve permitir:
+For reports shared with clients:
 
-- aviso de privacidade no formulário público;
-- registro de versão do aviso e base legal aplicável;
-- atendimento a solicitações de acesso, correção, portabilidade e exclusão quando cabíveis;
-- retenção definida por categoria de dado;
-- anonimização ou exclusão conforme política;
-- inventário de suboperadores e serviços;
-- registro de operações relevantes;
-- controle de acesso a respostas e documentos.
+- create an artifact/snapshot with explicit scope;
+- use a random, revocable token;
+- allow expiration;
+- don't expose the internal panel;
+- record creation, access and revocation;
+- don't include internal comments or data from other projects;
+- define whether the recipient can download, print or only view.
 
-Consentimento não deve ser tratado como base legal universal. A base legal e os prazos devem ser definidos com orientação jurídica adequada ao contexto.
+The sharing, authentication and expiration mechanism still needs a product decision. The architecture must support revocation and minimal scope.
 
-### 12.4 Backups e recuperação
+### 11.4 Exports and PDFs
 
-- backups automáticos periódicos;
-- retenção definida;
-- recuperação pontual quando suportada pelo provedor;
-- alertas para falha de backup;
-- runbook de recuperação;
-- testes periódicos de restauração;
-- RPO e RTO definidos de acordo com impacto de negócio e capacidade de infraestrutura.
+Long or expensive exports can use an async job. PDF generation must sit behind a service interface so Playwright/Chromium can be swapped for a compatible worker or service without changing business modules.
 
-Não fixar valores de RPO/RTO sem decisão operacional.
+Don't assume full Chromium works in serverless functions. Validate the strategy in the chosen deploy environment. (Current strategy: decision D6 in `docs/DECISIONS.md`.)
 
 ---
 
-## 13. API, eventos e processamento assíncrono
+## 12. Security, privacy and auditing
+
+### 12.1 Authentication and authorization
+
+- Disable open sign-up if the onboarding model requires invitations.
+- Don't provision a local user without explicit authorization to join the organization.
+- Validate the login redirect against allowed internal destinations.
+- Protect mutations against CSRF/cross-origin according to the session model.
+- Apply rate limiting on the public form, autosave, submission, login, sharing and export.
+- Don't record tokens, free-text answers or personal data in common logs.
+- Use secrets only on the server and rotate credentials after incidents.
+
+### 12.2 Auditing
+
+Record, at a minimum, relevant events:
+
+- member invitation, joining and removal;
+- role/permission change;
+- creation, change, archiving and deletion of client/project;
+- briefing submission, approval, revocation and reprocessing;
+- recommendation/priority change;
+- objective/target approval and change;
+- measurement validation;
+- report sharing, access and revocation;
+- data export and deletion.
+
+Each event must contain actor, organization, entity, action, date/time and the minimum necessary metadata. Avoid copying sensitive personal content into the log.
+
+### 12.3 LGPD and data lifecycle
+
+The architecture must allow:
+
+- a privacy notice on the public form;
+- recording the notice version and applicable legal basis;
+- handling access, correction, portability and deletion requests where applicable;
+- retention defined per data category;
+- anonymization or deletion per policy;
+- an inventory of sub-processors and services;
+- recording of relevant operations;
+- access control for answers and documents.
+
+Consent must not be treated as a universal legal basis. The legal basis and timeframes must be defined with legal guidance appropriate to the context.
+
+### 12.4 Backups and recovery
+
+- periodic automatic backups;
+- defined retention;
+- point-in-time recovery when supported by the provider;
+- alerts for backup failures;
+- recovery runbook;
+- periodic restore tests;
+- RPO and RTO defined according to business impact and infrastructure capacity.
+
+Don't fix RPO/RTO values without an operational decision.
+
+---
+
+## 13. API, events and async processing
 
 ### 13.1 API
 
-Os contratos de API devem:
+API contracts must:
 
-- validar entrada com schemas;
-- retornar erros padronizados;
-- nunca confiar em escopo ou papel fornecido pelo cliente;
-- usar paginação em listas potencialmente grandes;
-- aplicar filtros permitidos e ordenação estável;
-- manter compatibilidade quando houver clientes externos no futuro;
-- registrar request ID para correlação.
+- validate input with schemas;
+- return standardized errors;
+- never trust scope or role provided by the client;
+- paginate potentially large lists;
+- apply allowed filters and stable ordering;
+- keep compatibility when there are external clients in the future;
+- record a request ID for correlation.
 
-### 13.2 Eventos de domínio
+### 13.2 Domain events
 
-Eventos internos podem desacoplar notificações, auditoria e tarefas derivadas. Exemplos:
+Internal events can decouple notifications, auditing and derived tasks. Examples:
 
 - `BriefingSubmitted`
 - `DiagnosisGenerated`
@@ -673,72 +675,72 @@ Eventos internos podem desacoplar notificações, auditoria e tarefas derivadas.
 - `ProjectClosed`
 - `ReportShared`
 
-Na primeira fase, esses eventos podem ser processados dentro da aplicação e persistidos via outbox quando precisarem sobreviver a falhas. Não adotar broker distribuído antes de existir necessidade real.
+In the first phase, these events can be processed inside the application and persisted via an outbox when they need to survive failures. Don't adopt a distributed broker before there's a real need.
 
-### 13.3 Processamento assíncrono
+### 13.3 Async processing
 
-Candidatos a job:
+Job candidates:
 
-- geração de PDF pesado;
-- envio de e-mail;
-- processamento de anexos;
-- exportação de relatórios extensos;
-- notificações em lote;
-- tarefas agendadas de retenção e limpeza.
+- heavy PDF generation;
+- sending email;
+- attachment processing;
+- exporting large reports;
+- batch notifications;
+- scheduled retention and cleanup tasks.
 
-Jobs precisam de idempotência, retry com limite, estado observável e tratamento de falhas. Não executar trabalho pesado dentro de requisições HTTP sem avaliar timeout e custo.
+Jobs need idempotency, bounded retries, observable state and failure handling. Don't run heavy work inside HTTP requests without assessing timeout and cost.
 
-### 13.4 Integrações futuras
+### 13.4 Future integrations
 
-A V1 é standalone. A arquitetura pode prever adaptadores para Drive, calendário, comunicação, CRM e plataformas de marketing, mas não deve implementar integrações antes de estabilizar o fluxo interno.
+V1 is standalone. The architecture may anticipate adapters for Drive, calendar, communication, CRM and marketing platforms, but must not implement integrations before the internal flow is stable.
 
-Quando integrações forem introduzidas:
+When integrations are introduced:
 
-- credenciais criptografadas e fora do cliente;
-- escopos mínimos;
-- logs sem segredos;
-- tratamento de expiração e revogação;
-- retries e idempotência;
-- visibilidade de falhas;
-- desconexão e exclusão segura de credenciais.
+- credentials encrypted and kept off the client;
+- minimal scopes;
+- logs without secrets;
+- handling of expiration and revocation;
+- retries and idempotency;
+- visibility of failures;
+- safe disconnection and credential deletion.
 
 ---
 
-## 14. Qualidade, testes e observabilidade
+## 14. Quality, tests and observability
 
-### 14.1 Pirâmide de testes
+### 14.1 Test pyramid
 
-| Camada | Cobertura esperada |
+| Layer | Expected coverage |
 |---|---|
-| Domínio | Regras de visibilidade, diagnóstico, prioridade e transições |
-| Aplicação | Casos de uso, autorização e transações |
-| Persistência | Repositórios, constraints, isolamento de tenant e migrações |
-| API | Autenticação, autorização, validação e códigos de erro |
-| Componentes | Formulários, estados, acessibilidade e feedback |
-| E2E | Jornada completa de organização, cliente, projeto e briefing |
-| Segurança | Acesso cruzado, rate limit, CSRF, links públicos e arquivos |
+| Domain | Visibility, diagnosis, priority and transition rules |
+| Application | Use cases, authorization and transactions |
+| Persistence | Repositories, constraints, tenant isolation and migrations |
+| API | Authentication, authorization, validation and error codes |
+| Components | Forms, states, accessibility and feedback |
+| E2E | Full journey of organization, client, project and briefing |
+| Security | Cross-access, rate limit, CSRF, public links and files |
 
-Priorizar testes de comportamento e invariantes. Cobertura percentual pode ser acompanhada, mas não substitui qualidade dos cenários.
+Prioritize behavior and invariant tests. Coverage percentage can be tracked but doesn't replace the quality of scenarios.
 
-### 14.2 Cenários críticos de teste
+### 14.2 Critical test scenarios
 
-- membro da organização A não acessa cliente/projeto da organização B;
-- usuário sem permissão não aprova diagnóstico nem altera prioridade;
-- usuário participante de projeto não ganha automaticamente administração da organização;
-- resposta invisível não participa do diagnóstico;
-- envio concorrente com autosave não perde dados nem deixa estado parcial;
-- alteração de catálogo não modifica briefing histórico;
-- reprocessamento cria nova execução rastreável;
-- conversão de recomendação exige confirmação;
-- tarefa concluída não marca objetivo como atingido;
-- medição inválida não é persistida;
-- relatório compartilhado não revela notas internas;
-- token revogado ou expirado não permite leitura;
-- URL assinada de arquivo não permite acesso após expiração.
+- a member of organization A doesn't access a client/project of organization B;
+- a user without permission doesn't approve a diagnosis or change priority;
+- a project participant doesn't automatically gain organization admin rights;
+- an invisible answer doesn't take part in the diagnosis;
+- concurrent submission and autosave don't lose data or leave a partial state;
+- a catalog change doesn't modify a historical briefing;
+- reprocessing creates a new traceable run;
+- converting a recommendation requires confirmation;
+- a completed task doesn't mark an objective as achieved;
+- an invalid measurement isn't persisted;
+- a shared report doesn't reveal internal notes;
+- a revoked or expired token doesn't allow reading;
+- a signed file URL doesn't allow access after expiration.
 
 ### 14.3 CI
 
-Pipeline mínimo recomendado:
+Recommended minimum pipeline:
 
 ```text
 format/lint
@@ -751,250 +753,252 @@ integration tests (PostgreSQL)
    ↓
 build
    ↓
-E2E em ambiente de preview
+E2E in a preview environment
    ↓
 release/migrations
 ```
 
-Migrações devem ser aplicadas por etapa controlada de release, nunca de forma implícita em cada inicialização da aplicação.
+Migrations must be applied by a controlled release step, never implicitly on every application startup.
 
-### 14.4 Observabilidade
+### 14.4 Observability
 
-- logs estruturados com request ID;
-- redaction de tokens, e-mails, telefones e respostas;
-- rastreamento de erros no servidor e cliente;
-- métricas de latência e falhas;
-- health check que não revele segredos;
-- alertas para falhas de autenticação, erros 5xx, jobs presos e falhas de exportação;
-- dashboards operacionais para acompanhar saúde do sistema.
-
----
-
-## 15. Performance e escalabilidade
-
-A V1 deve otimizar primeiro a previsibilidade e a experiência de uso, sem antecipar escala que ainda não foi observada.
-
-Prioridades:
-
-- paginação e filtros no servidor;
-- índices para `organizationId`, relações e campos de busca;
-- evitar carregar todos os clientes/projetos em dashboards;
-- consultas agregadas para relatórios;
-- cache apenas para dados que possam ser invalidados corretamente;
-- geração assíncrona de relatórios grandes;
-- limites de payload e tamanho de arquivo;
-- monitoramento de consultas lentas;
-- evitar N+1 em listas e dashboards.
-
-O isolamento por organização deve ser eficiente, mas não deve depender de um único filtro esquecido em cada página. Criar funções de consulta e políticas reutilizáveis.
+- structured logs with request ID;
+- redaction of tokens, emails, phone numbers and answers;
+- error tracking on server and client;
+- latency and failure metrics;
+- a health check that doesn't reveal secrets;
+- alerts for authentication failures, 5xx errors, stuck jobs and export failures;
+- operational dashboards to track system health.
 
 ---
 
-## 16. Plano de evolução técnica
+## 15. Performance and scalability
 
-A sequência abaixo organiza dependências. Ela não substitui o roadmap de produto e deve ser sincronizada com `04-roadmap-melhorias.md`.
+V1 should optimize predictability and user experience first, without anticipating scale that hasn't been observed yet.
 
-### Fase A — Confirmar e proteger a base
+Priorities:
 
-**Objetivo:** reduzir riscos do MVP antes de expandir funcionalidades.
+- server-side pagination and filtering;
+- indexes on `organizationId`, relations and search fields;
+- avoid loading every client/project in dashboards;
+- aggregate queries for reports;
+- caching only for data that can be invalidated correctly;
+- async generation of large reports;
+- payload and file size limits;
+- monitoring of slow queries;
+- avoid N+1 in lists and dashboards.
 
-- revalidar os achados históricos SEC, DATA, LGPD e DEPLOY;
-- corrigir autorização de entrada e provisionamento;
-- validar redirects e origem das mutações;
-- adicionar rate limiting nas rotas públicas;
-- configurar headers e política de indexação/referrer;
-- validar variáveis de ambiente;
-- corrigir atomicidade do envio;
-- validar respostas por tipo e opções;
-- introduzir CI e testes de integração essenciais;
-- validar a geração de PDF no ambiente de deploy.
-
-**Saída:** base confiável para começar a suportar equipes e dados reais.
-
-### Fase B — Fundamentos multi-organização e colaboração
-
-**Objetivo:** sair do modelo de uma administradora para organização e equipe.
-
-- criar/normalizar Organization e Membership;
-- adicionar `organizationId` às entidades organizacionais;
-- definir matriz de papéis e permissões;
-- criar políticas centrais de autorização;
-- incluir Project e ProjectMember;
-- migrar clientes e briefings existentes para uma organização inicial;
-- testar isolamento entre organizações;
-- introduzir trilha de auditoria para alterações de acesso.
-
-**Saída:** organização, membros, clientes e projetos com escopo seguro.
-
-### Fase C — Briefing e diagnóstico versionados
-
-**Objetivo:** garantir reprodutibilidade e preservar histórico.
-
-- versionar catálogo e perguntas;
-- associar briefing à versão de catálogo;
-- congelar snapshot ao enviar;
-- versionar regras de diagnóstico;
-- persistir origem e explicação dos resultados;
-- criar fluxo de revisão/aprovação;
-- permitir reprocessamento sem sobrescrita silenciosa.
-
-**Saída:** diagnóstico rastreável e confiável.
-
-### Fase D — Recomendações e planejamento estratégico
-
-**Objetivo:** transformar diagnóstico em decisões de trabalho.
-
-- persistir recomendações e suas origens;
-- implementar revisão humana;
-- definir e implementar política de prioridade aprovada;
-- registrar mudanças de prioridade;
-- criar plano estratégico, objetivos e ações;
-- implementar conversão assistida;
-- criar histórico de objetivos e decisões.
-
-**Saída:** equipe consegue sair do diagnóstico com um plano revisado.
-
-### Fase E — Execução e acompanhamento
-
-**Objetivo:** acompanhar o trabalho e os resultados.
-
-- criar tarefas e atribuições;
-- comentários e menções;
-- notificações internas;
-- indicadores, metas e medições;
-- evidências;
-- validação de resultados;
-- revisão de impacto e ajustes;
-- arquivamento justificado de objetivos cancelados/substituídos.
-
-**Saída:** execução e resultado ficam conectados, sem confundir atividade com impacto.
-
-### Fase F — Relatórios, documentos e operação madura
-
-**Objetivo:** comunicar resultados e sustentar uso contínuo.
-
-- histórico e documentos contextuais;
-- dashboards por papel;
-- relatórios operacionais e estratégicos;
-- compartilhamento externo com escopo, expiração e revogação;
-- PDF/exportações compatíveis com deploy;
-- backups e restauração testados;
-- observabilidade e runbooks;
-- melhoria contínua baseada em uso e feedback.
-
-**Saída:** ciclo estratégico pode ser encerrado, comunicado e reutilizado.
+Organization isolation should be efficient, but must not depend on a single filter forgotten on each page. Create reusable query functions and policies.
 
 ---
 
-## 17. Decisões arquiteturais pendentes
+## 16. Technical evolution plan
 
-Estas decisões precisam ser fechadas antes de determinadas implementações. Não devem ser resolvidas por conveniência técnica sem validação de produto.
+The sequence below organizes dependencies. It doesn't replace the product roadmap and must be kept in sync with `docs/ROADMAP.md`.
 
-| Decisão | Por que importa | Dependência |
+### Phase A — Confirm and protect the base
+
+**Goal:** reduce MVP risks before expanding features. **Status:** done (Phase 0, `docs/PHASE-0-AUDIT.md`).
+
+- revalidate the historical SEC, DATA, LGPD and DEPLOY findings;
+- fix entry authorization and provisioning;
+- validate redirects and mutation origin;
+- add rate limiting to public routes;
+- configure headers and indexing/referrer policy;
+- validate environment variables;
+- fix submission atomicity;
+- validate answers by type and options;
+- introduce CI and essential integration tests;
+- validate PDF generation in the deploy environment.
+
+**Output:** a reliable base to start supporting teams and real data.
+
+### Phase B — Multi-organization and collaboration foundations
+
+**Goal:** move from the single-administrator model to organization and team.
+
+- create/normalize Organization and Membership;
+- add `organizationId` to organizational entities;
+- define the roles and permissions matrix;
+- create central authorization policies;
+- include Project and ProjectMember;
+- migrate existing clients and briefings into an initial organization;
+- test isolation between organizations;
+- introduce an audit trail for access changes.
+
+**Output:** organization, members, clients and projects with secure scope.
+
+### Phase C — Versioned briefing and diagnosis
+
+**Goal:** guarantee reproducibility and preserve history.
+
+- version the catalog and questions;
+- associate the briefing with a catalog version;
+- freeze a snapshot on submission;
+- version diagnosis rules;
+- persist the origin and explanation of results;
+- create a review/approval flow;
+- allow reprocessing without silent overwrites.
+
+**Output:** a traceable, reliable diagnosis.
+
+### Phase D — Recommendations and strategic planning
+
+**Goal:** turn the diagnosis into work decisions.
+
+- persist recommendations and their origins;
+- implement human review;
+- define and implement the approved-priority policy;
+- record priority changes;
+- create the strategic plan, objectives and actions;
+- implement assisted conversion;
+- create history of objectives and decisions.
+
+**Output:** the team can go from diagnosis to a reviewed plan.
+
+### Phase E — Execution and tracking
+
+**Goal:** track the work and the results.
+
+- create tasks and assignments;
+- comments and mentions;
+- internal notifications;
+- indicators, targets and measurements;
+- evidence;
+- results validation;
+- impact review and adjustments;
+- justified archiving of cancelled/replaced objectives.
+
+**Output:** execution and results are connected, without confusing activity with impact.
+
+### Phase F — Reports, documents and mature operations
+
+**Goal:** communicate results and sustain continuous use.
+
+- contextual history and documents;
+- role-based dashboards;
+- operational and strategic reports;
+- external sharing with scope, expiration and revocation;
+- deploy-compatible PDF/exports;
+- tested backups and restore;
+- observability and runbooks;
+- continuous improvement based on usage and feedback.
+
+**Output:** the strategic cycle can be closed, communicated and reused.
+
+---
+
+## 17. Pending architectural decisions
+
+These decisions need to be settled before certain implementations. They must not be resolved for technical convenience without product validation.
+
+| Decision | Why it matters | Dependency |
 |---|---|---|
-| Matriz detalhada de permissões | Define políticas de aplicação e banco | Identity & Access |
-| Escopo de acesso a projetos: individual, equipe ou ambos | Define consultas e compartilhamento | Project Management |
-| Fórmula, pesos e escalas de prioridade | Define cálculo reproduzível | Recommendations |
-| Versionamento e deduplicação de recomendações | Evita duplicatas e conflitos entre diagnósticos | Recommendations |
-| Tipos, unidades e validação de indicadores | Define schema e medições | Measurement |
-| Validação de medições e responsáveis | Define autorização de resultados | Measurement |
-| Compartilhamento externo de relatórios | Define token, expiração, escopo e autenticação | Reporting |
-| Herança e duplicação de modelos | Define como mudanças afetam projetos novos | Templates |
-| Recorrência de projetos | Define geração automática ou confirmação | Projects |
-| Eventos e preferências de notificação | Define canais e ruído operacional | Notifications |
-| Política de arquivamento e exclusão | Afeta integridade, LGPD e relatórios | Cross-cutting |
-| RPO/RTO e retenção de backup | Define custo e operação | Infrastructure |
+| Detailed permission matrix | Defines application and database policies | Identity & Access |
+| Project access scope: individual, team or both | Defines queries and sharing | Project Management |
+| Priority formula, weights and scales | Defines reproducible calculation | Recommendations |
+| Recommendation versioning and deduplication | Avoids duplicates and conflicts across diagnoses | Recommendations |
+| Indicator types, units and validation | Defines schema and measurements | Measurement |
+| Measurement validation and owners | Defines results authorization | Measurement |
+| External report sharing | Defines token, expiration, scope and authentication | Reporting |
+| Template inheritance and duplication | Defines how changes affect new projects | Templates |
+| Project recurrence | Defines automatic generation or confirmation | Projects |
+| Notification events and preferences | Defines channels and operational noise | Notifications |
+| Archiving and deletion policy | Affects integrity, LGPD and reports | Cross-cutting |
+| RPO/RTO and backup retention | Defines cost and operations | Infrastructure |
 
 ---
 
-## 18. Critérios de aceite arquitetural
+## 18. Architectural acceptance criteria
 
-Uma funcionalidade não deve ser considerada pronta apenas porque a tela funciona. Para fluxos que alteram dados, verificar:
+A feature must not be considered done just because the screen works. For flows that change data, check:
 
-- [ ] regra de negócio documentada;
-- [ ] autenticação e autorização no servidor;
-- [ ] escopo da organização validado;
-- [ ] validação de entrada no limite da aplicação;
-- [ ] transação e concorrência avaliadas;
-- [ ] histórico/auditoria quando a mudança for estratégica;
-- [ ] tratamento de erro previsível;
-- [ ] testes de domínio e aplicação;
-- [ ] testes de isolamento quando houver dados multi-tenant;
-- [ ] acessibilidade e estados de carregamento/erro;
-- [ ] logs sem dados pessoais desnecessários;
-- [ ] migração e rollback avaliados;
-- [ ] documentação atualizada.
-
----
-
-## 19. Checklist técnico de prontidão
-
-### Segurança e isolamento
-- [ ] Entrada de usuários autorizada por convite ou política explícita.
-- [ ] Papéis e permissões centralizados.
-- [ ] Toda consulta/mutação limitada à organização correta.
-- [ ] Acesso a projeto validado conforme participação e papel.
-- [ ] CSRF/origin check e rate limiting implementados.
-- [ ] Links públicos e compartilhados expiráveis e revogáveis.
-- [ ] Arquivos privados protegidos por autorização e URLs temporárias.
-- [ ] Headers, `noindex` e política de referrer revisados.
-
-### Integridade e histórico
-- [ ] Envio de briefing atômico.
-- [ ] Catálogo e regras versionados.
-- [ ] Respostas validadas semanticamente.
-- [ ] Diagnósticos reprocessáveis sem apagar histórico.
-- [ ] Recomendações com origem e histórico de prioridade.
-- [ ] Objetivos, metas e medições com histórico.
-- [ ] Fechamento de projeto com revisão de resultados.
-
-### Operação e qualidade
-- [ ] CI executa lint, typecheck, testes e build.
-- [ ] Testes de integração com PostgreSQL.
-- [ ] E2E cobre a jornada principal.
-- [ ] Logs estruturados e redaction.
-- [ ] Error tracking e health check.
-- [ ] Backups e restauração testados.
-- [ ] PDF e exportações validados no ambiente real.
-- [ ] Runbooks para incidentes e recuperação.
-
-### Privacidade
-- [ ] Aviso de privacidade e base legal revisados.
-- [ ] Retenção definida por categoria de dado.
-- [ ] Exportação, correção e exclusão/anonimização suportadas.
-- [ ] Suboperadores documentados.
-- [ ] Acesso a respostas e documentos restrito por necessidade.
+- [ ] business rule documented;
+- [ ] authentication and authorization on the server;
+- [ ] organization scope validated;
+- [ ] input validated at the application boundary;
+- [ ] transaction and concurrency assessed;
+- [ ] history/auditing when the change is strategic;
+- [ ] predictable error handling;
+- [ ] domain and application tests;
+- [ ] isolation tests when there's multi-tenant data;
+- [ ] accessibility and loading/error states;
+- [ ] logs without unnecessary personal data;
+- [ ] migration and rollback assessed;
+- [ ] documentation updated.
 
 ---
 
-## 20. Relação com os demais documentos
+## 19. Technical readiness checklist
 
-| Documento | Responsabilidade |
+### Security and isolation
+- [ ] User onboarding authorized by invitation or explicit policy.
+- [ ] Centralized roles and permissions.
+- [ ] Every query/mutation scoped to the correct organization.
+- [ ] Project access validated according to participation and role.
+- [x] CSRF/origin check and rate limiting implemented.
+- [ ] Public and shared links expiring and revocable.
+- [ ] Private files protected by authorization and temporary URLs.
+- [x] Headers, `noindex` and referrer policy reviewed.
+
+### Integrity and history
+- [x] Atomic briefing submission.
+- [ ] Catalog and rules versioned.
+- [x] Answers validated semantically.
+- [ ] Diagnoses reprocessable without erasing history.
+- [ ] Recommendations with origin and priority history.
+- [ ] Objectives, targets and measurements with history.
+- [ ] Project closing with a results review.
+
+### Operations and quality
+- [x] CI runs lint, typecheck, tests and build.
+- [x] Integration tests with PostgreSQL.
+- [ ] E2E covers the main journey.
+- [x] Structured logs and redaction.
+- [ ] Error tracking and health check.
+- [ ] Backups and restore tested.
+- [ ] PDF and exports validated in the real environment.
+- [ ] Runbooks for incidents and recovery.
+
+### Privacy
+- [ ] Privacy notice and legal basis reviewed.
+- [ ] Retention defined per data category.
+- [ ] Export, correction and deletion/anonymization supported.
+- [ ] Sub-processors documented.
+- [ ] Access to answers and documents restricted by need.
+
+---
+
+## 20. Relationship with the other documents
+
+| Document | Responsibility |
 |---|---|
-| `PRODUCT.md` | Visão, usuários, problema, princípios, limites e direção do produto |
-| `02-requisitos.md` | Requisitos funcionais, não funcionais, atores, regras e critérios de aceite |
-| `03-inspecao-e-arquitetura.md` | Estado técnico observado, arquitetura-alvo, riscos e estratégia de evolução |
-| `04-roadmap-melhorias.md` | Sequenciamento de entregas, prioridades e acompanhamento |
+| `PRODUCT.md` | Product vision, users, problem, principles, boundaries and direction |
+| `docs/REQUIREMENTS.md` | Functional and non-functional requirements, actors, rules and acceptance criteria |
+| `docs/ARCHITECTURE.md` | Observed technical state, target architecture, risks and evolution strategy |
+| `docs/ROADMAP.md` | Delivery sequencing, priorities and tracking |
 
-Quando houver conflito:
-1. requisitos e decisões de produto aprovadas definem o comportamento esperado;
-2. este documento define como organizar tecnicamente esse comportamento;
-3. o roadmap define quando cada parte será entregue;
-4. o código deve refletir as decisões aprovadas e os documentos devem ser atualizados junto com mudanças relevantes.
+When there's a conflict:
+1. approved requirements and product decisions define the expected behavior;
+2. this document defines how to organize that behavior technically;
+3. the roadmap defines when each part will be delivered;
+4. the code must reflect approved decisions, and documents must be updated along with relevant changes.
 
 ---
 
-## 21. Próxima atividade recomendada
+## 21. Next recommended activity
 
-Antes de começar uma grande refatoração, realizar uma **auditoria de confirmação do repositório atual** com foco em:
+Before starting a large refactor, perform a **confirmation audit of the current repository** focusing on:
 
-1. schema Prisma atual e migrações;
-2. autenticação, sessão, provisionamento e autorização;
-3. rotas de clientes e briefings;
-4. persistência de respostas, envio e reprocessamento;
-5. testes e pipeline;
-6. deploy, PDF, storage e variáveis de ambiente.
+1. current Prisma schema and migrations;
+2. authentication, session, provisioning and authorization;
+3. client and briefing routes;
+4. answer persistence, submission and reprocessing;
+5. tests and pipeline;
+6. deploy, PDF, storage and environment variables.
 
-O resultado deve classificar cada achado como `confirmado`, `corrigido`, `não reproduzido` ou `substituído por decisão nova`. Só então converter as pendências em tarefas técnicas.
+The result must classify each finding as `confirmed`, `fixed`, `not reproduced` or `superseded by a new decision`. Only then turn the open items into technical tasks.
 
-**Recomendação:** não iniciar a implementação simultânea de todos os módulos. Primeiro consolidar isolamento de organização, permissões e integridade do briefing; depois evoluir para recomendações, planejamento, execução e medição.
+> **Update:** this audit was done (`docs/PHASE-0-AUDIT.md`) and Phase A/Phase 0 is complete. Next: Phase B, which depends on the permission matrix.
+
+**Recommendation:** don't start implementing all modules simultaneously. First consolidate organization isolation, permissions and briefing integrity; then evolve into recommendations, planning, execution and measurement.
