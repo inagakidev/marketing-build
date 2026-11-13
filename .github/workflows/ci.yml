@@ -1,5 +1,5 @@
 # CI mínimo da Fase 0 (QUAL-05): bloqueia regressões básicas antes do merge.
-# Ordem segue docs/03-inspecao-e-arquitetura.md §14.3. E2E em preview e etapa
+# Ordem segue docs/ARCHITECTURE.md §14.3. E2E em preview e etapa
 # de release com migrações ficam para quando o deploy estiver configurado.
 name: CI
 
