@@ -5,12 +5,12 @@ import { createBriefing, saveAnswers, submitBriefing } from "@/server/briefing";
 import { Q } from "@/core";
 
 /**
- * Testes de API (QUAL-04): os route handlers de verdade, contra o Postgres
- * real. Só a sessão é simulada — o resto (validação, autorização por dono,
- * origem, rate limit, transações) é o código de produção.
+ * API tests (QUAL-04): the real route handlers, against a real Postgres. Only
+ * the session is simulated — the rest (validation, ownership authorization,
+ * origin, rate limit, transactions) is production code.
  *
- * Prioridade são os caminhos NEGATIVOS: sem sessão, outra origem, recurso de
- * outra conta, link inexistente/enviado, corpo inválido.
+ * The priority is the NEGATIVE paths: no session, other origin, another
+ * account's resource, missing/submitted link, invalid body.
  */
 
 const session = vi.hoisted(() => ({ current: null as null | { id: string; name: string; email: string } }));
@@ -45,7 +45,7 @@ let bob: { id: string; name: string; email: string };
 let bobClientId: string;
 let bobBriefingId: string;
 
-/** IP diferente a cada requisição: os testes não podem esbarrar no rate limit. */
+/** A different IP per request: tests must not hit the rate limit. */
 function ip() {
   return `203.0.113.${Math.floor(Math.random() * 250)}-${Math.random()}`;
 }
@@ -87,7 +87,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe("rotas autenticadas sem sessão → 401", () => {
+describe("authenticated routes without a session → 401", () => {
   it.each([
     ["GET /api/clients", () => clientsRoute.GET()],
     ["POST /api/clients", () => clientsRoute.POST(req("POST", "/api/clients", { body: {} }))],
@@ -101,8 +101,8 @@ describe("rotas autenticadas sem sessão → 401", () => {
   });
 });
 
-describe("outra origem → 403 (SEC-03)", () => {
-  it("recusa criar cliente vindo de outro site, mesmo com sessão", async () => {
+describe("other origin → 403 (SEC-03)", () => {
+  it("rejects creating a client from another site, even with a session", async () => {
     session.current = alice;
     const res = await clientsRoute.POST(
       req("POST", "/api/clients", {
@@ -115,17 +115,17 @@ describe("outra origem → 403 (SEC-03)", () => {
   });
 });
 
-describe("isolamento entre contas → 404, sem efeito colateral", () => {
+describe("isolation between accounts → 404, no side effects", () => {
   beforeEach(() => {
     session.current = alice;
   });
 
-  it("não lê cliente de outra conta", async () => {
+  it("doesn't read another account's client", async () => {
     const res = await clientRoute.GET(req("GET", "/x"), params({ id: bobClientId }));
     expect(res.status).toBe(404);
   });
 
-  it("não edita nem apaga cliente de outra conta", async () => {
+  it("doesn't edit or delete another account's client", async () => {
     const patch = await clientRoute.PATCH(req("PATCH", "/x", { body: { name: "Invadido" } }), params({ id: bobClientId }));
     const del = await clientRoute.DELETE(req("DELETE", "/x"), params({ id: bobClientId }));
     expect([patch.status, del.status]).toEqual([404, 404]);
@@ -133,12 +133,12 @@ describe("isolamento entre contas → 404, sem efeito colateral", () => {
     expect(still.name).toBe("Cliente do Bob");
   });
 
-  it("não cria briefing para cliente de outra conta", async () => {
+  it("doesn't create a briefing for another account's client", async () => {
     const res = await briefingsRoute.POST(req("POST", "/api/briefings", { body: { clientId: bobClientId } }));
     expect(res.status).toBe(404);
   });
 
-  it("não lê, reprocessa nem exporta briefing de outra conta", async () => {
+  it("doesn't read, reprocess or export another account's briefing", async () => {
     const get = await briefingRoute.GET(req("GET", "/x"), params({ id: bobBriefingId }));
     const reprocess = await reprocessRoute.POST(req("POST", "/x"), params({ id: bobBriefingId }));
     const pdf = await pdfRoute.GET(req("GET", "/x", { origin: null }), params({ id: bobBriefingId }));
@@ -146,21 +146,21 @@ describe("isolamento entre contas → 404, sem efeito colateral", () => {
   });
 });
 
-describe("validação de entrada", () => {
-  it("JSON malformado → 400 (NEW-01)", async () => {
+describe("input validation", () => {
+  it("malformed JSON → 400 (NEW-01)", async () => {
     session.current = alice;
     const res = await clientsRoute.POST(req("POST", "/api/clients", { rawBody: "{quebrado" }));
     expect(res.status).toBe(400);
   });
 
-  it("dados inválidos → 400 com issues", async () => {
+  it("invalid data → 400 with issues", async () => {
     session.current = alice;
     const res = await clientsRoute.POST(req("POST", "/api/clients", { body: { name: "", contactEmail: "nao-e-email" } }));
     expect(res.status).toBe(400);
     expect(Object.keys((await res.json()).issues)).toEqual(expect.arrayContaining(["name", "contactEmail"]));
   });
 
-  it("caminho feliz: cria cliente e briefing com link absoluto", async () => {
+  it("happy path: creates a client and a briefing with an absolute link", async () => {
     session.current = alice;
     const created = await clientsRoute.POST(
       req("POST", "/api/clients", { body: { name: "Cliente da Alice", contactEmail: "alice-cliente@exemplo.test" } }),
@@ -175,13 +175,13 @@ describe("validação de entrada", () => {
   });
 });
 
-describe("rotas públicas", () => {
-  it("token inexistente → 404", async () => {
+describe("public routes", () => {
+  it("unknown token → 404", async () => {
     const res = await publicRoute.GET(req("GET", "/x"), params({ token: "nao-existe" }));
     expect(res.status).toBe(404);
   });
 
-  it("payload público não expõe dados internos (FORM-14)", async () => {
+  it("public payload doesn't expose internal data (FORM-14)", async () => {
     const { token } = await createBriefing(bobClientId);
     const res = await publicRoute.GET(req("GET", "/x"), params({ token }));
     expect(res.status).toBe(200);
@@ -191,7 +191,7 @@ describe("rotas públicas", () => {
     expect(JSON.parse(text).briefing).not.toHaveProperty("id");
   });
 
-  it("resposta inválida → 400 com a pergunta apontada", async () => {
+  it("invalid answer → 400 pointing at the question", async () => {
     const { token } = await createBriefing(bobClientId);
     const res = await answersRoute.PUT(
       req("PUT", "/x", { body: { answers: [{ questionKey: Q.BUSINESS_TYPE, value: "inventado" }] } }),
@@ -201,7 +201,7 @@ describe("rotas públicas", () => {
     expect((await res.json()).issues).toHaveProperty(Q.BUSINESS_TYPE);
   });
 
-  it("depois do envio: autosave → 410 e reenvio é idempotente", async () => {
+  it("after submission: autosave → 410 and resubmission is idempotent", async () => {
     const briefing = await createBriefing(bobClientId);
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_NAME, value: "Doce Vida" },

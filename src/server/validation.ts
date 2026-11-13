@@ -1,11 +1,12 @@
 import { z } from "zod";
 
 /**
- * Schemas de validação das bordas da API.
+ * Validation schemas for the API boundaries.
  *
- * Toda entrada vinda do browser passa por aqui antes de tocar o banco — tanto
- * a do painel autenticado quanto a do formulário público, que é aberto e
- * portanto a superfície mais exposta do sistema.
+ * Every input from the browser goes through here before touching the database
+ * — both from the authenticated panel and from the public form, which is open
+ * and therefore the system's most exposed surface. Messages are user-facing
+ * (pt-BR).
  */
 
 export const clientInputSchema = z.object({
@@ -26,9 +27,8 @@ export const createBriefingSchema = z.object({
 });
 
 /**
- * Uma resposta do formulário. `value` aceita string (texto e escolha única) ou
- * array de strings (escolha múltipla) — os dois formatos que `Answer.value`
- * guarda.
+ * A form answer. `value` accepts a string (text and single choice) or an array
+ * of strings (multiple choice) — the two shapes `Answer.value` stores.
  */
 export const answerEntrySchema = z.object({
   questionKey: z.string().min(1).max(100),

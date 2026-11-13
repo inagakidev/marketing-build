@@ -1,18 +1,18 @@
 import { z } from "zod";
 
 /**
- * Variáveis de ambiente do servidor, validadas (NEW-03).
+ * Server environment variables, validated (NEW-03).
  *
- * Configuração errada precisa falhar na subida do servidor, com mensagem que
- * diga o que corrigir — não virar um link de briefing quebrado ou um 500 no
- * meio do uso. A validação roda em `src/instrumentation.ts`.
+ * A wrong configuration must fail at server startup, with a message saying
+ * what to fix — not turn into a broken briefing link or a 500 mid-use. The
+ * validation runs in `src/instrumentation.ts`.
  *
- * As mensagens nunca repetem o VALOR da variável: ele pode ser um segredo.
+ * Messages never echo the variable's VALUE: it may be a secret.
  */
 
 export interface ServerEnv {
   databaseUrl: string;
-  /** URL pública sem barra final (links de briefing, PDF). */
+  /** Public URL without a trailing slash (briefing links, PDF). */
   appUrl: string;
   briefingLinkTtlDays: number;
   supabaseConfigured: boolean;
@@ -21,22 +21,22 @@ export interface ServerEnv {
 const url = (name: string) =>
   z.url({
     protocol: /^https?$/,
-    message: `${name} precisa ser uma URL completa (ex.: https://app.exemplo.com).`,
+    message: `${name} must be a full URL (e.g. https://app.example.com).`,
   });
 
 const schema = z.object({
   DATABASE_URL: z
-    .string({ message: "DATABASE_URL não definida." })
-    .min(1, "DATABASE_URL não definida.")
-    .regex(/^postgres(ql)?:\/\//, "DATABASE_URL precisa ser uma connection string postgresql://."),
+    .string({ message: "DATABASE_URL is not set." })
+    .min(1, "DATABASE_URL is not set.")
+    .regex(/^postgres(ql)?:\/\//, "DATABASE_URL must be a postgresql:// connection string."),
   NEXT_PUBLIC_APP_URL: url("NEXT_PUBLIC_APP_URL").optional(),
   NEXT_PUBLIC_SUPABASE_URL: url("NEXT_PUBLIC_SUPABASE_URL").optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
   BRIEFING_LINK_TTL_DAYS: z.coerce
-    .number({ message: "BRIEFING_LINK_TTL_DAYS precisa ser um número de dias." })
-    .int("BRIEFING_LINK_TTL_DAYS precisa ser um número inteiro de dias.")
-    .min(1, "BRIEFING_LINK_TTL_DAYS precisa estar entre 1 e 365.")
-    .max(365, "BRIEFING_LINK_TTL_DAYS precisa estar entre 1 e 365.")
+    .number({ message: "BRIEFING_LINK_TTL_DAYS must be a number of days." })
+    .int("BRIEFING_LINK_TTL_DAYS must be a whole number of days.")
+    .min(1, "BRIEFING_LINK_TTL_DAYS must be between 1 and 365.")
+    .max(365, "BRIEFING_LINK_TTL_DAYS must be between 1 and 365.")
     .default(30),
   DEV_ADMIN_EMAIL: z.string().optional(),
 });
@@ -45,7 +45,7 @@ export type EnvResult =
   | { ok: true; env: ServerEnv; warnings: string[] }
   | { ok: false; errors: string[] };
 
-/** Variáveis vazias contam como não definidas (o .env.example usa ""). */
+/** Empty variables count as unset (.env.example uses ""). */
 function withoutEmpty(raw: Record<string, string | undefined>) {
   return Object.fromEntries(
     Object.entries(raw).filter(([, value]) => value !== undefined && value.trim() !== ""),
@@ -65,19 +65,20 @@ export function parseServerEnv(
   const errors: string[] = [];
 
   if (nodeEnv === "production") {
-    if (!vars.NEXT_PUBLIC_APP_URL) errors.push("NEXT_PUBLIC_APP_URL é obrigatória em produção.");
+    if (!vars.NEXT_PUBLIC_APP_URL) errors.push("NEXT_PUBLIC_APP_URL is required in production.");
     if (!vars.NEXT_PUBLIC_SUPABASE_URL)
-      errors.push("NEXT_PUBLIC_SUPABASE_URL é obrigatória em produção.");
+      errors.push("NEXT_PUBLIC_SUPABASE_URL is required in production.");
     if (!vars.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-      errors.push("NEXT_PUBLIC_SUPABASE_ANON_KEY é obrigatória em produção.");
+      errors.push("NEXT_PUBLIC_SUPABASE_ANON_KEY is required in production.");
   }
   if (errors.length > 0) return { ok: false, errors };
 
-  // Não bloqueia: o bypass só existe com NODE_ENV=development (src/server/auth.ts),
-  // então em produção a variável é inerte. Mas indica um .env de dev em uso.
+  // Not blocking: the bypass only exists with NODE_ENV=development
+  // (src/server/auth.ts), so in production the variable is inert. But it
+  // signals a development .env in use.
   const warnings =
     nodeEnv === "production" && vars.DEV_ADMIN_EMAIL
-      ? ["DEV_ADMIN_EMAIL está definida em produção; ela é ignorada, mas indica um .env de desenvolvimento."]
+      ? ["DEV_ADMIN_EMAIL is set in production; it's ignored, but it suggests a development .env."]
       : [];
 
   return {
@@ -94,13 +95,13 @@ export function parseServerEnv(
 
 let cached: ServerEnv | null = null;
 
-/** Ambiente validado. Lança com todas as pendências se algo estiver errado. */
+/** Validated environment. Throws listing every problem if something is wrong. */
 export function serverEnv(): ServerEnv {
   if (cached) return cached;
   const result = parseServerEnv(process.env, process.env.NODE_ENV);
   if (!result.ok) {
     throw new Error(
-      `Configuração de ambiente inválida:\n- ${result.errors.join("\n- ")}\nVeja .env.example.`,
+      `Invalid environment configuration:\n- ${result.errors.join("\n- ")}\nSee .env.example.`,
     );
   }
   for (const warning of result.warnings) console.warn(`[env] ${warning}`);

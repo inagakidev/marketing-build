@@ -1,11 +1,11 @@
 import { serverEnv } from "../env";
 
 /**
- * Proteção contra CSRF nas mutações autenticadas (SEC-03).
+ * CSRF protection for authenticated mutations (SEC-03).
  *
- * Os cookies do Supabase já são `SameSite=Lax`, o que barra POST cross-site.
- * A checagem de origem fecha o que sobra: subdomínios irmãos (same-site, mas
- * não same-origin) e a dependência de um detalhe de configuração de cookie.
+ * Supabase cookies are already `SameSite=Lax`, which blocks cross-site POST.
+ * The origin check closes what's left: sibling subdomains (same-site but not
+ * same-origin) and the dependence on a cookie configuration detail.
  */
 
 export interface OriginCheckInput {
@@ -20,37 +20,37 @@ export function isTrustedRequestOrigin({
   allowedOrigins,
 }: OriginCheckInput): boolean {
   if (origin) {
-    // "null" é enviado por iframes sandbox e alguns redirecionamentos: não é
-    // uma origem confiável.
+    // "null" is sent by sandboxed iframes and some redirects: not a trusted
+    // origin.
     return allowedOrigins.includes(origin);
   }
 
   if (secFetchSite) {
-    // "none" = ação direta do usuário (barra de endereço, favorito).
+    // "none" = a direct user action (address bar, bookmark).
     return secFetchSite === "same-origin" || secFetchSite === "none";
   }
 
-  // Sem nenhum dos dois: não é um navegador moderno enviando cookies de uma
-  // vítima. A sessão continua sendo exigida pela rota.
+  // Neither header: not a modern browser sending a victim's cookies. The
+  // route still requires a session.
   return true;
 }
 
-/** Origens aceitas: a da própria requisição e a URL pública configurada. */
+/** Accepted origins: the request's own and the configured public URL. */
 export function allowedOriginsFor(request: Request): string[] {
   const origins = new Set<string>([new URL(request.url).origin]);
-  // Já validada como URL http(s) em `serverEnv` (NEW-03).
+  // Already validated as an http(s) URL in `serverEnv` (NEW-03).
   origins.add(new URL(serverEnv().appUrl).origin);
   return [...origins];
 }
 
 export class ForbiddenOriginError extends Error {
   constructor() {
-    super("Origem da requisição não permitida");
+    super("Request origin not allowed");
     this.name = "ForbiddenOriginError";
   }
 }
 
-/** Lança `ForbiddenOriginError` quando a requisição vem de outra origem. */
+/** Throws `ForbiddenOriginError` when the request comes from another origin. */
 export function assertSameOrigin(request: Request): void {
   const trusted = isTrustedRequestOrigin({
     origin: request.headers.get("origin"),

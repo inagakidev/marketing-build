@@ -10,7 +10,7 @@ const prod = {
 };
 
 describe("parseServerEnv (NEW-03)", () => {
-  it("em desenvolvimento, só DATABASE_URL é obrigatória e há padrões", () => {
+  it("in development, only DATABASE_URL is required and there are defaults", () => {
     const result = parseServerEnv(base, "development");
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -19,13 +19,13 @@ describe("parseServerEnv (NEW-03)", () => {
     }
   });
 
-  it("sem DATABASE_URL, falha com mensagem que nomeia a variável", () => {
+  it("without DATABASE_URL, fails with a message naming the variable", () => {
     const result = parseServerEnv({}, "development");
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errors.join(" ")).toMatch(/DATABASE_URL/);
   });
 
-  it("em produção, exige URL pública e Supabase", () => {
+  it("in production, requires the public URL and Supabase", () => {
     const result = parseServerEnv(base, "production");
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -37,13 +37,13 @@ describe("parseServerEnv (NEW-03)", () => {
     expect(parseServerEnv(prod, "production").ok).toBe(true);
   });
 
-  it("em produção, DEV_ADMIN_EMAIL gera aviso (o bypass já é inerte fora de development)", () => {
+  it("in production, DEV_ADMIN_EMAIL produces a warning (the bypass is already inert outside development)", () => {
     const result = parseServerEnv({ ...prod, DEV_ADMIN_EMAIL: "a@b.com" }, "production");
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.warnings.join(" ")).toMatch(/DEV_ADMIN_EMAIL/);
   });
 
-  it("recusa URL pública inválida e prazo fora do intervalo", () => {
+  it("rejects an invalid public URL and an out-of-range TTL", () => {
     const result = parseServerEnv(
       { ...base, NEXT_PUBLIC_APP_URL: "localhost:3000", BRIEFING_LINK_TTL_DAYS: "0" },
       "development",
@@ -55,12 +55,12 @@ describe("parseServerEnv (NEW-03)", () => {
     }
   });
 
-  it("normaliza a URL pública sem barra final", () => {
+  it("normalizes the public URL without a trailing slash", () => {
     const result = parseServerEnv({ ...base, NEXT_PUBLIC_APP_URL: "https://app.exemplo.com/" }, "development");
     expect(result.ok && result.env.appUrl).toBe("https://app.exemplo.com");
   });
 
-  it("a mensagem de erro nunca repete o valor da variável", () => {
+  it("the error message never echoes the variable's value", () => {
     const result = parseServerEnv({ DATABASE_URL: "nao-e-url-segredo123" }, "development");
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errors.join(" ")).not.toContain("segredo123");

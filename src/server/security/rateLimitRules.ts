@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 /**
- * Regras puras do rate limiting (SEC-04): políticas, janela, IP e chave.
- * Separadas de `rateLimit.ts` para serem testadas sem banco.
+ * Pure rate-limiting rules (SEC-04): policies, window, IP and key.
+ * Split from `rateLimit.ts` so they can be tested without a database.
  */
 
 export interface RateLimitPolicy {
@@ -10,15 +10,15 @@ export interface RateLimitPolicy {
   windowMs: number;
 }
 
-/** Limites por superfície. Ajustar aqui, com teste, nunca espalhado nas rotas. */
+/** Limits per surface. Tune them here, with tests, never scattered in routes. */
 export const RATE_LIMITS = {
-  /** Abrir o formulário público. */
+  /** Opening the public form. */
   publicRead: { limit: 60, windowMs: 60_000 },
-  /** Autosave: o front já faz debounce; isso só segura abuso. */
+  /** Autosave: the frontend already debounces; this only stops abuse. */
   publicAutosave: { limit: 120, windowMs: 60_000 },
-  /** Envio final. */
+  /** Final submission. */
   publicSubmit: { limit: 10, windowMs: 60_000 },
-  /** PDF abre um Chromium: é a rota mais cara do sistema. */
+  /** The PDF launches a Chromium: the most expensive route in the system. */
   pdf: { limit: 10, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
@@ -40,9 +40,9 @@ export function retryAfterSeconds(now: Date, windowStart: Date, windowMs: number
 }
 
 /**
- * IP de quem fez a requisição. Na Vercel o `X-Forwarded-For` é reescrito pela
- * plataforma, então o primeiro valor é confiável; fora dela, é o melhor
- * disponível.
+ * The requester's IP. On Vercel `X-Forwarded-For` is rewritten by the
+ * platform, so the first value is trustworthy; elsewhere it's the best
+ * available.
  */
 export function clientIp(headers: Headers): string {
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -50,7 +50,7 @@ export function clientIp(headers: Headers): string {
   return headers.get("x-real-ip")?.trim() || "unknown";
 }
 
-/** Chave do contador. O identificador (IP, id) vira hash: não guardamos PII. */
+/** Counter key. The identifier (IP, id) is hashed: no PII is stored. */
 export function rateLimitKey(scope: string, identifier: string): string {
   const digest = createHash("sha256").update(`${scope}\u0000${identifier}`).digest("hex");
   return `${scope}:${digest.slice(0, 32)}`;

@@ -5,11 +5,11 @@ import { RateLimitError } from "./security/rateLimit";
 import { logError } from "./log";
 
 /**
- * Helpers das rotas de API.
+ * API route helpers.
  *
- * Objetivo: nenhuma rota precisa montar `Response.json` na mão nem repetir o
- * mesmo `try/catch`, e nenhum erro interno vaza detalhe de implementação para
- * o cliente.
+ * Goal: no route needs to build `Response.json` by hand or repeat the same
+ * `try/catch`, and no internal error leaks implementation details to the
+ * client. Response messages are user-facing (pt-BR).
  */
 
 export function ok<T>(data: T, init?: ResponseInit): Response {
@@ -30,10 +30,10 @@ export function fail(
 }
 
 /**
- * Envolve o corpo de uma rota, traduzindo exceções conhecidas em status HTTP.
+ * Wraps a route body, translating known exceptions into HTTP statuses.
  *
- * Erros inesperados viram 500 com mensagem genérica — o detalhe vai para o log
- * do servidor, não para a resposta.
+ * Unexpected errors become a 500 with a generic message — the details go to
+ * the server log, not to the response.
  */
 export async function handle(fn: () => Promise<Response>): Promise<Response> {
   try {
@@ -72,15 +72,15 @@ function formatIssues(error: ZodError): Record<string, string> {
   return issues;
 }
 
-/** Corpo da requisição ilegível: erro do cliente (400), não do servidor (NEW-01). */
+/** Unreadable request body: a client error (400), not a server error (NEW-01). */
 export class InvalidJsonError extends Error {
   constructor() {
-    super("Corpo da requisição não é JSON válido.");
+    super("Request body is not valid JSON");
     this.name = "InvalidJsonError";
   }
 }
 
-/** Lê e valida o corpo JSON da requisição. */
+/** Reads and validates the request's JSON body. */
 export async function parseBody<T>(
   request: Request,
   schema: { parse: (input: unknown) => T },

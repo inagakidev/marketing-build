@@ -15,14 +15,14 @@ import { buildPublicForm } from "./publicForm";
 import { Q } from "@/core";
 
 /**
- * Integração da camada de servidor contra o Postgres real.
+ * Server layer integration against a real Postgres.
  *
- * Cobre o que os testes unitários não alcançam: as migrations batem com o
- * schema, o driver adapter conecta, o upsert do autosave funciona, e o
- * resultado do motor sobrevive à ida e volta do banco.
+ * Covers what unit tests can't reach: migrations match the schema, the driver
+ * adapter connects, the autosave upsert works, and the engine's result
+ * survives the round trip to the database.
  *
- * Cada execução cria os próprios dados sob um usuário descartável e apaga tudo
- * no fim (cascata a partir de `User`).
+ * Each run creates its own data under a throwaway user and deletes everything
+ * at the end (cascading from `User`).
  */
 
 const SUFFIX = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -63,8 +63,8 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe("ciclo de vida do briefing", () => {
-  it("cria um briefing com token único e prazo", async () => {
+describe("briefing lifecycle", () => {
+  it("creates a briefing with a unique token and an expiry", async () => {
     const briefing = await createBriefing(clientId, 15);
 
     expect(briefing.token).toHaveLength(24);
@@ -75,12 +75,12 @@ describe("ciclo de vida do briefing", () => {
     expect(outro.token).not.toBe(briefing.token);
   });
 
-  it("aceita o link enquanto está aberto e recusa depois de expirado", async () => {
+  it("accepts the link while open and rejects it once expired", async () => {
     const briefing = await createBriefing(clientId);
 
     const aberto = await loadBriefingByToken(briefing.token);
     expect(aberto.problem).toBeNull();
-    // O formulário público expõe o nome, não o e-mail nem as notas internas.
+    // The public form exposes the name, not the email or internal notes.
     expect(aberto.briefing?.client.name).toBe("Doce Vida");
 
     await prisma.briefing.update({
@@ -95,7 +95,7 @@ describe("ciclo de vida do briefing", () => {
     expect(inexistente.problem).toBe("not_found");
   });
 
-  it("salva respostas por upsert e sincroniza o tipo de negócio", async () => {
+  it("saves answers by upsert and syncs the business type", async () => {
     const briefing = await createBriefing(clientId);
 
     await saveAnswers(briefing.id, [
@@ -107,10 +107,10 @@ describe("ciclo de vida do briefing", () => {
       where: { id: briefing.id },
     });
     expect(atualizado.businessType).toBe("local_business");
-    // A primeira resposta tira o briefing de "aguardando".
+    // The first answer moves the briefing out of "awaiting".
     expect(atualizado.status).toBe("in_progress");
 
-    // Regravar a mesma pergunta atualiza em vez de duplicar.
+    // Saving the same question again updates instead of duplicating.
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_NAME, value: "Doce Vida Confeitaria" },
     ]);
@@ -124,7 +124,7 @@ describe("ciclo de vida do briefing", () => {
       answers.find((a) => a.question.key === Q.BUSINESS_NAME)?.value,
     ).toBe("Doce Vida Confeitaria");
 
-    // Trocar o tipo de negócio reflete no briefing.
+    // Changing the business type is reflected on the briefing.
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_TYPE, value: "ecommerce" },
     ]);
@@ -134,7 +134,7 @@ describe("ciclo de vida do briefing", () => {
     expect(atualizado.businessType).toBe("ecommerce");
   });
 
-  it("apaga a resposta quando o campo é limpo", async () => {
+  it("deletes the answer when the field is cleared", async () => {
     const briefing = await createBriefing(clientId);
 
     await saveAnswers(briefing.id, [
@@ -142,26 +142,26 @@ describe("ciclo de vida do briefing", () => {
     ]);
     expect(await prisma.answer.count({ where: { briefingId: briefing.id } })).toBe(1);
 
-    // "Respondida e depois apagada" precisa virar o mesmo estado que
-    // "nunca respondida", senão o motor veria uma string vazia.
+    // "Answered then cleared" must become the same state as "never
+    // answered", otherwise the engine would see an empty string.
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_NAME, value: "   " },
     ]);
     expect(await prisma.answer.count({ where: { briefingId: briefing.id } })).toBe(0);
   });
 
-  it("recusa pergunta que não existe no catálogo", async () => {
+  it("rejects a question that doesn't exist in the catalog", async () => {
     const briefing = await createBriefing(clientId);
     await expect(
       saveAnswers(briefing.id, [
         { questionKey: "pergunta_inventada", value: "x" },
       ]),
-    ).rejects.toThrow(/desconhecidas/);
+    ).rejects.toThrow(/Unknown questions/);
   });
 });
 
-describe("formulário público", () => {
-  it("mostra a ramificação do tipo escolhido e esconde as demais", async () => {
+describe("public form", () => {
+  it("shows the chosen type's branch and hides the others", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_TYPE, value: "local_business" },
@@ -174,14 +174,14 @@ describe("formulário público", () => {
     expect(keys).not.toContain(Q.ECOM_SHIPPING);
     expect(keys).not.toContain(Q.B2B_DECISION_CYCLE);
 
-    // Perguntas trazem texto e opções para desenhar a tela.
+    // Questions carry text and options to draw the screen.
     const tipo = form.questions.find((q) => q.key === Q.BUSINESS_TYPE);
     expect(tipo?.text).toBeTruthy();
     expect(tipo?.options?.length).toBe(6);
     expect(tipo?.value).toBe("local_business");
   });
 
-  it("libera a frequência de publicação só após marcar um canal", async () => {
+  it("unlocks posting frequency only after a channel is checked", async () => {
     const briefing = await createBriefing(clientId);
 
     const antes = await buildPublicForm(await loadEvalContext(briefing.id));
@@ -196,8 +196,8 @@ describe("formulário público", () => {
   });
 });
 
-describe("envio e diagnóstico", () => {
-  /** Respostas mínimas para passar da validação de obrigatórias. */
+describe("submission and diagnosis", () => {
+  /** Minimal answers to pass required-question validation. */
   function respostasVagas() {
     return [
       { questionKey: Q.BUSINESS_NAME, value: "Doce Vida" },
@@ -221,7 +221,7 @@ describe("envio e diagnóstico", () => {
     ];
   }
 
-  it("recusa o envio enquanto faltam obrigatórias", async () => {
+  it("rejects submission while required questions are missing", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, [
       { questionKey: Q.BUSINESS_NAME, value: "Doce Vida" },
@@ -235,7 +235,7 @@ describe("envio e diagnóstico", () => {
       expect(resultado.missing).toContain(Q.IDEAL_CLIENT);
     }
 
-    // Continua aberto: nada foi fechado à toa.
+    // Still open: nothing was closed by mistake.
     const estado = await prisma.briefing.findUniqueOrThrow({
       where: { id: briefing.id },
     });
@@ -243,7 +243,7 @@ describe("envio e diagnóstico", () => {
     expect(estado.submittedAt).toBeNull();
   });
 
-  it("fecha o briefing e grava sinais e diagnóstico", async () => {
+  it("closes the briefing and stores signals and diagnosis", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasVagas());
 
@@ -274,7 +274,7 @@ describe("envio e diagnóstico", () => {
       ].sort(),
     );
 
-    // Rastreabilidade: os ids gravados existem mesmo como respostas.
+    // Traceability: the stored ids really exist as answers.
     const answerIds = new Set(
       (
         await prisma.answer.findMany({
@@ -302,12 +302,12 @@ describe("envio e diagnóstico", () => {
     expect(porCategoria.audience.score).toBe(60);
     expect(porCategoria.positioning.score).toBe(50);
 
-    // Link fechado não aceita mais resposta.
+    // A closed link no longer accepts answers.
     const acesso = await loadBriefingByToken(briefing.token);
     expect(acesso.problem).toBe("already_submitted");
   });
 
-  it("reprocessar é idempotente e não duplica registros", async () => {
+  it("reprocessing is idempotent and doesn't duplicate records", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasVagas());
     await submitBriefing(briefing.id);
@@ -327,7 +327,7 @@ describe("envio e diagnóstico", () => {
     ).toBe(5);
   });
 
-  it("monta a visão do painel com respostas por categoria e sumário", async () => {
+  it("builds the panel view with answers by category and summary", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasVagas());
     await submitBriefing(briefing.id);
@@ -351,11 +351,11 @@ describe("envio e diagnóstico", () => {
     expect(detail.missingRequiredKeys).toEqual([]);
     expect(detail.answeredCount).toBe(15);
 
-    // current_marketing (20) é o pior; positioning (50) não é vermelho.
+    // current_marketing (20) is the worst; positioning (50) isn't red.
     expect(detail.summary.problems[0]?.category).toBe("current_marketing");
     expect(detail.summary.problems[0]?.signals.length).toBeGreaterThan(0);
 
-    // Os sinais gravados foram reidratados junto do diagnóstico.
+    // The stored signals were rehydrated along with the diagnosis.
     const marketing = detail.diagnoses.find(
       (d) => d.category === "current_marketing",
     );
@@ -365,7 +365,7 @@ describe("envio e diagnóstico", () => {
     ]);
   });
 
-  it("não devolve briefing de outra conta", async () => {
+  it("doesn't return another account's briefing", async () => {
     const briefing = await createBriefing(clientId);
     const detail = await loadBriefingDetail(briefing.id, "usuario-inexistente");
     expect(detail).toBeNull();

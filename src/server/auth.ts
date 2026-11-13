@@ -4,12 +4,12 @@ import { createSupabaseServerClient, supabaseConfigured } from "./supabase";
 import { decideProvisioning } from "./security/provisioning";
 
 /**
- * Sessão de quem usa o painel.
+ * Session of whoever uses the panel.
  *
- * O Supabase autentica; a tabela `users` é a identidade da aplicação. As duas
- * são ligadas por `supabaseAuthId`. Estar autenticado no Supabase NÃO basta:
- * só entra quem já tem registro local (SEC-01, decisão D3 — ver
- * `security/provisioning.ts`). Nenhum usuário é criado a partir de um login.
+ * Supabase authenticates; the `users` table is the application's identity.
+ * They're linked by `supabaseAuthId`. Being authenticated in Supabase is NOT
+ * enough: only people with a local record get in (SEC-01, decision D3 — see
+ * `security/provisioning.ts`). No user is ever created from a login.
  */
 
 export interface SessionUser {
@@ -20,15 +20,15 @@ export interface SessionUser {
 
 export type AuthState =
   | { status: "anonymous" }
-  /** Autenticado no Supabase, mas sem acesso ao painel. */
+  /** Authenticated in Supabase, but without access to the panel. */
   | { status: "unprovisioned" }
   | { status: "authenticated"; user: SessionUser };
 
 const SESSION_USER_SELECT = { id: true, name: true, email: true } as const;
 
 /**
- * `cache` deduplica a chamada dentro de uma mesma requisição: layout, página e
- * rota podem pedir o usuário sem multiplicar idas ao Supabase e ao banco.
+ * `cache` dedupes the call within a single request: layout, page and route can
+ * ask for the user without multiplying trips to Supabase and the database.
  */
 export const getAuthState = cache(async (): Promise<AuthState> => {
   const bypass = await devBypassUser();
@@ -38,8 +38,8 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 
   const supabase = await createSupabaseServerClient();
 
-  // `getUser` revalida o token no servidor. `getSession` apenas lê o cookie,
-  // que o cliente poderia ter forjado — nunca use getSession para autorizar.
+  // `getUser` revalidates the token on the server. `getSession` only reads the
+  // cookie, which the client could have forged — never authorize with it.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -81,13 +81,13 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   return { status: "authenticated", user: sessionUser };
 });
 
-/** Usuário do painel, ou `null` se anônimo ou sem acesso. */
+/** The panel user, or `null` if anonymous or without access. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const state = await getAuthState();
   return state.status === "authenticated" ? state.user : null;
 }
 
-/** Como `getSessionUser`, mas lança quando não há sessão. Para rotas de API. */
+/** Like `getSessionUser`, but throws when there's no session. For API routes. */
 export async function requireUser(): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) throw new UnauthorizedError();
@@ -96,25 +96,25 @@ export async function requireUser(): Promise<SessionUser> {
 
 export class UnauthorizedError extends Error {
   constructor() {
-    super("Não autenticado");
+    super("Not authenticated");
     this.name = "UnauthorizedError";
   }
 }
 
 /**
- * Acesso ao painel SEM login, apenas em desenvolvimento.
+ * Panel access WITHOUT login, development only.
  *
- * Existe para poder construir e testar o painel antes de as credenciais do
- * Supabase estarem disponíveis. Três travas, todas obrigatórias:
+ * Exists so the panel can be built and tested before Supabase credentials are
+ * available. Three locks, all mandatory:
  *
- *   1. `NODE_ENV` precisa ser exatamente "development" — em produção o Next
- *      define "production", então o bypass some no build.
- *   2. O Supabase precisa estar NÃO configurado. Assim que as credenciais
- *      entram no .env, o caminho normal de autenticação assume.
- *   3. `DEV_ADMIN_EMAIL` precisa apontar para um usuário que já existe no
- *      banco — não cria conta nenhuma.
+ *   1. `NODE_ENV` must be exactly "development" — in production Next sets
+ *      "production", so the bypass disappears in the build.
+ *   2. Supabase must NOT be configured. As soon as the credentials are in
+ *      .env, the normal authentication path takes over.
+ *   3. `DEV_ADMIN_EMAIL` must point to a user that already exists in the
+ *      database — it creates no account.
  *
- * Para desativar antes disso, basta remover `DEV_ADMIN_EMAIL` do .env.
+ * To disable it earlier, just remove `DEV_ADMIN_EMAIL` from .env.
  */
 async function devBypassUser(): Promise<SessionUser | null> {
   if (process.env.NODE_ENV !== "development") return null;
@@ -130,8 +130,8 @@ async function devBypassUser(): Promise<SessionUser | null> {
 
   if (user) {
     console.warn(
-      `[auth] ACESSO SEM LOGIN (desenvolvimento) como ${user.email}. ` +
-        "Configure o Supabase no .env para desativar.",
+      `[auth] ACCESS WITHOUT LOGIN (development) as ${user.email}. ` +
+        "Configure Supabase in .env to disable it.",
     );
   }
   return user;
