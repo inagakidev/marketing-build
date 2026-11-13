@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import { logError } from "../log";
 import {
   clientIp,
   RATE_LIMITS,
@@ -96,7 +97,7 @@ export async function enforceRateLimit(
     result = await consumeRateLimit(scope, identifier, RATE_LIMITS[scope]);
   } catch (error) {
     // Fail-open (ver comentário do módulo). Loga só o escopo, nunca o IP.
-    console.error(`[rate-limit] falha ao contar escopo=${scope}`, error instanceof Error ? error.name : "erro");
+    logError("rate-limit", error, { scope });
     return;
   }
   if (!result.allowed) throw new RateLimitError(result.retryAfterSeconds);

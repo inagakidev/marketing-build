@@ -1,4 +1,5 @@
 import type { Browser } from "playwright";
+import { serverEnv } from "./env";
 
 /**
  * Geração de PDF a partir da página de impressão.
@@ -42,7 +43,7 @@ export async function renderBriefingPdf(
   briefingId: string,
   cookieHeader: string | null,
 ): Promise<Buffer> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = serverEnv().appUrl;
   const url = `${baseUrl}/print/briefing/${briefingId}`;
 
   const browser = await launchBrowser();
