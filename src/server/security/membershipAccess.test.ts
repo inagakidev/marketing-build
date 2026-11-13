@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import * as PrismaEnums from "../../generated/prisma/enums";
-import { decideMembershipAccess, MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from "./membershipAccess";
+import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from "@/modules/identity/domain/membership";
+import { decideMembershipAccess } from "./membershipAccess";
 
 describe("membership unions vs Prisma schema", () => {
   it("MembershipRole matches", () => {

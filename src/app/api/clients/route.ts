@@ -1,6 +1,8 @@
 import { created, handle, ok, parseBody } from "@/server/api";
 import { requireUser } from "@/server/auth";
 import { assertSameOrigin } from "@/server/security/origin";
+import { authorize } from "@/server/security/authorization";
+import { canManageClients } from "@/modules/identity/domain/permissions";
 import { prisma } from "@/server/db";
 import { clientInputSchema } from "@/server/validation";
 
@@ -45,6 +47,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     assertSameOrigin(request);
     const user = await requireUser();
+    authorize(canManageClients(user.role));
     const input = await parseBody(request, clientInputSchema);
 
     const client = await prisma.client.create({

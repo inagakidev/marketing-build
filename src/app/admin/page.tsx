@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSessionUser } from "@/server/auth";
+import { canManageClients } from "@/modules/identity/domain/permissions";
 import { prisma } from "@/server/db";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
@@ -11,6 +12,7 @@ export default async function AdminHomePage({
 }: PageProps<"/admin">) {
   const user = await getSessionUser();
   if (!user) return null; // the layout already redirected
+  const mayManage = canManageClients(user.role);
 
   const { status } = await searchParams;
   const statusFilter = typeof status === "string" ? status : null;
@@ -60,14 +62,21 @@ export default async function AdminHomePage({
               : `${rows.length} cliente${rows.length > 1 ? "s" : ""}.`}
           </p>
         </div>
-        <Link href="/admin/clientes/novo" className={buttonVariants()}>Novo cliente</Link>
+        {mayManage && (
+          <Link href="/admin/clientes/novo" className={buttonVariants()}>Novo cliente</Link>
+        )}
       </div>
 
       {rows.length === 0 ? (
         <EmptyState
           title="Nenhum cliente ainda."
-          description="Cadastre o primeiro cliente para gerar um link de briefing."
+          description={
+            mayManage
+              ? "Cadastre o primeiro cliente para gerar um link de briefing."
+              : "Os clientes aparecem aqui quando você participar de um projeto."
+          }
           action={
+            mayManage &&
             <Link href="/admin/clientes/novo" className={buttonVariants({ variant: "brand" })}>
               Cadastrar cliente
             </Link>

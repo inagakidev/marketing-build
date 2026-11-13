@@ -1,6 +1,8 @@
 import { fail, handle, ok, parseBody } from "@/server/api";
 import { requireUser } from "@/server/auth";
 import { assertSameOrigin } from "@/server/security/origin";
+import { authorize } from "@/server/security/authorization";
+import { canDeleteClient, canManageClients } from "@/modules/identity/domain/permissions";
 import { prisma } from "@/server/db";
 import { clientUpdateSchema } from "@/server/validation";
 
@@ -48,6 +50,7 @@ export async function PATCH(
   return handle(async () => {
     assertSameOrigin(request);
     const user = await requireUser();
+    authorize(canManageClients(user.role));
     const { id } = await params;
     const input = await parseBody(request, clientUpdateSchema);
 
@@ -82,6 +85,7 @@ export async function DELETE(
   return handle(async () => {
     assertSameOrigin(request);
     const user = await requireUser();
+    authorize(canDeleteClient(user.role));
     const { id } = await params;
 
     // Deleting a client takes its briefings, answers, signals and diagnoses

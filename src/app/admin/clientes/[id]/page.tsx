@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
+import { canEditProject, canManageClients } from "@/modules/identity/domain/permissions";
 import { prisma } from "@/server/db";
 import { serverEnv } from "@/server/env";
 import { Badge } from "@/components/ui/badge";
@@ -68,13 +69,16 @@ export default async function ClientePage({
           </p>
         </div>
         <div className="flex gap-2">
-          <Link
-            href={`/admin/clientes/${client.id}/editar`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Editar
-          </Link>
-          <CreateBriefingButton clientId={client.id} />
+          {canManageClients(user.role) && (
+            <Link
+              href={`/admin/clientes/${client.id}/editar`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Editar
+            </Link>
+          )}
+          {/* Briefings move under projects in EP-05 (see the API route). */}
+          {canEditProject(user.role, null) && <CreateBriefingButton clientId={client.id} />}
         </div>
       </div>
 

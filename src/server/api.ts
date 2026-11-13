@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import { UnauthorizedError } from "./auth";
+import { ForbiddenError } from "./security/authorization";
 import { ForbiddenOriginError } from "./security/origin";
 import { RateLimitError } from "./security/rateLimit";
 import { logError } from "./log";
@@ -41,6 +42,9 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return fail(401, "Não autenticado.");
+    }
+    if (error instanceof ForbiddenError) {
+      return fail(403, "Você não tem permissão para fazer isso.");
     }
     if (error instanceof ForbiddenOriginError) {
       return fail(403, "Origem da requisição não permitida.");

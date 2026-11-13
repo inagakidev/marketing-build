@@ -1,6 +1,8 @@
 import { fail, handle, ok } from "@/server/api";
 import { requireUser } from "@/server/auth";
 import { assertSameOrigin } from "@/server/security/origin";
+import { authorize } from "@/server/security/authorization";
+import { canEditProject } from "@/modules/identity/domain/permissions";
 import { processAndPersist } from "@/server/briefing";
 import { prisma } from "@/server/db";
 
@@ -18,6 +20,9 @@ export async function POST(
   return handle(async () => {
     assertSameOrigin(request);
     const user = await requireUser();
+    // Briefings move under projects in EP-05; until then nobody participates
+    // in a project, so only roles that coordinate the organization pass.
+    authorize(canEditProject(user.role, null));
     const { id } = await params;
 
     const briefing = await prisma.briefing.findFirst({
