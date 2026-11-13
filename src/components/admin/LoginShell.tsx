@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { BrandGlyph } from "./BrandMark";
 import { LoginBrandPanel } from "./LoginBrandPanel";
 
@@ -11,7 +12,11 @@ import { LoginBrandPanel } from "./LoginBrandPanel";
  */
 export function LoginShell({ children }: { children: React.ReactNode }) {
   return (
-    <main data-context="admin" className="flex min-h-svh w-full items-center justify-center bg-muted/40 p-4 sm:p-6">
+    <main data-context="admin" className="relative flex min-h-svh w-full items-center justify-center bg-muted/40 p-4 sm:p-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle />
+      </div>
+
       <div className="grid w-full max-w-md overflow-hidden rounded-2xl bg-card text-card-foreground shadow-lg shadow-foreground/5 ring-1 ring-foreground/10 lg:max-w-5xl lg:grid-cols-[1.05fr_1fr]">
         <LoginBrandPanel />
 

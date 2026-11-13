@@ -59,7 +59,7 @@ export default async function BriefingPage({
           <ReprocessButton briefingId={briefing.id} />
           <a
             href={`/api/briefings/${briefing.id}/pdf`}
-            className={buttonVariants()}
+            className={buttonVariants({ variant: "brand" })}
           >
             Exportar PDF
           </a>
