@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
- * Account authenticated in Supabase but without panel access (SEC-01, D3).
+ * Account authenticated in Supabase but without panel access (SEC-01, D3):
+ * no local record, or no active membership (EP-04.2). The copy covers both
+ * without saying which, since the fix is the same — talk to an administrator.
  *
  * Explains what happened and offers to sign out, so the person can sign in
  * with another account — without it they'd be stuck between login and panel.
@@ -38,9 +40,10 @@ export function NoAccessNotice() {
           Esta conta não tem acesso ao painel
         </h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          O login funcionou, mas este e-mail ainda não foi liberado para usar o
-          Briefing Inteligente. Peça a uma pessoa administradora para liberar o
-          seu acesso, ou saia e entre com outra conta.
+          O login funcionou, mas este e-mail não tem acesso liberado ao
+          Briefing Inteligente: o acesso ainda não foi concedido ou foi
+          desativado. Peça a uma pessoa administradora para liberar o seu
+          acesso, ou saia e entre com outra conta.
         </p>
       </header>
 
