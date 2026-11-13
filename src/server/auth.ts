@@ -1,14 +1,15 @@
 import { cache } from "react";
 import { prisma } from "./db";
 import { createSupabaseServerClient, supabaseConfigured } from "./supabase";
+import { decideProvisioning } from "./security/provisioning";
 
 /**
- * Sessão da administradora.
+ * Sessão de quem usa o painel.
  *
  * O Supabase autentica; a tabela `users` é a identidade da aplicação. As duas
- * são ligadas por `supabaseAuthId`. O registro local é criado sob demanda no
- * primeiro acesso — assim trocar a senha ou recriar o usuário no painel do
- * Supabase não deixa o sistema num estado quebrado.
+ * são ligadas por `supabaseAuthId`. Estar autenticado no Supabase NÃO basta:
+ * só entra quem já tem registro local (SEC-01, decisão D3 — ver
+ * `security/provisioning.ts`). Nenhum usuário é criado a partir de um login.
  */
 
 export interface SessionUser {
@@ -17,15 +18,23 @@ export interface SessionUser {
   email: string;
 }
 
+export type AuthState =
+  | { status: "anonymous" }
+  /** Autenticado no Supabase, mas sem acesso ao painel. */
+  | { status: "unprovisioned" }
+  | { status: "authenticated"; user: SessionUser };
+
+const SESSION_USER_SELECT = { id: true, name: true, email: true } as const;
+
 /**
  * `cache` deduplica a chamada dentro de uma mesma requisição: layout, página e
  * rota podem pedir o usuário sem multiplicar idas ao Supabase e ao banco.
  */
-export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+export const getAuthState = cache(async (): Promise<AuthState> => {
   const bypass = await devBypassUser();
-  if (bypass) return bypass;
+  if (bypass) return { status: "authenticated", user: bypass };
 
-  if (!supabaseConfigured()) return null;
+  if (!supabaseConfigured()) return { status: "anonymous" };
 
   const supabase = await createSupabaseServerClient();
 
@@ -35,22 +44,48 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return null;
+  if (!user?.email) return { status: "anonymous" };
 
-  const existing = await prisma.user.findUnique({
-    where: { supabaseAuthId: user.id },
-    select: { id: true, name: true, email: true },
+  const email = user.email.toLowerCase();
+  const [byAuthId, byEmail] = await Promise.all([
+    prisma.user.findUnique({
+      where: { supabaseAuthId: user.id },
+      select: { id: true, supabaseAuthId: true },
+    }),
+    prisma.user.findUnique({
+      where: { email },
+      select: { id: true, supabaseAuthId: true },
+    }),
+  ]);
+
+  const decision = decideProvisioning({
+    authUser: { id: user.id, email, emailConfirmed: Boolean(user.email_confirmed_at) },
+    byAuthId,
+    byEmail,
   });
-  if (existing) return existing;
 
-  const name =
-    (user.user_metadata?.name as string | undefined) ?? user.email.split("@")[0];
+  if (decision.action === "deny") return { status: "unprovisioned" };
 
-  return prisma.user.create({
-    data: { supabaseAuthId: user.id, email: user.email, name },
-    select: { id: true, name: true, email: true },
-  });
+  const sessionUser =
+    decision.action === "link"
+      ? await prisma.user.update({
+          where: { id: decision.userId },
+          data: { supabaseAuthId: user.id },
+          select: SESSION_USER_SELECT,
+        })
+      : await prisma.user.findUniqueOrThrow({
+          where: { id: decision.userId },
+          select: SESSION_USER_SELECT,
+        });
+
+  return { status: "authenticated", user: sessionUser };
 });
+
+/** Usuário do painel, ou `null` se anônimo ou sem acesso. */
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const state = await getAuthState();
+  return state.status === "authenticated" ? state.user : null;
+}
 
 /** Como `getSessionUser`, mas lança quando não há sessão. Para rotas de API. */
 export async function requireUser(): Promise<SessionUser> {
@@ -90,7 +125,7 @@ async function devBypassUser(): Promise<SessionUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, email: true },
+    select: SESSION_USER_SELECT,
   });
 
   if (user) {

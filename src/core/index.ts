@@ -33,6 +33,8 @@ export {
 } from "./diagnosis/score";
 export { buildSummary } from "./diagnosis/summary";
 export { toDisplayValue } from "./text";
+export { validateAnswerValue, ANSWER_LIMITS } from "./answerValidation";
+export type { AnswerValidationTarget } from "./answerValidation";
 export type {
   DiagnosisSummary,
   DiagnosisProblem,

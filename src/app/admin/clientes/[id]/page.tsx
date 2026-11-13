@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
 import { prisma } from "@/server/db";
+import { serverEnv } from "@/server/env";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -45,7 +46,7 @@ export default async function ClientePage({
 
   if (!client) notFound();
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const baseUrl = serverEnv().appUrl;
 
   return (
     <div className="space-y-6">

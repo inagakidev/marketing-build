@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { createClient } from "@supabase/supabase-js";
 import { PrismaClient } from "../../src/generated/prisma/client";
+import { PENDING_AUTH_PREFIX } from "../../src/server/security/provisioning";
 
 /**
  * Cria a administradora — o único usuário do MVP.
@@ -29,11 +30,12 @@ const prisma = new PrismaClient({
 });
 
 const NAME = process.env.ADMIN_NAME?.trim() || "Administradora";
-const EMAIL = process.env.ADMIN_EMAIL?.trim();
+// Minúsculo: o login compara e-mails normalizados (src/server/auth.ts).
+const EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 const PASSWORD = process.env.ADMIN_PASSWORD;
 
 /** Marca um registro local ainda sem contrapartida no Supabase Auth. */
-const PENDING_PREFIX = "pending:";
+const PENDING_PREFIX = PENDING_AUTH_PREFIX;
 
 async function main(): Promise<void> {
   if (!EMAIL) {

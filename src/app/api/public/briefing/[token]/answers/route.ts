@@ -1,5 +1,8 @@
+import { enforceRateLimit } from "@/server/security/rateLimit";
 import { fail, handle, ok, parseBody } from "@/server/api";
 import {
+  BriefingClosedError,
+  InvalidAnswersError,
   loadBriefingByToken,
   loadEvalContext,
   saveAnswers,
@@ -19,6 +22,7 @@ export async function PUT(
   { params }: { params: Promise<{ token: string }> },
 ) {
   return handle(async () => {
+    await enforceRateLimit(request, "publicAutosave");
     const { token } = await params;
     const { problem, briefing } = await loadBriefingByToken(token);
 
@@ -40,10 +44,20 @@ export async function PUT(
     try {
       await saveAnswers(briefing.id, body.answers);
     } catch (error) {
-      // Pergunta inexistente é erro do cliente (payload adulterado ou
-      // catálogo mudou no meio do preenchimento), não falha do servidor.
-      if (error instanceof Error && error.message.startsWith("Perguntas desconhecidas")) {
-        return fail(400, error.message);
+      // Resposta incompatível com o catálogo é erro do cliente (payload
+      // adulterado ou catálogo mudou no meio do preenchimento).
+      if (error instanceof InvalidAnswersError) {
+        return fail(400, "Algumas respostas não são válidas.", { issues: error.issues });
+      }
+      // O briefing foi enviado ou expirou entre a checagem acima e a gravação.
+      if (error instanceof BriefingClosedError) {
+        return fail(
+          410,
+          error.problem === "expired"
+            ? "Este link expirou e não aceita mais respostas."
+            : "Este briefing já foi enviado.",
+          { problem: error.problem },
+        );
       }
       throw error;
     }

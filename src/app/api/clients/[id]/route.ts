@@ -1,5 +1,6 @@
 import { fail, handle, ok, parseBody } from "@/server/api";
 import { requireUser } from "@/server/auth";
+import { assertSameOrigin } from "@/server/security/origin";
 import { prisma } from "@/server/db";
 import { clientUpdateSchema } from "@/server/validation";
 
@@ -45,6 +46,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   return handle(async () => {
+    assertSameOrigin(request);
     const user = await requireUser();
     const { id } = await params;
     const input = await parseBody(request, clientUpdateSchema);
@@ -74,10 +76,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   return handle(async () => {
+    assertSameOrigin(request);
     const user = await requireUser();
     const { id } = await params;
 

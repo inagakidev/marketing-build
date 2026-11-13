@@ -63,6 +63,14 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
         body: JSON.stringify({ answers: batch }),
       });
 
+      if (response.status === 429) {
+        // Limite de requisições (SEC-04): espera o tempo indicado pelo
+        // servidor, sem gastar uma das tentativas de falha de rede.
+        const seconds = Number(response.headers.get("Retry-After")) || 5;
+        setState("error");
+        timer.current = setTimeout(() => void flushRef.current(), seconds * 1000);
+        return;
+      }
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = (await response.json()) as { form: PublicForm };

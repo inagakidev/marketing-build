@@ -98,8 +98,10 @@ export async function loadBriefingDetail(
           internalNotes: true,
         },
       },
-      signals: true,
-      diagnoses: true,
+      // Ordem explícita: sem ela o painel e o sumário herdariam a ordem
+      // física do banco, que pode mudar entre leituras (DATA-06).
+      signals: { orderBy: { code: "asc" } },
+      diagnoses: { orderBy: { category: "asc" } },
     },
   });
 

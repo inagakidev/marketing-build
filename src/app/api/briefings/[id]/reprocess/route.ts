@@ -1,5 +1,6 @@
 import { fail, handle, ok } from "@/server/api";
 import { requireUser } from "@/server/auth";
+import { assertSameOrigin } from "@/server/security/origin";
 import { processAndPersist } from "@/server/briefing";
 import { prisma } from "@/server/db";
 
@@ -11,10 +12,11 @@ import { prisma } from "@/server/db";
  * mostrando o resultado antigo até que a administradora peça o recálculo.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   return handle(async () => {
+    assertSameOrigin(request);
     const user = await requireUser();
     const { id } = await params;
 

@@ -60,10 +60,15 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   /**
-   * Roda em tudo, menos assets estáticos e imagens — cada execução custa uma
-   * revalidação de token, e um favicon não precisa de sessão.
+   * Só as superfícies autenticadas (PERF-01). Cada execução custa uma ida ao
+   * Supabase para revalidar o token; o formulário público (`/briefing`,
+   * `/api/public`) não usa sessão e não deve pagar esse custo a cada autosave.
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/admin/:path*",
+    "/login",
+    "/print/:path*",
+    "/api/clients/:path*",
+    "/api/briefings/:path*",
   ],
 };

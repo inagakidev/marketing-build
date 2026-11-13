@@ -1,5 +1,8 @@
 import { ZodError } from "zod";
 import { UnauthorizedError } from "./auth";
+import { ForbiddenOriginError } from "./security/origin";
+import { RateLimitError } from "./security/rateLimit";
+import { logError } from "./log";
 
 /**
  * Helpers das rotas de API.
@@ -21,8 +24,9 @@ export function fail(
   status: number,
   message: string,
   extra?: Record<string, unknown>,
+  headers?: HeadersInit,
 ): Response {
-  return Response.json({ error: message, ...extra }, { status });
+  return Response.json({ error: message, ...extra }, { status, headers });
 }
 
 /**
@@ -38,10 +42,24 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     if (error instanceof UnauthorizedError) {
       return fail(401, "Não autenticado.");
     }
+    if (error instanceof ForbiddenOriginError) {
+      return fail(403, "Origem da requisição não permitida.");
+    }
+    if (error instanceof RateLimitError) {
+      return fail(
+        429,
+        "Muitas tentativas em pouco tempo. Aguarde alguns instantes e tente de novo.",
+        { retryAfterSeconds: error.retryAfterSeconds },
+        { "Retry-After": String(error.retryAfterSeconds) },
+      );
+    }
+    if (error instanceof InvalidJsonError) {
+      return fail(400, "O corpo da requisição não é um JSON válido.");
+    }
     if (error instanceof ZodError) {
       return fail(400, "Dados inválidos.", { issues: formatIssues(error) });
     }
-    console.error("[api]", error);
+    logError("api", error);
     return fail(500, "Erro interno. Tente novamente.");
   }
 }
@@ -54,6 +72,14 @@ function formatIssues(error: ZodError): Record<string, string> {
   return issues;
 }
 
+/** Corpo da requisição ilegível: erro do cliente (400), não do servidor (NEW-01). */
+export class InvalidJsonError extends Error {
+  constructor() {
+    super("Corpo da requisição não é JSON válido.");
+    this.name = "InvalidJsonError";
+  }
+}
+
 /** Lê e valida o corpo JSON da requisição. */
 export async function parseBody<T>(
   request: Request,
@@ -63,7 +89,7 @@ export async function parseBody<T>(
   try {
     raw = await request.json();
   } catch {
-    throw new SyntaxError("Corpo da requisição não é JSON válido.");
+    throw new InvalidJsonError();
   }
   return schema.parse(raw);
 }

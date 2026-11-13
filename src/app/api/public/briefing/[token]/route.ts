@@ -1,3 +1,4 @@
+import { enforceRateLimit } from "@/server/security/rateLimit";
 import { fail, handle, ok } from "@/server/api";
 import { loadBriefingByToken, loadEvalContext } from "@/server/briefing";
 import { buildPublicForm } from "@/server/publicForm";
@@ -10,10 +11,11 @@ import { buildPublicForm } from "@/server/publicForm";
  * cliente, e nunca o diagnóstico.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   return handle(async () => {
+    await enforceRateLimit(request, "publicRead");
     const { token } = await params;
     const { problem, briefing } = await loadBriefingByToken(token);
 
@@ -29,8 +31,9 @@ export async function GET(
     const ctx = await loadEvalContext(briefing.id);
 
     return ok({
+      // Sem o id interno: o token já identifica o briefing para o respondente
+      // e o payload público leva só o necessário (FORM-14, NEW-02).
       briefing: {
-        id: briefing.id,
         status: briefing.status,
         businessType: briefing.businessType,
         expiresAt: briefing.expiresAt,
