@@ -9,7 +9,7 @@ Read before: writing code, components, screens, UI copy or error messages.
 
 ## Naming
 
-- **Documentation files:** English, UPPERCASE, words separated by hyphens: `README.md`, `ROADMAP.md`, `docs/guidelines/SECURITY-AND-PRIVACY.md`.
+- **Documentation files:** English, UPPERCASE, words separated by hyphens, **no numeric prefixes** (`docs/ROADMAP.md`, not `docs/04-roadmap.md`): `README.md`, `ROADMAP.md`, `docs/guidelines/SECURITY-AND-PRIVACY.md`. Order between documents is stated in `SOURCES-OF-TRUTH.md`, not in file names.
 - **Code — variables, functions and file names:** camelCase: `briefingDetail.ts`, `rateLimitRules.ts`, `safeRedirectPath()`.
 - **Exceptions** (imposed by tools or the language):
   - React component files and names: PascalCase (`BriefingFlow.tsx`), because JSX requires capitalized components.

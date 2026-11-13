@@ -21,7 +21,7 @@ These apply to people and agents. Each topic is detailed in `docs/guidelines/`. 
 - **No generative AI in the product (V1).** Diagnosis and recommendations are deterministic code.
 - **Plan before coding; test first** for domain rules and bug fixes.
 - **Language:** everything in English (code, comments, docs, commits, PRs, branches), **except user-facing text, which stays in pt-BR**.
-- **Naming:** documentation files in English UPPERCASE (`ROADMAP.md`); variables, functions and code files in camelCase (`rateLimitRules.ts`). Exceptions in `CODE-AND-UI.md`.
+- **Naming:** documentation files in English UPPERCASE without numeric prefixes (`docs/ROADMAP.md`); variables, functions and code files in camelCase (`rateLimitRules.ts`). Exceptions in `CODE-AND-UI.md`.
 - **Git:** branch from an up-to-date `main`; every PR targets `main`; after merging, go back to `main`; delete branches that are no longer used.
 - **Done = green gate:** `npm run lint && npm run typecheck && npm test && npm run test:db && npm run build`.
 - **Security in every story:** server-side input validation, server-side authorization, no PII in logs.
