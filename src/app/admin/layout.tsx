@@ -20,7 +20,7 @@ export default async function AdminLayout({
     <div data-context="admin" className="flex flex-1 flex-col">
       <header className="border-b bg-background sticky top-0 z-10">
         <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between gap-4">
-          <Link href="/admin" className="font-semibold tracking-tight">
+          <Link href="/admin" className="font-bold tracking-tight text-foreground hover:text-foreground">
             Briefing Inteligente
           </Link>
           <div className="flex items-center gap-3">

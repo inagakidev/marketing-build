@@ -110,7 +110,7 @@ export function ClientsTable({
                       <Badge
                         variant={
                           BRIEFING_STATUS_TONE[row.latestBriefing.status] ??
-                          "secondary"
+                          "neutral"
                         }
                       >
                         {BRIEFING_STATUS_LABELS[row.latestBriefing.status]}

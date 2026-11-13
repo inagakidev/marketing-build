@@ -220,10 +220,11 @@ const PRINT_CSS = `
     font-size: 9pt;
     border: 1px solid;
   }
-  .pastilha.green  { background: #ecfdf5; color: #065f46; border-color: #6ee7b7; }
-  .pastilha.yellow { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
-  .pastilha.red    { background: #fef2f2; color: #991b1b; border-color: #fca5a5; }
-  .pastilha.gray   { background: #f4f4f5; color: #52525b; border-color: #d4d4d8; }
+  /* DS v2 light semantics; the PDF is always printed on white. */
+  .pastilha.green  { background: #e7f6ec; color: #1e7a44; border-color: #b5e3c4; }
+  .pastilha.yellow { background: #fdf4dc; color: #7a4e00; border-color: #f2d98c; }
+  .pastilha.red    { background: #fdecec; color: #b42318; border-color: #f5c2bd; }
+  .pastilha.gray   { background: #f2f1ec; color: #4f4b42; border-color: #d3d0c7; }
 
   .pontuacao { font-weight: 400; color: #666; font-size: 10pt; }
   .sinal { border-left: 2px solid #ddd; padding-left: 3mm; margin-bottom: 2.5mm; }

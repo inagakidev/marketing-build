@@ -13,8 +13,16 @@ const badgeVariants = cva(
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+        /** DS v2 category tag: discreet, no state color. */
         outline:
-          "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
+          "h-[26px] rounded-sm border-(--border-strong) px-2.5 text-[0.8125rem] font-normal text-(--text-secondary) [a]:hover:bg-muted",
+        // DS v2 status pills: 28px, a state color, and always text (status is
+        // never conveyed by color alone).
+        neutral: "h-7 px-2.5 text-[0.8125rem] bg-(--draft-bg) text-(--draft-text)",
+        info: "h-7 px-2.5 text-[0.8125rem] bg-(--info-bg) text-(--info-text)",
+        warning: "h-7 px-2.5 text-[0.8125rem] bg-(--warning-bg) text-(--warning-text)",
+        success: "h-7 px-2.5 text-[0.8125rem] bg-(--success-bg) text-(--success-text)",
+        danger: "h-7 px-2.5 text-[0.8125rem] bg-(--danger-bg) text-(--danger-text)",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",

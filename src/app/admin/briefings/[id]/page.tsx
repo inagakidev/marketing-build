@@ -42,7 +42,7 @@ export default async function BriefingPage({
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Briefing</h1>
           <div className="flex items-center gap-2 flex-wrap text-sm">
-            <Badge variant={BRIEFING_STATUS_TONE[briefing.status] ?? "secondary"}>
+            <Badge variant={BRIEFING_STATUS_TONE[briefing.status] ?? "neutral"}>
               {BRIEFING_STATUS_LABELS[briefing.status]}
             </Badge>
             {briefing.businessType && (
@@ -60,7 +60,7 @@ export default async function BriefingPage({
           {canEditProject(user.role, null) && <ReprocessButton briefingId={briefing.id} />}
           <a
             href={`/api/briefings/${briefing.id}/pdf`}
-            className={buttonVariants({ variant: "brand" })}
+            className={buttonVariants({ variant: "outline" })}
           >
             Exportar PDF
           </a>
