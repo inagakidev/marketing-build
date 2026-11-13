@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MEMBERSHIP_ROLES } from "@/modules/identity/domain/membership";
+import { MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES } from "@/modules/identity/domain/membership";
 
 /**
  * Validation schemas for the API boundaries.
@@ -59,4 +59,13 @@ export const acceptInvitationSchema = z.object({
     .min(8, "A senha precisa ter pelo menos 8 caracteres.")
     .max(72, "A senha pode ter no máximo 72 caracteres."),
 });
+
+/** Changing a member (EP-04.5): either the role or the status, one at a time. */
+export const memberChangeSchema = z.union(
+  [
+    z.object({ role: z.enum(MEMBERSHIP_ROLES) }).strict(),
+    z.object({ status: z.enum(MEMBERSHIP_STATUSES) }).strict(),
+  ],
+  { message: "Informe um papel ou um status válido." },
+);
 
