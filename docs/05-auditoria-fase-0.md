@@ -110,7 +110,7 @@ Só achados confirmados/parciais. Ordem por risco (roadmap §3.1).
 | Logs | **corrigido**: `logError` grava nome, código e mensagem redigida (e-mail, telefone, token, credencial); erros de renderização também passam por ele | `src/server/log.ts`, `src/instrumentation.ts` |
 | QUAL-04 | **parcial**: 19 testes de API com os casos negativos das rotas existentes. Componentes e E2E continuam pendentes (E2E depende de ambiente de preview) | `src/app/api/__tests__/routes.itest.ts` |
 | QUAL-05 | **corrigido**: CI com lint, typecheck, unitários, migrações do zero + seed, integração com PostgreSQL e build. Passos validados localmente num banco novo; a primeira execução real acontece no primeiro PR | `.github/workflows/ci.yml` |
-| DEPLOY-01 | **confirmado, aguardando decisão** (ver abaixo) | `src/server/pdf.ts` |
+| DEPLOY-01 | **corrigido (decisão D6)**: `playwright-core` + `@sparticuz/chromium` em serverless, Chromium local fora dele. Os dois caminhos geraram PDF nesta máquina; o build inclui os binários na função. **Falta validar num deploy real da Vercel** | `src/server/pdfBrowser.ts`, `next.config.ts` |
 
 #### DEPLOY-01: PDF na Vercel serverless
 
@@ -120,7 +120,7 @@ O Chromium completo do Playwright não cabe numa função serverless da Vercel. 
 2. **Impressão pelo navegador:** a página `/print/briefing/[id]` já existe; o botão abriria a página com `window.print()`. Zero dependência e zero custo de servidor. Custos: o PDF depende do navegador de quem baixa, e não dá para gerar PDF no servidor para relatórios compartilhados (Fase 6).
 3. **Serviço externo de renderização:** novo suboperador de dados (LGPD) e custo recorrente.
 
-Até a decisão, o PDF continua funcionando em desenvolvimento e em contêiner, mas **não em produção na Vercel**.
+**Decidido em 13/11/2026: opção 1** (D6 em `docs/decisoes.md`).
 
 Observações:
 - "Já enviado" passa a ter precedência sobre "expirado" na mensagem ao respondente.

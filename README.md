@@ -170,4 +170,10 @@ npm run lint && npm run typecheck && npm test && npm run test:db && npm run buil
 
 ## Deploy
 
-Alvo é a Vercel serverless (decisão D1). **Pendente (DEPLOY-01):** a geração de PDF usa o Chromium completo do Playwright, que não roda em função serverless. Ver `docs/05-auditoria-fase-0.md`. O Postgres de produção é o do Supabase (mesma `DATABASE_URL`, sem mudança de schema). Antes do primeiro deploy, rode as migrations e os dois seeds (`db:seed` e `db:seed:admin`) apontando para o banco de produção.
+Alvo é a Vercel serverless (decisão D1).
+
+**PDF em serverless (decisão D6):** na Vercel, `src/server/pdfBrowser.ts` usa `@sparticuz/chromium` com `playwright-core`; localmente, o Chromium do Playwright (ou `CHROMIUM_EXECUTABLE_PATH`). Para funcionar em produção:
+
+- Dê pelo menos **1,6 GB de memória** às funções (Vercel → Settings → Functions). Com menos, o Chromium pode ser encerrado no meio da geração.
+- `playwright-core` e `@sparticuz/chromium` estão fixados em par (1.63.0 ↔ Chromium 153). Atualize os dois juntos.
+- A função do PDF navega até a própria URL pública (`NEXT_PUBLIC_APP_URL`). Em deploys de preview com *Deployment Protection* ligada, essa navegação é bloqueada. Use a URL de produção ou um bypass de proteção. O Postgres de produção é o do Supabase (mesma `DATABASE_URL`, sem mudança de schema). Antes do primeiro deploy, rode as migrations e os dois seeds (`db:seed` e `db:seed:admin`) apontando para o banco de produção.
