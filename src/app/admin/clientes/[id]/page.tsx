@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EmptyState } from "@/components/EmptyState";
 import { CreateBriefingButton } from "@/components/admin/CreateBriefingButton";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import {
@@ -94,11 +95,10 @@ export default async function ClientePage({
         <h2 className="text-lg font-medium">Briefings</h2>
 
         {client.briefings.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              Nenhum briefing ainda. Crie um para gerar o link do cliente.
-            </CardContent>
-          </Card>
+          <EmptyState
+            title="Nenhum briefing ainda."
+            description="Crie um para gerar o link do cliente."
+          />
         ) : (
           <div className="space-y-3">
             {client.briefings.map((briefing) => (

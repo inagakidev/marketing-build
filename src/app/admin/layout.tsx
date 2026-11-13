@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
  * Authenticated area.
@@ -22,9 +23,12 @@ export default async function AdminLayout({
           <Link href="/admin" className="font-semibold tracking-tight">
             Briefing Inteligente
           </Link>
-          <span className="text-sm text-muted-foreground truncate">
-            {user.name}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground truncate">
+              {user.name}
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">

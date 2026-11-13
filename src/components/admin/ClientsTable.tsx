@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/EmptyState";
 import {
   Table,
   TableBody,
@@ -70,6 +71,9 @@ export function ClientsTable({
         ))}
       </div>
 
+      {rows.length === 0 ? (
+        <EmptyState title="Nenhum cliente com esse status." />
+      ) : (
       <Card className="overflow-hidden py-0">
         <div className="overflow-x-auto">
           <Table>
@@ -83,17 +87,6 @@ export function ClientsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground py-10"
-                  >
-                    Nenhum cliente com esse status.
-                  </TableCell>
-                </TableRow>
-              )}
-
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
@@ -154,6 +147,7 @@ export function ClientsTable({
           </Table>
         </div>
       </Card>
+      )}
     </div>
   );
 }

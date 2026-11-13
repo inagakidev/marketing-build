@@ -468,6 +468,7 @@ The epics below are planning units. Technical tasks should be created after the 
 | EP-18 | Templates and recurrence | Process reuse | 7 |
 | EP-19 | Notifications | Collaboration with relevant alerts | 7 |
 | EP-20 | Integrations and assistive AI | Post-V1 expansion | 8 |
+| EP-21 | Design system and accessibility | Consistent, accessible interface across every surface (section 9) | Cross-cutting |
 
 ---
 
@@ -515,6 +516,14 @@ The experience must keep pace with functional growth. Don't leave "polishing" th
 - Design empty, loading, error, success and insufficient-permission states.
 - Ensure direct, human and non-judgmental language.
 - Visually differentiate suggestion, approved decision and observed result.
+
+Tracked as **EP-21**, which runs in parallel with every phase (section 8).
+
+**EP-21 progress**
+
+- Light, dark and system themes with a toggle in the admin area and on the login screen.
+- Shared empty-state component used on the client list, the status filter and the client page.
+- `brand` button variant built on the semantic `--primary` / `--primary-hover` tokens, used on the main call to action of each screen.
 
 ### 9.2 Experience by surface
 

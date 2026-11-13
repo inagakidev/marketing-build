@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSessionUser } from "@/server/auth";
 import { prisma } from "@/server/db";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/EmptyState";
 import { ClientsTable } from "@/components/admin/ClientsTable";
 
 /** Client list with the status of each one's most recent briefing. */
@@ -64,14 +64,15 @@ export default async function AdminHomePage({
       </div>
 
       {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center space-y-4">
-            <p className="text-muted-foreground">
-              Cadastre o primeiro cliente para gerar um link de briefing.
-            </p>
-            <Link href="/admin/clientes/novo" className={buttonVariants()}>Cadastrar cliente</Link>
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="Nenhum cliente ainda."
+          description="Cadastre o primeiro cliente para gerar um link de briefing."
+          action={
+            <Link href="/admin/clientes/novo" className={buttonVariants({ variant: "brand" })}>
+              Cadastrar cliente
+            </Link>
+          }
+        />
       ) : (
         <ClientsTable rows={filtered} activeStatus={statusFilter} />
       )}

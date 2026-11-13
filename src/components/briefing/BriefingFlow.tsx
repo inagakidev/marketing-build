@@ -171,7 +171,12 @@ export function BriefingFlow({
                 jeito.
               </li>
             </ul>
-            <Button size="lg" className="w-full" onClick={() => setStage("form")}>
+            <Button
+              variant="brand"
+              size="lg"
+              className="w-full"
+              onClick={() => setStage("form")}
+            >
               Começar
             </Button>
           </CardContent>
@@ -235,6 +240,7 @@ export function BriefingFlow({
                 Revisar respostas
               </Button>
               <Button
+                variant="brand"
                 className="sm:flex-1"
                 onClick={submit}
                 disabled={submitting}
