@@ -16,6 +16,9 @@ export interface ServerEnv {
   appUrl: string;
   briefingLinkTtlDays: number;
   supabaseConfigured: boolean;
+  /** Service role key present: the server can create login accounts
+   *  (accepting invitations, EP-04.4). */
+  supabaseAdminConfigured: boolean;
 }
 
 const url = (name: string) =>
@@ -32,6 +35,7 @@ const schema = z.object({
   NEXT_PUBLIC_APP_URL: url("NEXT_PUBLIC_APP_URL").optional(),
   NEXT_PUBLIC_SUPABASE_URL: url("NEXT_PUBLIC_SUPABASE_URL").optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   BRIEFING_LINK_TTL_DAYS: z.coerce
     .number({ message: "BRIEFING_LINK_TTL_DAYS must be a number of days." })
     .int("BRIEFING_LINK_TTL_DAYS must be a whole number of days.")
@@ -76,10 +80,15 @@ export function parseServerEnv(
   // Not blocking: the bypass only exists with NODE_ENV=development
   // (src/server/auth.ts), so in production the variable is inert. But it
   // signals a development .env in use.
-  const warnings =
-    nodeEnv === "production" && vars.DEV_ADMIN_EMAIL
-      ? ["DEV_ADMIN_EMAIL is set in production; it's ignored, but it suggests a development .env."]
-      : [];
+  const warnings: string[] = [];
+  if (nodeEnv === "production" && vars.DEV_ADMIN_EMAIL) {
+    warnings.push("DEV_ADMIN_EMAIL is set in production; it's ignored, but it suggests a development .env.");
+  }
+  // Not an error: only accepting invitations needs it, and refusing to start
+  // would take the whole panel down for that one flow.
+  if (nodeEnv === "production" && !vars.SUPABASE_SERVICE_ROLE_KEY) {
+    warnings.push("SUPABASE_SERVICE_ROLE_KEY is not set; invitations can't be accepted until it is.");
+  }
 
   return {
     ok: true,
@@ -89,6 +98,7 @@ export function parseServerEnv(
       appUrl: (vars.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
       briefingLinkTtlDays: vars.BRIEFING_LINK_TTL_DAYS,
       supabaseConfigured: Boolean(vars.NEXT_PUBLIC_SUPABASE_URL && vars.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+      supabaseAdminConfigured: Boolean(vars.NEXT_PUBLIC_SUPABASE_URL && vars.SUPABASE_SERVICE_ROLE_KEY),
     },
   };
 }

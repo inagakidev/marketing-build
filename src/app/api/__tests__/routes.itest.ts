@@ -37,6 +37,9 @@ const pdfRoute = await import("@/app/api/briefings/[id]/pdf/route");
 const publicRoute = await import("@/app/api/public/briefing/[token]/route");
 const answersRoute = await import("@/app/api/public/briefing/[token]/answers/route");
 const submitRoute = await import("@/app/api/public/briefing/[token]/submit/route");
+const invitationsRoute = await import("@/app/api/invitations/route");
+const invitationRoute = await import("@/app/api/invitations/[id]/route");
+const acceptRoute = await import("@/app/api/public/invitations/[token]/accept/route");
 
 const ORIGIN = "http://localhost:3000";
 const SUFFIX = `api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -104,8 +107,11 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  const userIds = [alice?.id, bob?.id, leader?.id, member?.id].filter(Boolean);
+  const invitees = await prisma.user.findMany({ where: { email: { startsWith: `invitee-${SUFFIX}` } } });
+  const userIds = [alice?.id, bob?.id, leader?.id, member?.id, ...invitees.map((u) => u.id)].filter(Boolean);
   const organizationIds = [alice?.organizationId, bob?.organizationId].filter(Boolean);
+  await prisma.auditEvent.deleteMany({ where: { organizationId: { in: organizationIds } } });
+  await prisma.invitation.deleteMany({ where: { organizationId: { in: organizationIds } } });
   await prisma.membership.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.organization.deleteMany({ where: { id: { in: organizationIds } } });
   await prisma.user.deleteMany({ where: { id: { in: userIds } } });
@@ -121,6 +127,8 @@ describe("authenticated routes without a session → 401", () => {
     ["GET /api/briefings/[id]", () => briefingRoute.GET(req("GET", "/x"), params({ id: "x" }))],
     ["POST reprocess", () => reprocessRoute.POST(req("POST", "/x"), params({ id: "x" }))],
     ["GET pdf", () => pdfRoute.GET(req("GET", "/x", { origin: null }), params({ id: "x" }))],
+    ["POST /api/invitations", () => invitationsRoute.POST(req("POST", "/api/invitations", { body: {} }))],
+    ["DELETE /api/invitations/[id]", () => invitationRoute.DELETE(req("DELETE", "/x"), params({ id: "x" }))],
   ])("%s", async (_label, call) => {
     expect((await call()).status).toBe(401);
   });
@@ -212,6 +220,84 @@ describe("role permissions (EP-04.3, REQUIREMENTS §2.3) → 403, no side effect
     expect(missing.status).toBe(403);
     expect(existing.status).toBe(403);
     expect(await missing.json()).toEqual(await existing.json());
+  });
+});
+
+describe("invitations (EP-04.4, D11, D12)", () => {
+  const inviteeEmail = () => `invitee-${SUFFIX}-${Math.random().toString(36).slice(2, 6)}@exemplo.test`;
+
+  it("leaders and members can't invite → 403", async () => {
+    for (const who of [leader, member]) {
+      session.current = who;
+      const res = await invitationsRoute.POST(
+        req("POST", "/api/invitations", { body: { email: inviteeEmail(), role: "member" } }),
+      );
+      expect(res.status).toBe(403);
+    }
+  });
+
+  it("rejects an invalid role → 400", async () => {
+    session.current = alice;
+    const res = await invitationsRoute.POST(
+      req("POST", "/api/invitations", { body: { email: inviteeEmail(), role: "owner" } }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("an admin invites, the link works once, and the invitee joins with the role", async () => {
+    session.current = alice;
+    const email = inviteeEmail();
+    const create = await invitationsRoute.POST(
+      req("POST", "/api/invitations", { body: { email, role: "leader" } }),
+    );
+    expect(create.status).toBe(201);
+    const { url, invitation } = await create.json();
+    expect(url).toMatch(/^http:\/\/localhost:3000\/convite\/[A-Za-z0-9_-]{43}$/);
+    expect(invitation).toMatchObject({ email, role: "leader" });
+
+    const token = url.split("/").pop();
+    session.current = null;
+    const body = { name: "Convidada", password: "senha-forte-123" };
+
+    const accept = await acceptRoute.POST(req("POST", "/x", { body }), params({ token }));
+    expect(accept.status).toBe(201);
+    const joined = await prisma.user.findUniqueOrThrow({ where: { email }, include: { memberships: true } });
+    expect(joined.memberships).toMatchObject([{ organizationId: alice.organizationId, role: "leader" }]);
+
+    const again = await acceptRoute.POST(req("POST", "/x", { body }), params({ token }));
+    expect(again.status).toBe(410);
+  });
+
+  it("an admin can't revoke another organization's invitation → 404", async () => {
+    session.current = bob;
+    const create = await invitationsRoute.POST(
+      req("POST", "/api/invitations", { body: { email: inviteeEmail(), role: "member" } }),
+    );
+    const { invitation } = await create.json();
+
+    session.current = alice;
+    const res = await invitationRoute.DELETE(req("DELETE", "/x"), params({ id: invitation.id }));
+    expect(res.status).toBe(404);
+  });
+
+  it("accept: unknown token → 404, short password → 400, other origin → 403", async () => {
+    const unknown = await acceptRoute.POST(
+      req("POST", "/x", { body: { name: "X", password: "senha-forte-123" } }),
+      params({ token: "nao-existe" }),
+    );
+    expect(unknown.status).toBe(404);
+
+    const short = await acceptRoute.POST(
+      req("POST", "/x", { body: { name: "X", password: "curta" } }),
+      params({ token: "nao-existe" }),
+    );
+    expect(short.status).toBe(400);
+
+    const foreign = await acceptRoute.POST(
+      req("POST", "/x", { body: { name: "X", password: "senha-forte-123" }, origin: "https://site-malicioso.com" }),
+      params({ token: "nao-existe" }),
+    );
+    expect(foreign.status).toBe(403);
   });
 });
 
