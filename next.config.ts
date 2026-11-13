@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
   poweredByHeader: false,
+  // `@sparticuz/chromium` é externo por padrão no Next, mas o rastreamento de
+  // arquivos não enxerga os binários compactados que ele carrega em runtime.
+  // Sem isso, a função do PDF sobe na Vercel sem o Chromium (DEPLOY-01).
+  outputFileTracingIncludes: {
+    "/api/briefings/*/pdf": ["./node_modules/@sparticuz/chromium/bin/**/*"],
+  },
   async headers() {
     return [
       { source: "/:path*", headers: baseSecurityHeaders },

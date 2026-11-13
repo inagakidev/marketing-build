@@ -1,0 +1,76 @@
+# CI mínimo da Fase 0 (QUAL-05): bloqueia regressões básicas antes do merge.
+# Ordem segue docs/03-inspecao-e-arquitetura.md §14.3. E2E em preview e etapa
+# de release com migrações ficam para quando o deploy estiver configurado.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, front]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: briefing
+          POSTGRES_PASSWORD: briefing
+          POSTGRES_DB: briefing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U briefing -d briefing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://briefing:briefing@localhost:5432/briefing?schema=public
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Sem Supabase no CI: as rotas autenticadas respondem 401, que é o que
+      # os testes negativos esperam; a sessão é simulada onde precisa existir.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar client do Prisma
+        run: npm run db:generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes unitários
+        run: npm test
+
+      - name: Migrações e catálogo
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+
+      - name: Testes de integração (PostgreSQL)
+        run: npm run test:db
+
+      - name: Build
+        run: npm run build

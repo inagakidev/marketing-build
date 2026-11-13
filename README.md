@@ -146,6 +146,10 @@ Não depende de Next, Prisma ou Supabase — recebe objetos simples (`EvalContex
 | `npm run db:studio` | Abre o Prisma Studio |
 | `npm run dev:data` | Cria um cliente + briefing de exemplo e imprime o link público |
 
+## Variáveis de ambiente validadas
+
+`src/server/env.ts` valida o ambiente quando o servidor sobe (`src/instrumentation.ts`). Com configuração inválida, o servidor **não sobe** e lista o que corrigir, sem repetir valores. Em produção, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` são obrigatórias.
+
 ## Testes
 
 ```bash
@@ -153,6 +157,10 @@ npm test          # unitários — motor de regras, visibilidade, diagnóstico, 
 npm run db:up
 npm run test:db   # integração — exercita as rotas de servidor contra Postgres real
 ```
+
+Os testes de API (`src/app/api/__tests__/routes.itest.ts`) chamam os route handlers de verdade contra o Postgres e simulam só a sessão. Cobrem principalmente os casos negativos: sem sessão, outra origem, recurso de outra conta, link enviado e corpo inválido.
+
+O CI (`.github/workflows/ci.yml`) roda tudo isso em cada PR, com um Postgres de serviço.
 
 Antes de considerar uma mudança pronta, o gate completo (ver `AGENTS.md`) é:
 
@@ -162,4 +170,10 @@ npm run lint && npm run typecheck && npm test && npm run test:db && npm run buil
 
 ## Deploy
 
-Alvo é a Vercel. O Postgres de produção é o do Supabase (mesma `DATABASE_URL`, sem mudança de schema). Antes do primeiro deploy, rode as migrations e os dois seeds (`db:seed` e `db:seed:admin`) apontando para o banco de produção.
+Alvo é a Vercel serverless (decisão D1).
+
+**PDF em serverless (decisão D6):** na Vercel, `src/server/pdfBrowser.ts` usa `@sparticuz/chromium` com `playwright-core`; localmente, o Chromium do Playwright (ou `CHROMIUM_EXECUTABLE_PATH`). Para funcionar em produção:
+
+- Dê pelo menos **1,6 GB de memória** às funções (Vercel → Settings → Functions). Com menos, o Chromium pode ser encerrado no meio da geração.
+- `playwright-core` e `@sparticuz/chromium` estão fixados em par (1.63.0 ↔ Chromium 153). Atualize os dois juntos.
+- A função do PDF navega até a própria URL pública (`NEXT_PUBLIC_APP_URL`). Em deploys de preview com *Deployment Protection* ligada, essa navegação é bloqueada. Use a URL de produção ou um bypass de proteção. O Postgres de produção é o do Supabase (mesma `DATABASE_URL`, sem mudança de schema). Antes do primeiro deploy, rode as migrations e os dois seeds (`db:seed` e `db:seed:admin`) apontando para o banco de produção.

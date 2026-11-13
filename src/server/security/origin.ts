@@ -1,3 +1,5 @@
+import { serverEnv } from "../env";
+
 /**
  * Proteção contra CSRF nas mutações autenticadas (SEC-03).
  *
@@ -36,14 +38,8 @@ export function isTrustedRequestOrigin({
 /** Origens aceitas: a da própria requisição e a URL pública configurada. */
 export function allowedOriginsFor(request: Request): string[] {
   const origins = new Set<string>([new URL(request.url).origin]);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl) {
-    try {
-      origins.add(new URL(appUrl).origin);
-    } catch {
-      // URL mal configurada é tratada pela validação de ambiente (EP-03).
-    }
-  }
+  // Já validada como URL http(s) em `serverEnv` (NEW-03).
+  origins.add(new URL(serverEnv().appUrl).origin);
   return [...origins];
 }
 

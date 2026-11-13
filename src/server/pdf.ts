@@ -1,4 +1,5 @@
-import type { Browser } from "playwright";
+import { serverEnv } from "./env";
+import { launchBrowser } from "./pdfBrowser";
 
 /**
  * Geração de PDF a partir da página de impressão.
@@ -7,29 +8,8 @@ import type { Browser } from "playwright";
  * layout já existe, já é responsivo e já está traduzido. Manter dois
  * renderizadores separados garantiria que um deles ficasse desatualizado.
  *
- * ADAPTADOR ISOLADO: este é o único arquivo que conhece o Playwright. Na
- * Vercel, o Chromium completo não roda em função serverless — a migração é
- * trocar o `launchBrowser` daqui por `puppeteer-core` + `@sparticuz/chromium-min`,
- * sem tocar em mais nada.
+ * Qual Chromium é usado (serverless ou local) fica em `pdfBrowser.ts`.
  */
-
-/**
- * Caminho de um Chromium já instalado. Necessário em distribuições que o
- * `playwright install` não reconhece (foi o caso aqui, LMDE); vazio usa a
- * resolução padrão do Playwright.
- */
-const EXECUTABLE_PATH = process.env.CHROMIUM_EXECUTABLE_PATH?.trim();
-
-async function launchBrowser(): Promise<Browser> {
-  const { chromium } = await import("playwright");
-
-  return chromium.launch({
-    ...(EXECUTABLE_PATH ? { executablePath: EXECUTABLE_PATH } : {}),
-    // Necessário em contêineres, onde o sandbox do Chromium não tem as
-    // permissões de que precisa.
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
-}
 
 /**
  * Renderiza a página de impressão de um briefing em PDF.
@@ -42,7 +22,7 @@ export async function renderBriefingPdf(
   briefingId: string,
   cookieHeader: string | null,
 ): Promise<Buffer> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = serverEnv().appUrl;
   const url = `${baseUrl}/print/briefing/${briefingId}`;
 
   const browser = await launchBrowser();

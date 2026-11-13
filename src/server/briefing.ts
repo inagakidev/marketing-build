@@ -1,5 +1,6 @@
 import { customAlphabet } from "nanoid";
 import { prisma } from "./db";
+import { serverEnv } from "./env";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   buildContext,
@@ -198,7 +199,7 @@ async function persistResult(tx: Db, briefingId: string, result: ProcessedBriefi
 
 /** Cria um briefing com token único e prazo de validade. */
 export async function createBriefing(clientId: string, ttlDays?: number) {
-  const days = ttlDays ?? Number(process.env.BRIEFING_LINK_TTL_DAYS ?? 30);
+  const days = ttlDays ?? serverEnv().briefingLinkTtlDays;
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + days);
 

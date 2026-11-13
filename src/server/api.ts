@@ -2,6 +2,7 @@ import { ZodError } from "zod";
 import { UnauthorizedError } from "./auth";
 import { ForbiddenOriginError } from "./security/origin";
 import { RateLimitError } from "./security/rateLimit";
+import { logError } from "./log";
 
 /**
  * Helpers das rotas de API.
@@ -58,7 +59,7 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     if (error instanceof ZodError) {
       return fail(400, "Dados inválidos.", { issues: formatIssues(error) });
     }
-    console.error("[api]", error);
+    logError("api", error);
     return fail(500, "Erro interno. Tente novamente.");
   }
 }
