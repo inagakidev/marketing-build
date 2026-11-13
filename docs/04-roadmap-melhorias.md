@@ -1,910 +1,704 @@
-# Briefing Inteligente — Roadmap de Melhorias
+# Briefing Inteligente — Roadmap de Produto e Evolução Técnica
 
-> **Versão:** 1.0  
-> **Data:** 12/11/2026  
-> **Status:** plano de evolução do MVP para produto operável  
-> **Base:** `docs/01-produto.md`, `docs/02-requisitos.md`, `docs/03-inspecao-e-arquitetura.md` e código atual
+> **Versão:** 2.0  
+> **Data:** 13/11/2026  
+> **Status:** proposta de evolução alinhada à visão e aos requisitos da plataforma  
+> **Documentos de referência:** `PRODUCT.md`, `02-requisitos.md` v2.0 e `03-inspecao-e-arquitetura.md` v2.0  
+> **Princípio de planejamento:** priorizar dependências, riscos e valor entregue; estimativas de calendário só devem ser definidas após confirmar capacidade e estado real do repositório.
 
 ---
 
 ## 1. Resumo executivo
 
-O Briefing Inteligente já tem o mais difícil: um domínio claro, um motor determinístico testável, um fluxo público completo e uma base visual consistente. O que falta não é “mais tela”; é **confiança operacional** e **identidade de produto**.
+O Briefing Inteligente está evoluindo de um MVP centrado em formulário, respostas e diagnóstico para uma **plataforma de gestão estratégica de marketing para equipes**.
 
-Este roadmap parte de três decisões:
+O briefing continua sendo a porta de entrada. O valor do produto passa a estar na jornada completa:
 
-1. **Não trocar a stack.** Next.js full-stack, PostgreSQL, Prisma, Supabase Auth e o núcleo puro em `src/core` continuam sendo a escolha certa para o estágio atual.
-2. **Evoluir para um monólito modular.** Criar casos de uso e adaptadores sem transformar o projeto em microserviços, GraphQL ou event sourcing.
-3. **Colocar design no mesmo nível de arquitetura.** O produto lida com confiança, ansiedade e percepção de julgamento; a experiência visual e a escrita são parte da solução, não acabamento.
+**Organização → Cliente → Projeto/Campanha → Briefing → Diagnóstico → Recomendações → Objetivos → Ações e tarefas → Indicadores → Resultados → Relatórios e aprendizado.**
 
-### Horizontes
+O roadmap precisa, portanto, deixar de tratar multiusuário, planejamento e execução como uma expansão distante e passar a organizá-los como partes do produto-alvo. Ao mesmo tempo, não é viável construir tudo de uma vez. A evolução será incremental, com entregas verticais e critérios de saída claros.
 
-| Horizonte | Objetivo | Resultado esperado |
+### 1.1 Estratégia de evolução
+
+1. Confirmar o estado real do código e proteger o MVP.
+2. Construir os fundamentos de organização, membros, permissões e projetos.
+3. Tornar briefing e diagnóstico versionados e rastreáveis.
+4. Transformar diagnóstico em recomendações revisáveis.
+5. Permitir planejamento, execução e acompanhamento de resultados.
+6. Consolidar relatórios, documentos, privacidade e operação.
+7. Melhorar continuamente com dados de uso e feedback das equipes.
+
+### 1.2 O que este roadmap não presume
+
+- Não presume que os achados da inspeção de 12/11/2026 ainda estejam presentes.
+- Não presume que os módulos descritos na arquitetura-alvo já existam.
+- Não define pesos de priorização, matriz final de permissões ou políticas ainda pendentes de decisão.
+- Não transforma estimativas antigas de semanas em compromissos de prazo.
+- Não inclui IA generativa, integrações externas ou microserviços como dependências da V1.
+
+---
+
+## 2. Direção do produto e resultado esperado
+
+### 2.1 Resultado que queremos entregar
+
+Uma equipe de marketing deve conseguir:
+
+- organizar clientes e projetos em um espaço de trabalho compartilhado;
+- coletar informações estratégicas por meio de briefings adaptativos;
+- analisar respostas com diagnóstico determinístico e explicável;
+- revisar recomendações, prioridades e decisões;
+- transformar recomendações em objetivos, ações e tarefas;
+- acompanhar responsáveis, prazos, indicadores e evidências;
+- avaliar resultados e comunicar o trabalho ao cliente;
+- consultar o histórico para aprender com projetos anteriores.
+
+O produto deve apoiar o raciocínio e a colaboração da equipe, sem substituir a decisão profissional por automações opacas.
+
+### 2.2 Métrica norteadora
+
+**Projetos com ciclo estratégico acompanhado e revisado.**
+
+Um projeto conta como acompanhado quando possui:
+1. briefing ou contexto estratégico registrado;
+2. diagnóstico revisado quando aplicável;
+3. objetivos e ações definidos;
+4. ao menos uma atualização de execução ou indicador;
+5. revisão de resultados em um marco relevante ou no encerramento.
+
+Essa métrica representa melhor a proposta da plataforma do que contar apenas briefings concluídos. Métricas auxiliares devem medir adoção, qualidade e saúde do fluxo.
+
+### 2.3 Métricas auxiliares
+
+| Dimensão | Indicadores |
+|---|---|
+| Ativação | Organizações configuradas, membros ativos, clientes e projetos criados |
+| Briefing | Taxa de início/conclusão, abandono por etapa, tempo de preenchimento, falhas de autosave |
+| Diagnóstico | Diagnósticos revisados, tempo até revisão, recomendações aceitas/ajustadas/descartadas |
+| Planejamento | Projetos com objetivos, objetivos com métricas e responsáveis definidos |
+| Execução | Ações e tarefas atualizadas, tarefas atrasadas, participação dos membros |
+| Resultados | Indicadores atualizados, metas avaliadas, objetivos atingidos/parcialmente atingidos/não atingidos |
+| Comunicação | Relatórios gerados/compartilhados, revisões finais realizadas |
+| Confiança | Erros de autorização, falhas de persistência, incidentes, satisfação da equipe |
+
+Metas numéricas devem ser estabelecidas depois de instrumentar o produto e obter uma linha de base. Não adotar metas arbitrárias antes de ter dados.
+
+---
+
+## 3. Princípios de priorização
+
+### 3.1 Ordem de decisão
+
+Ao decidir o que entra primeiro, considerar nesta ordem:
+
+1. **Segurança e integridade:** risco de acesso indevido, perda ou corrupção de dados.
+2. **Dependências estruturais:** capacidades necessárias para mais de um módulo.
+3. **Jornada principal:** funcionalidades que permitem concluir uma etapa de valor.
+4. **Usabilidade e adoção:** reduzir fricção para equipe e cliente.
+5. **Escala e otimização:** somente quando uso e evidências justificarem.
+
+### 3.2 Classes de prioridade
+
+| Classe | Significado |
+|---|---|
+| **P0 — Bloqueador** | Risco crítico de segurança, perda de dados ou impossibilidade de operar |
+| **P1 — Essencial** | Necessário para a jornada V1 ou para cumprir requisito obrigatório |
+| **P2 — Importante** | Melhora adoção, eficiência, governança ou qualidade |
+| **P3 — Evolutivo** | Refinamento ou capacidade que pode esperar por evidência de uso |
+
+A classificação deve ser aplicada aos itens depois da auditoria do repositório. O roadmap indica sequência e dependências, não substitui a avaliação de cada tarefa.
+
+### 3.3 Critérios para ordenar itens da mesma classe
+
+- Quantos fluxos e módulos desbloqueia?
+- Reduz risco ou retrabalho?
+- É pré-requisito de migração de dados?
+- Entrega valor utilizável de ponta a ponta?
+- Pode ser validado com uma equipe real?
+- O custo de adiar é maior que o custo de implementar agora?
+
+---
+
+## 4. Estado atual: baseline a confirmar
+
+A inspeção técnica de 12/11/2026 registrou um MVP com núcleo de domínio puro, formulário público, autosave, diagnóstico determinístico, token opaco, painel administrativo e testes unitários. Também apontou riscos em autenticação, envio transacional, versionamento, validação, observabilidade, privacidade e deploy.
+
+Esses dados são uma fotografia histórica. A primeira atividade do roadmap é revalidá-los no repositório.
+
+### 4.1 Auditoria de confirmação
+
+| Área | O que verificar | Resultado esperado |
 |---|---|---|
-| **30 dias** | Pode operar com dados reais | P0/P1 resolvidos, CI ativo, env validado, headers, allowlist, envio atômico |
-| **90 dias** | Operação confiável e ciclo completo | Ciclo de vida do link, LGPD básica, observabilidade, PDF em produção, design system documentado |
-| **6 meses** | Produto com identidade e escala inicial | Landing, painel maduro, papéis, catálogo gerenciável, analytics, acessibilidade AA |
+| Repositório | Branch, commit, alterações locais, estrutura atual | Baseline reproduzível |
+| Banco | Schema Prisma, migrações, constraints e índices | Modelo atual documentado |
+| Autenticação | Signup, sessão, provisionamento e redirects | Fluxo de entrada conhecido |
+| Autorização | Proteção de páginas, rotas, consultas e mutações | Matriz de lacunas |
+| Briefing | Autosave, envio, status, token e concorrência | Invariantes confirmadas |
+| Diagnóstico | Regras, persistência, ordenação e reprocessamento | Reprodutibilidade verificada |
+| Testes | Unitários, integração, API, E2E e CI | Cobertura real conhecida |
+| Operação | Deploy, PDF, storage, logs, backups e env | Limitações do ambiente conhecidas |
+| Privacidade | Dados coletados, logs, retenção e exclusão | Mapa inicial de dados |
 
-### Estratégia
+Classificar cada achado como `confirmado`, `corrigido`, `não reproduzido`, `parcial` ou `substituído por decisão nova`.
 
-```
-Confiabilidade → Integridade → Operação → Experiência → Escala
-```
+### 4.2 Regra de conversão em backlog
 
-Não inverter essa ordem. Um produto bonito que perde resposta, fecha briefing sem diagnóstico ou deixa qualquer conta entrar no painel não é um produto pronto.
-
----
-
-## 2. North star e princípios
-
-### Métrica norteadora
-
-**Briefings concluídos e revisados por semana, com diagnóstico considerado útil pela administradora.**
-
-Ela combina aquisição de link, conclusão pelo respondente, leitura do painel e valor percebido. Métricas de tela sem essa métrica são vaidade.
-
-### Princípios
-
-1. **Confiabilidade antes de features.** Nenhuma funcionalidade nova enquanto houver risco de perda de dados ou acesso indevido.
-2. **Segurança em profundidade.** Proxy, rota, caso de uso e banco; nunca uma única barreira.
-3. **Determinismo e auditabilidade.** O diagnóstico continua reproduzível, versionado e explicável.
-4. **Simplicidade arquitetural.** Monólito modular, transações explícitas, adaptadores apenas onde há troca real de tecnologia.
-5. **Design system como código.** Tokens, componentes e estados vivem no repositório, não só no Figma.
-6. **Mobile-first e acessível.** O respondente frequentemente abre o link no celular, com pressa e sem contexto técnico.
-7. **Privacidade por padrão.** Coletar o mínimo, explicar o uso, permitir exclusão e não expor PII em rota pública.
-8. **Evidência antes de opinião.** Decisões de produto e design guiadas por testes, analytics e conversas com usuários.
+Nenhum achado histórico deve virar tarefa automaticamente. Antes:
+1. reproduzir ou localizar a condição no código;
+2. identificar os dados e fluxos afetados;
+3. definir correção e critério de aceite;
+4. avaliar migração e compatibilidade;
+5. criar testes;
+6. atualizar documentação se a decisão arquitetural mudar.
 
 ---
 
-## 3. Onde estamos
+## 5. Workstreams
 
-### Maturidade atual
+Os workstreams são linhas contínuas de trabalho. Cada fase pode envolver mais de um deles.
 
-| Dimensão | Nota | Leitura |
-|---|---:|---|
-| Domínio e regras | 8/10 | Núcleo puro, ramificação por dados, testes relevantes |
-| Arquitetura de código | 7/10 | Boa separação; falta camada de aplicação e transações |
-| Segurança | 5/10 | Base boa, mas allowlist, CSRF, rate limit e headers ainda pendentes |
-| Integridade de dados | 5/10 | Envio não atômico, catálogo sem versão, validação semântica fraca |
-| Experiência do respondente | 8/10 | Autosave, etapas, ramificação e estados de erro bem cuidados |
-| Experiência da administradora | 6/10 | Painel funcional; falta ciclo de vida, busca, aprovação e histórico |
-| Design system | 7/10 | Tokens e densidades existem; falta documentação, estados e governança |
-| Testes | 6/10 | Unitários fortes; faltam API, componentes e E2E |
-| Operação e observabilidade | 3/10 | Sem health check, logs estruturados, métricas, CI ou runbooks |
-| Privacidade/LGPD | 3/10 | Sem consentimento, retenção, exportação, exclusão ou `noindex` |
-
-### O que não vamos refazer
-
-- O motor determinístico em `src/core`.
-- A ramificação orientada a dados (`Question.visibilityRule`).
-- O token opaco como credencial do respondente.
-- O PDF gerado a partir da página de impressão.
-- A stack Next.js + PostgreSQL + Prisma + Supabase.
-- O sistema de tokens visuais e a identidade laranja/preto/off-white.
-
-### Dívidas que bloqueiam a próxima fase
-
-| Prioridade | Dívida | Efeito |
-|---|---|---|
-| P0 | Auto-provisionamento de administradora | Qualquer conta Supabase pode virar usuário local |
-| P0 | Envio não atômico | Briefing pode fechar sem diagnóstico |
-| P0 | Catálogo global sem versão | Briefing histórico deixa de ser reproduzível |
-| P1 | Validação semântica fraca | Resposta inválida chega ao banco e quebra o motor |
-| P1 | Ciclo de vida incompleto | Não revoga, regenera, reenvia nem aprova |
-| P1 | Sem rate limit/CSRF/headers/`noindex` | Superfície pública e painel expostos |
-| P1 | Sem observabilidade | Falhas invisíveis em produção |
-| P1 | Sem LGPD básica | Risco jurídico para operar com clientes reais |
-| P1 | Página inicial padrão do Next | Produto parece inacabado |
-| P2 | Design system sem documentação | Componentes e estados divergem com o tempo |
-
----
-
-## 4. Decisões de arquitetura
-
-### ADR-01 — Manter um monólito modular
-
-**Decisão:** continuar com um único projeto Next.js full-stack. Não criar API separada, microserviços ou GraphQL agora.
-
-**Por quê:** o volume inicial é baixo, há uma única administradora e o domínio é bem delimitado. O custo de distribuir autenticação, banco, PDF e e-mail seria maior que o benefício.
-
-**Quando reconsiderar:** equipe maior que 5 pessoas, necessidade de escalar PDF/e-mail independentemente, cadências de deploy conflitantes ou latência que justifique separar um serviço.
-
-**Consequência:** a organização interna precisa ser rigorosa: bordas finas, casos de uso explícitos e adaptadores isolados.
-
----
-
-### ADR-02 — Criar camada de aplicação e adaptadores
-
-**Decisão:** introduzir `src/application` para casos de uso e `src/infrastructure` para adaptadores externos, migrando `src/server` aos poucos.
-
-**Por quê:** hoje `src/server/briefing.ts` mistura regra de aplicação, transação e persistência. Isso dificulta testar concorrência, trocar o gerador de PDF e evoluir o ciclo de vida.
-
-**Escopo pragmático:**
-
-- Criar casos de uso para `submitBriefing`, `saveAnswers`, `createBriefing`, `reprocessBriefing`, `approveBriefing`, `revokeBriefing` e `regenerateToken`.
-- Manter consultas de leitura em query services (`briefingDetail`, `publicForm`), sem inventar repositório para tudo.
-- Criar interfaces apenas para o que realmente pode trocar: `PdfRenderer`, `EmailSender`, `RateLimiter`, `JobQueue`, `Clock`.
-- Não criar abstração genérica de “repository” sobre Prisma sem necessidade.
-
-**Consequência:** mais arquivos, mas transações e invariantes ficam visíveis e testáveis.
-
----
-
-### ADR-03 — Manter PostgreSQL + Prisma, com versionamento e auditoria
-
-**Decisão:** continuar com PostgreSQL e Prisma 7. Evoluir o modelo com versionamento de catálogo/regras, auditoria e integridade referencial onde importa.
-
-**Mudanças recomendadas:**
-
-- `Briefing.catalogVersion`, `rulesVersion`, `revokedAt`, `approvedAt`, `approvedById`, `lastActivityAt`, `lastSentAt`.
-- `Diagnosis.missingRequiredKeys`, `rulesVersion`, `catalogVersion`, `processedAt`.
-- `QuestionVersion` (ou snapshot por briefing) para leitura histórica.
-- `AuditLog` para ações administrativas e `AccessLog` para acessos ao link público.
-- `Client.deletedAt` para soft delete operacional; exclusão/anonimização LGPD à parte.
-- Índices por dono, status, cliente e par resposta/pergunta.
-
-**Consequência:** migrações maiores, mas o diagnóstico passa a ser auditável de verdade.
-
----
-
-### ADR-04 — Supabase Auth com allowlist explícita
-
-**Decisão:** manter Supabase Auth, mas desativar signup público e autorizar apenas e-mails previamente permitidos.
-
-**Implementação:**
-
-- `ADMIN_EMAILS` em env ou tabela `AllowedAdmin`.
-- Se o e-mail autenticado não estiver autorizado, retornar 401/403 sem criar `User`.
-- Seed da administradora continua sendo o caminho de provisionamento.
-- Teste de integração cobrindo conta não autorizada.
-
-**Consequência:** o modelo multiusuário continua possível, mas o acesso deixa de ser aberto.
-
----
-
-### ADR-05 — Núcleo determinístico e versionado
-
-**Decisão:** manter o motor sem IA e versionar regras e catálogo.
-
-**Implementação:**
-
-- `RULES_VERSION` exportado de `src/core/signals/registry.ts`.
-- `catalogVersion` no briefing, no envio.
-- Diagnóstico grava as versões usadas.
-- Reprocessamento explícito, nunca automático em leitura.
-- Feature flag para rollout de novas regras.
-
-**Consequência:** um diagnóstico antigo continua explicável mesmo depois de uma mudança de regra.
-
----
-
-### ADR-06 — Assíncrono apenas onde necessário
-
-**Decisão:** não introduzir filas/eventos para tudo. Usar execução assíncrona apenas para PDF, e-mail, retenção e tarefas de manutenção.
-
-**Implementação:**
-
-- `PdfRenderer` como adaptador; em produção, Chromium compatível com serverless ou worker dedicado.
-- `EmailSender` como adaptador; começar com provedor transacional simples.
-- `JobQueue` para envio de e-mail e geração de PDF quando o volume justificar.
-- Se notificações e efeitos colaterais crescerem, usar transactional outbox; não event sourcing.
-
-**Consequência:** o caminho crítico do formulário público continua simples e rápido.
-
----
-
-### ADR-07 — Borda de API padronizada
-
-**Decisão:** manter Route Handlers como única borda HTTP e padronizar autenticação, origem, rate limit, validação e erros.
-
-**Implementação:**
-
-- `adminRoute` e `publicRoute` como wrappers.
-- `AppError` com `code`, `status`, `details` e `requestId`.
-- Zod para entrada; validação semântica no domínio.
-- `Origin`/`Referer` check em mutações administrativas.
-- `429` com `Retry-After` nas rotas públicas.
-- Limite de corpo e de lote de respostas.
-
-**Consequência:** menos repetição nas rotas e respostas de erro consistentes.
-
----
-
-### ADR-08 — Observabilidade e CI desde o começo
-
-**Decisão:** tratar logs, métricas, health check e pipeline como parte da entrega, não como fase posterior.
-
-**Implementação:**
-
-- Logs estruturados com `requestId`, `userId`, `briefingId` e redaction de PII.
-- Error tracking no servidor e no cliente.
-- `/api/health` verificando processo e banco.
-- Métricas de funil, autosave, PDF, 401/429 e 5xx.
-- GitHub Actions: lint, typecheck, unit, integration com Postgres, build, audit e E2E em preview.
-
-**Consequência:** falhas deixam de ser descobertas pelo cliente.
-
----
-
-### ADR-09 — Design system em código
-
-**Decisão:** a fonte de verdade visual é o repositório. Figma, se existir, acompanha; não precede.
-
-**Implementação:**
-
-- Tokens documentados e separados por categoria.
-- Componentes com estados completos: default, hover, focus, active, disabled, loading, error, empty, success.
-- Catálogo interno de componentes em rota protegida; Storybook só quando houver equipe.
-- Testes de regressão visual nas telas críticas.
-- Checklist de acessibilidade por componente.
-
-**Consequência:** menos divergência entre telas e mais velocidade para evoluir.
-
----
-
-### ADR-10 — Privacidade por padrão
-
-**Decisão:** LGPD não é projeto separado; é requisito de arquitetura e design.
-
-**Implementação:**
-
-- Aviso de privacidade no formulário público.
-- Consentimento com data, hora e versão do aviso.
-- Retenção configurável e rotina de expiração/anonimização.
-- Exportação e exclusão por cliente/titular.
-- `noindex`, `no-referrer`, redaction de logs e minimização de dados.
-- Suboperadores documentados.
-
-**Consequência:** o produto pode ser vendido e operado com dados reais.
-
----
-
-## 5. Arquitetura-alvo
-
-### Visão em camadas
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Interface — src/app                                         │
-│  RSC · Route Handlers · layouts · páginas                   │
-│  /admin · /briefing · /print · /login · /api/**             │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│ Aplicação — src/application                                 │
-│  casos de uso · transações · invariantes · autorização      │
-│  submitBriefing · saveAnswers · approveBriefing · ...       │
-└───────────────┬──────────────────────────────┬──────────────┘
-                │                              │
-┌───────────────▼──────────────┐  ┌────────────▼──────────────┐
-│ Domínio — src/core           │  │ Infraestrutura            │
-│  visibility · signals        │  │  Prisma · Supabase        │
-│  diagnosis · form · text     │  │  PDF · e-mail · rate limit│
-│  validação semântica         │  │  fila · logs · config     │
-└──────────────────────────────┘  └───────────────────────────┘
-```
-
-### Estrutura de pastas proposta
-
-```
-src/
-├─ app/                         # interface Next
-├─ components/
-│  ├─ admin/
-│  ├─ briefing/
-│  └─ ui/
-├─ core/                        # domínio puro
-│  ├─ briefing/
-│  │  ├─ visibility.ts
-│  │  ├─ form.ts
-│  │  └─ answerValidation.ts    # novo
-│  ├─ signals/
-│  │  ├─ registry.ts
-│  │  ├─ rules/
-│  │  └─ version.ts             # novo
-│  ├─ diagnosis/
-│  ├─ catalog/
-│  │  └─ version.ts             # novo
-│  └─ types.ts
-├─ application/                 # novo: casos de uso
-│  ├─ submitBriefing.ts
-│  ├─ saveAnswers.ts
-│  ├─ createBriefing.ts
-│  ├─ reprocessBriefing.ts
-│  ├─ approveBriefing.ts
-│  ├─ revokeBriefing.ts
-│  └─ regenerateToken.ts
-├─ infrastructure/              # novo: adaptadores
-│  ├─ db/
-│  ├─ auth/
-│  ├─ pdf/
-│  ├─ email/
-│  ├─ rateLimit/
-│  └─ jobs/
-├─ server/                      # helpers de borda; migrar aos poucos
-└─ lib/
-   ├─ config.ts                 # novo: env com Zod
-   ├─ logger.ts                 # novo
-   └─ errors.ts                 # novo: AppError
-```
-
-### Regras de dependência
-
-| Módulo | Pode importar | Não pode importar |
-|---|---|---|
-| `src/core` | apenas `src/core` | Next, Prisma, Supabase, React |
-| `src/application` | `src/core`, `src/infrastructure`, tipos | componentes React, Next |
-| `src/infrastructure` | Prisma, Supabase, Playwright, SDKs | `src/app`, componentes |
-| `src/app` | `src/application`, `src/server`, componentes | Prisma diretamente |
-| `src/components` | `src/core` (tipos), `src/server` (tipos) | Prisma, segredos |
-
-### Fluxo de uma mutação
-
-```
-Route Handler
-  → wrapper (auth + origin + rate limit + body limit)
-  → validação de forma (Zod)
-  → caso de uso
-      → carrega contexto
-      → valida invariantes
-      → transação
-          → domínio puro
-          → persistência
-      → retorna resultado
-  → resposta padronizada
-```
-
----
-
-## 6. Workstreams
-
-| Workstream | Foco | Dono conceitual |
-|---|---|---|
-| **A. Arquitetura e código** | Casos de uso, transações, adaptadores, config, erros | Engenharia |
-| **B. Segurança e integridade** | Auth, CSRF, rate limit, validação, versionamento, auditoria | Engenharia + produto |
-| **C. Produto e operação** | Ciclo de vida, aprovação, notificações, métricas, LGPD | Produto |
-| **D. Design e experiência** | Marca, design system, IA, fluxos, conteúdo, acessibilidade | Design + produto |
-| **E. Qualidade e operação** | CI, testes, observabilidade, deploy, runbooks | Engenharia |
-
-As fases abaixo combinam workstreams; não são sequenciais por área.
-
----
-
-## 7. Roadmap por fase
-
-> As durações assumem uma pessoa em tempo parcial e devem ser ajustadas à capacidade real. O que importa é a ordem e o critério de saída de cada fase, não o calendário.
-
-### Fase 0 — Blindagem e baseline
-
-**Duração sugerida:** 1 sprint (1–2 semanas)  
-**Objetivo:** o sistema pode receber dados reais sem risco óbvio.
-
-| Área | Entregas |
+| Workstream | Escopo |
 |---|---|
-| Arquitetura | `config.ts` com Zod; `AppError`; wrappers de rota; esqueleto de CI |
-| Segurança | Allowlist de admin; signup desativado; redirect seguro; headers; `noindex`; proxy restrito ao admin |
-| Dados | `missingRequiredKeys` persistido; ordem determinística do diagnóstico; guarda de status no autosave |
-| Produto | `/` redireciona para login/painel; logout visível |
-| Design | Auditoria de acessibilidade; correção do label de rádio; `beforeunload`; copy de privacidade |
-| Qualidade | Testes de API para 401/403/404/410/422; CI com lint/typecheck/unit/integration |
-
-**Critério de saída:**
-
-- Conta Supabase não autorizada não cria `User`.
-- Nenhuma rota administrativa responde sem sessão.
-- Headers de segurança e `noindex` presentes.
-- `npm audit --omit=dev` sem critical/high.
-- CI bloqueia merge quebrado.
+| **A. Fundamentos e arquitetura** | Modularização pragmática, casos de uso, contratos, configuração e migrações |
+| **B. Segurança e governança** | Autenticação, autorização, tenant isolation, auditoria e privacidade |
+| **C. Clientes e projetos** | Estrutura organizacional, histórico, responsáveis e colaboração |
+| **D. Briefing e diagnóstico** | Formulários, versões, respostas, regras e revisão |
+| **E. Estratégia e recomendações** | Sugestões, priorização, aprovação e conversão em plano |
+| **F. Planejamento e execução** | Objetivos, ações, tarefas, responsáveis, comentários e notificações |
+| **G. Medição e resultados** | Indicadores, metas, medições, evidências e avaliação de impacto |
+| **H. Experiência e design** | Arquitetura de informação, acessibilidade, conteúdo e design system |
+| **I. Qualidade e operação** | Testes, CI, observabilidade, backups, deploy e suporte |
+| **J. Relatórios e documentos** | Histórico, arquivos, relatórios internos e compartilhamento externo |
 
 ---
 
-### Fase 1 — Núcleo confiável
+## 6. Roadmap por fases
 
-**Duração sugerida:** 2 sprints (3–4 semanas)  
-**Objetivo:** o briefing não perde dados, não fecha sem diagnóstico e não aceita resposta inválida.
+As fases são marcos de capacidade. Podem ser divididas em sprints menores. Não há duração fixa até que a capacidade da equipe e o estado do código sejam conhecidos.
 
-| Área | Entregas |
-|---|---|
-| Arquitetura | Casos de uso de submit/save/reprocess; transações; taxonomia de erros |
-| Dados | Envio atômico com transição condicional; validação semântica; versionamento de catálogo/regras |
-| Segurança | CSRF/origin check; rate limit público; limite de corpo; logs sem PII |
-| Produto | Revogar, regenerar e reenviar link; aprovação; histórico de ações |
-| Design | App shell do admin; UI de ciclo de vida; resumo real na revisão |
-| Qualidade | Testes de concorrência; testes de API; E2E do fluxo principal |
+### Fase 0 — Auditoria, estabilização e proteção do MVP
 
-**Critério de saída:**
+<badge color="danger">P0</badge> **Objetivo:** confirmar o que existe e remover riscos que impedem evoluir com segurança.
 
-- Dois submits concorrentes não duplicam diagnóstico nem sobrescrevem `submittedAt`.
-- Autosave após envio é rejeitado.
-- `single_choice`, `multi_choice` e `business_type` validados contra o catálogo.
-- Briefing antigo continua legível após mudança de catálogo.
-- E2E cobre criar cliente → criar link → responder → enviar → ver diagnóstico.
+**Entregas**
 
----
+- Auditoria de confirmação do repositório, schema, migrações e deploy.
+- Correção de falhas críticas de autenticação e provisionamento, se confirmadas.
+- Autorização no servidor para todas as rotas e mutações existentes.
+- Proteção de origem/CSRF adequada ao modelo de sessão.
+- Rate limiting nas rotas públicas sensíveis.
+- Headers de segurança, política de referrer e `noindex` nas superfícies privadas.
+- Validação de variáveis de ambiente e configuração com falha explícita.
+- Validação semântica das respostas do briefing.
+- Envio atômico com transição de estado consistente.
+- Coordenação entre autosave e envio.
+- Logs sem tokens, respostas livres ou PII desnecessária.
+- CI mínimo com lint, typecheck, testes e build.
+- Verificação do PDF no ambiente real de deploy.
 
-### Fase 2 — Operação e privacidade
+**Critérios de saída**
 
-**Duração sugerida:** 2 sprints (3–4 semanas)  
-**Objetivo:** operar com clientes reais, com suporte, privacidade e observabilidade.
+- Achados históricos classificados e backlog atualizado.
+- Nenhuma conta não autorizada obtém acesso administrativo.
+- Consultas e mutações existentes exigem autenticação/autorização adequada.
+- Envio não deixa briefing em estado parcial.
+- Respostas inválidas são rejeitadas antes de afetar o diagnóstico.
+- CI bloqueia regressões básicas.
+- Limitações de deploy, PDF e storage estão documentadas.
 
-| Área | Entregas |
-|---|---|
-| Arquitetura | Adaptadores de PDF/e-mail/rate limit/fila; observabilidade |
-| Produto | Aprovação e histórico completos; busca/paginação; métricas de funil |
-| Privacidade | Consentimento; retenção; exportação; exclusão/anonimização; suboperadores |
-| Design | IA do painel; dashboard; PDF com identidade; estados vazios/carregando/erro |
-| Qualidade | E2E completo; regressão visual; auditoria de acessibilidade; teste de carga leve |
-| Operação | Health check; logs estruturados; error tracking; backup/restore; runbooks |
-
-**Critério de saída:**
-
-- PDF funciona em preview e produção.
-- Consentimento registrado com versão do aviso.
-- Exportação e exclusão testadas.
-- Health check e alertas ativos.
-- Fluxo completo coberto por E2E e regressão visual.
+**Não fazer nesta fase:** construir novos módulos estratégicos antes de estabilizar os fluxos e dados existentes.
 
 ---
 
-### Fase 3 — Identidade e experiência
+### Fase 1 — Fundamentos da organização e colaboração
 
-**Duração sugerida:** 2 sprints (3–4 semanas)  
-**Objetivo:** o produto parece acabado, é prazeroso de usar e tem identidade própria.
+<badge color="warning">P1</badge> **Objetivo:** transformar o modelo de uma administradora em um espaço de trabalho de equipe.
 
-| Área | Entregas |
-|---|---|
-| Marca | Sistema de marca, logo, aplicações, tom de voz, OG image, capa de PDF |
-| Design system | Tokens documentados, componentes com estados, catálogo interno, dark mode auditado |
-| UX | Landing ou página institucional mínima; onboarding; revisão com resumo; diagnóstico explicado |
-| Acessibilidade | WCAG 2.1 AA; teclado; leitor de tela; contraste; movimento reduzido; toque |
-| Conteúdo | Microcopy de erros, salvamento, privacidade, diagnóstico e próximos passos |
-| Qualidade | Testes de usabilidade; Core Web Vitals; checklist de design review |
+**Entregas**
 
-**Critério de saída:**
+- Entidade Organization e associação de usuários por Membership.
+- Modelo de papéis e permissões centralizado.
+- Convites e entrada controlada de membros.
+- Isolamento de dados por organização desde as consultas e mutações.
+- Estratégia RLS, se adotada, alinhada ao modelo de membership.
+- Cliente associado à organização.
+- Projeto/Campanha como unidade de trabalho.
+- Responsável principal e colaboradores por projeto.
+- Estados e histórico básico do projeto.
+- Migração dos dados existentes para uma organização inicial.
+- Testes negativos de acesso cruzado entre organizações e projetos.
+- Auditoria de mudanças de membros, papéis e permissões.
 
-- Nenhuma tela crítica com violação séria de acessibilidade.
-- Teste de usabilidade com 5 administradoras/respondentes.
-- Taxa de conclusão do formulário medida por etapa.
-- Identidade aplicada em painel, formulário e PDF.
+**Critérios de saída**
 
----
+- Uma organização pode convidar e administrar membros conforme a matriz aprovada.
+- Clientes e projetos pertencem a uma organização.
+- Projetos possuem responsável e colaboradores.
+- Usuários não acessam dados de outra organização.
+- Acesso a projeto respeita papel e participação.
+- Dados do MVP são migrados sem perda e com integridade.
 
-### Fase 4 — Escala e inteligência
-
-**Duração:** contínuo, orientado por demanda  
-**Objetivo:** crescer sem perder a simplicidade.
-
-| Área | Entregas |
-|---|---|
-| Produto | Multiusuário com papéis e convites; catálogo gerenciável por interface |
-| Inteligência | Analytics de funil; comparação entre clientes; benchmarking |
-| Integrações | CRM, automação, e-mail transacional, webhooks |
-| IA opcional | Sugestão de recomendações a partir dos sinais, sempre com revisão humana |
-| Arquitetura | Outbox/eventos se necessário; testes de carga; chaos engineering leve |
-
-**Critério de saída:** cada item só entra quando houver demanda real e métrica que justifique.
+**Dependências:** matriz de permissões, escopo de acesso a projetos e política de migração.
 
 ---
 
-## 8. Backlog detalhado
+### Fase 2 — Briefing e diagnóstico versionados
 
-Esforço: **P** = até 1 dia; **M** = 2–5 dias; **G** = mais de 1 semana.
+<badge color="warning">P1</badge> **Objetivo:** preservar a origem e a reprodutibilidade da informação estratégica.
 
-### Fase 0
+**Entregas**
 
-| ID | Item | Área | Esforço | Depende |
-|---|---|---|---|---|
-| ARQ-01 | Schema de env com Zod e falha rápida | Arquitetura | P | — |
-| ARQ-02 | `AppError` + wrapper `adminRoute`/`publicRoute` | Arquitetura | M | ARQ-01 |
-| ARQ-03 | CI com lint, typecheck, unit, integration e build | Qualidade | M | — |
-| SEC-01 | Allowlist de administradores + signup desativado | Segurança | P | — |
-| SEC-02 | Redirect seguro no login | Segurança | P | — |
-| SEC-05 | `noindex`/`no-referrer` em rotas privadas | Segurança | P | — |
-| SEC-06 | Headers de segurança no `next.config` | Segurança | P | — |
-| PERF-01 | Restringir proxy a rotas administrativas | Performance | P | — |
-| DATA-04 | Persistir `missingRequiredKeys` | Dados | P | Migração |
-| DATA-06 | Ordem determinística do diagnóstico | Dados | P | — |
-| PROD-01 | `/` redireciona para login/painel | Produto | P | — |
-| A11Y-01 | Corrigir label do grupo de rádio | Design | P | — |
-| A11Y-02 | Corrigir `beforeunload` | Design | P | — |
-| TEST-01 | Testes de API para erros principais | Qualidade | M | ARQ-02 |
+- Briefings vinculados a projetos.
+- Suporte a mais de um briefing ao longo da vida de um projeto.
+- Catálogo de perguntas versionado.
+- Perguntas e regras publicadas como versões imutáveis.
+- Snapshot das respostas no envio.
+- Versão de catálogo e regras associadas a cada diagnóstico.
+- Histórico de envio, revogação, reabertura e reprocessamento.
+- Diagnóstico determinístico com explicação e origem dos sinais.
+- Revisão humana e aprovação do diagnóstico.
+- Reprocessamento criando nova execução, sem sobrescrever diagnóstico aprovado.
+- Formulário público com link seguro, autosave, retomada e revisão.
+- Testes de compatibilidade com briefings antigos.
 
-### Fase 1
+**Critérios de saída**
 
-| ID | Item | Área | Esforço | Depende |
-|---|---|---|---|---|
-| ARQ-04 | Casos de uso de submit/save/reprocess | Arquitetura | M | ARQ-02 |
-| DATA-01 | Envio atômico com transição condicional | Dados | M | ARQ-04 |
-| DATA-03 | Validação semântica de respostas | Dados | M | — |
-| DATA-02 | Versionamento de catálogo e regras | Dados | G | Migração |
-| DATA-05 | Máquina de estados e campos de ciclo de vida | Dados | M | Migração |
-| SEC-03 | CSRF/origin check em mutações | Segurança | P | ARQ-02 |
-| SEC-04 | Rate limit público com `Retry-After` | Segurança | M | Adaptador |
-| SEC-07 | Redaction de PII nos logs | Segurança | P | Logger |
-| QUAL-06 | Audit log de ações administrativas | Operação | M | Migração |
-| PROD-02 | Revogar, regenerar e reenviar link | Produto | M | DATA-05 |
-| PROD-03 | Filtro do painel por status válido | Produto | P | — |
-| PROD-04 | Revisão com resumo por categoria | Design | M | — |
-| PERF-03 | Autosave em lote e catálogo cacheado | Performance | M | — |
-| TEST-02 | Testes de concorrência no envio | Qualidade | M | DATA-01 |
-| TEST-03 | E2E smoke do fluxo principal | Qualidade | M | — |
+- Mudança no catálogo não altera respostas históricas.
+- Cada diagnóstico informa quais respostas e versões contribuíram para o resultado.
+- Reprocessamento é rastreável e reproduzível.
+- Briefing enviado não aceita autosave indevido.
+- Revisão e aprovação ficam registradas.
+- Cliente consegue preencher sem criar conta interna.
 
-### Fase 2
-
-| ID | Item | Área | Esforço | Depende |
-|---|---|---|---|---|
-| OPS-01 | Logs estruturados, request id e error tracking | Operação | M | — |
-| OPS-02 | `/api/health` | Operação | P | — |
-| OPS-03 | Adaptador de PDF para produção/worker | Operação | M | — |
-| OPS-04 | E-mail transacional (reenvio/notificação) | Produto | M | — |
-| LGPD-01 | Consentimento com versão do aviso | Privacidade | M | — |
-| LGPD-02 | Retenção e anonimização | Privacidade | M | — |
-| LGPD-03 | Exportação e exclusão por cliente/titular | Privacidade | M | — |
-| PROD-05 | Aprovação e histórico no painel | Produto | M | DATA-05 |
-| PROD-06 | Busca e paginação de clientes/briefings | Produto | M | — |
-| PERF-04 | Índices e consultas de lista | Performance | P | — |
-| DESIGN-01 | App shell do admin com navegação e menu de usuário | Design | M | — |
-| DESIGN-02 | Template de PDF com identidade e sumário | Design | M | — |
-| TEST-04 | E2E completo com PDF | Qualidade | M | OPS-03 |
-| TEST-05 | Regressão visual e acessibilidade | Qualidade | M | — |
-
-### Fase 3
-
-| ID | Item | Área | Esforço | Depende |
-|---|---|---|---|---|
-| DESIGN-03 | Sistema de marca e aplicações | Design | M | — |
-| DESIGN-04 | Landing ou página institucional mínima | Design | M | DESIGN-03 |
-| DESIGN-05 | Catálogo interno de componentes | Design | M | — |
-| DESIGN-06 | Polimento do formulário público | Design | M | — |
-| DESIGN-07 | Visualização do diagnóstico e explicação do cinza | Design | M | DATA-04 |
-| DESIGN-08 | Guia de conteúdo e microcopy | Design | P | — |
-| DESIGN-09 | Auditoria de dark mode | Design | P | — |
-| DESIGN-10 | Testes de usabilidade com 5 pessoas | Design | M | — |
-| ARQ-05 | Performance, caching e feature flags | Arquitetura | M | — |
-| PROD-07 | Onboarding da administradora | Produto | M | — |
-| QUAL-07 | Labels tipados e sem drift de enum | Código | P | — |
-| QUAL-08 | Reprocessamento só em briefing enviado | Código | P | — |
-
-### Fase 4
-
-| ID | Item | Área | Esforço | Depende |
-|---|---|---|---|---|
-| SCALE-01 | Papéis, convites e permissões | Produto | G | — |
-| SCALE-02 | Catálogo gerenciável por interface | Produto | G | DATA-02 |
-| SCALE-03 | Analytics de funil e benchmarking | Produto | G | OPS-01 |
-| SCALE-04 | Integrações com CRM/automação | Produto | G | — |
-| SCALE-05 | Assistente opcional de IA com revisão humana | Produto | G | SCALE-03 |
-| SCALE-06 | Outbox/eventos para efeitos colaterais | Arquitetura | M | — |
-| SCALE-07 | Testes de carga e chaos engineering leve | Qualidade | M | — |
+**Dependências:** Fase 0; organização e projeto da Fase 1.
 
 ---
 
-## 9. Roadmap de design
+### Fase 3 — Recomendações e priorização estratégica
 
-Design não é uma fase final. As fundações entram cedo; a identidade amadurece depois.
+<badge color="warning">P1</badge> **Objetivo:** transformar o diagnóstico em decisões estratégicas que a equipe pode revisar.
 
-### 9.1 Fundações de marca
+**Entregas**
 
-**Decisão:** manter a base atual — laranja como cor de sinal/ação, preto e off-white como base, Inter como tipografia, glifo de três níveis.
+- Entidade Recommendation persistida.
+- Recomendações contextualizadas por sinais, categorias e combinações de respostas.
+- Registro da regra e versão que originaram cada recomendação.
+- Agrupamento por categoria e objetivo estratégico.
+- Estados de revisão: sugerida, em análise, aprovada, ajustada, descartada ou substituída, conforme decisão de produto.
+- Prioridade calculada com fatores explícitos.
+- Prioridade aprovada separada da prioridade calculada.
+- Justificativa, autor, data e histórico de alterações.
+- Sugestão de responsáveis e próximos passos sem criar compromissos automaticamente.
+- Tratamento de duplicidade, conflito e recomendações de diagnósticos sucessivos.
 
-**O que formalizar:**
+**Critérios de saída**
 
-- Plataforma de marca: “clareza antes da execução”.
-- Tom de voz: direto, humano, não julgador, sem jargão de agência.
-- Sistema de logo: glifo, wordmark, lockup horizontal e vertical.
-- Aplicações: favicon, OG image, login, PDF, e-mail e estados de erro.
-- Paleta com papéis semânticos, não só nomes de cor.
-- Tipografia com escala e pesos documentados.
-- Iconografia Lucide com stroke 1.5; ilustração só se ajudar a explicar.
-- Movimento discreto; respeitar `prefers-reduced-motion`.
+- Toda recomendação é explicável e rastreável.
+- Equipe pode aceitar, editar ou descartar recomendações conforme permissão.
+- Alterações de prioridade preservam cálculo original e justificativa.
+- Recomendações não viram tarefas sem confirmação humana.
+- Regras de deduplicação e atualização estão documentadas.
 
-**Entregáveis:**
+**Dependências:** diagnóstico versionado; fórmula e política de priorização aprovadas.
 
-- `docs/brand-guide.md`
-- Arquivos de logo e favicon
-- OG image
-- Capa e rodapé do PDF
-- Guia de tom de voz
+---
 
-### 9.2 Design system
+### Fase 4 — Planejamento estratégico e execução
 
-**Estado atual:** bons tokens em `globals.css`, componentes shadcn, densidades `admin`/`public`, tema claro/escuro.
+<badge color="warning">P1</badge> **Objetivo:** transformar decisões aprovadas em trabalho organizado e acompanhável.
 
-**Próximos passos:**
+**Entregas**
 
-- Separar `globals.css` em `tokens.css`, `base.css`, `components.css`, `layout.css` e `print.css`.
-- Documentar tokens: cor, tipografia, espaço, raio, elevação, movimento, breakpoints e densidade.
-- Definir estados de componente: default, hover, focus, active, disabled, loading, error, empty, success.
-- Padronizar botões, campos, seleção, cards, badges, alerts, tabelas, diálogos, tabs, progresso, skeleton e toast.
-- Criar catálogo interno em rota protegida (`/admin/design`) ou Storybook quando houver equipe.
-- Adicionar regressão visual nas telas críticas.
-- Checklist de acessibilidade por componente.
+- Um plano estratégico principal por projeto e suporte a planos complementares.
+- Objetivos com descrição, responsável, período e estado.
+- Ações vinculadas a objetivos.
+- Conversão assistida de recomendações em objetivos, ações e tarefas.
+- Revisão humana antes de confirmar a conversão.
+- Tarefas com responsáveis, colaboradores, prioridade, prazo e estado.
+- Comentários internos, menções e histórico de mudanças.
+- Visões por projeto, objetivo, responsável e estado.
+- Arquivamento de objetivos cancelados/substituídos com motivo.
+- Distinção visual e conceitual entre tarefa concluída e objetivo alcançado.
 
-**Entregáveis:**
+**Critérios de saída**
 
-- `docs/design-system.md`
-- Catálogo de componentes
-- Testes de regressão visual
-- Checklist de acessibilidade
+- Equipe consegue criar plano a partir de recomendações revisadas.
+- Cada objetivo possui responsável e estado.
+- Ações e tarefas mantêm relação rastreável com objetivos.
+- Alterações relevantes ficam no histórico.
+- Conclusão de tarefa não altera automaticamente o resultado do objetivo.
+- Permissões são aplicadas a criação, edição, aprovação e arquivamento.
 
-### 9.3 Arquitetura de informação
+**Dependências:** Fases 1 e 3; decisões de papéis e aprovação.
 
-**Administração:**
+---
 
+### Fase 5 — Indicadores, evidências e avaliação de impacto
+
+<badge color="warning">P1</badge> **Objetivo:** acompanhar se o trabalho está produzindo os resultados esperados.
+
+**Entregas**
+
+- Definição de indicadores com tipo, unidade e método de atualização.
+- Metas com período e histórico de alteração.
+- Registro de medições com período de referência, autor e data.
+- Validação de medições por pessoa autorizada.
+- Evidências anexadas às medições e avaliações.
+- Comparação entre linha de base, meta e resultado.
+- Avaliação quantitativa e qualitativa do impacto.
+- Revisão de objetivos e ações quando metas não forem atingidas.
+- Sugestões de ajuste baseadas em regras, sujeitas à aprovação humana.
+- Histórico de resultados por projeto e objetivo.
+
+**Critérios de saída**
+
+- Uma medição mantém unidade, período, autor e evidência.
+- Metas antigas continuam disponíveis para comparação.
+- A equipe consegue avaliar resultados sem depender apenas do status das tarefas.
+- Mudanças de meta ou objetivo são rastreáveis.
+- Sugestões de ajuste não alteram o plano sem aprovação.
+
+**Dependências:** Fase 4; decisões sobre tipos de indicadores, validação e histórico de metas.
+
+---
+
+### Fase 6 — Histórico, documentos, relatórios e comunicação
+
+<badge color="warning">P1</badge> **Objetivo:** dar contexto ao trabalho, comunicar resultados e fechar o ciclo do projeto.
+
+**Entregas**
+
+- Histórico do cliente com reuniões, decisões, observações e atividades.
+- Documentos associados a cliente e projeto, com metadados e controle de acesso.
+- Dashboards por organização, cliente, projeto, objetivo e membro.
+- Relatórios operacionais, estratégicos e de desempenho.
+- Filtros por período, cliente, projeto e responsável.
+- Comparações entre meta e resultado.
+- Exportações e PDF compatíveis com o ambiente de deploy.
+- Compartilhamento de relatórios com escopo explícito, expiração e revogação.
+- Relatório final e revisão de encerramento de projeto.
+- Arquivamento de projetos com resultados e histórico preservados.
+
+**Critérios de saída**
+
+- Relatórios respeitam organização e permissões.
+- Link externo não expõe comentários internos ou outros projetos.
+- Compartilhamentos podem ser revogados e expiram conforme política.
+- Documentos privados só são acessíveis por usuários autorizados.
+- Projeto pode ser encerrado com revisão e relatório final.
+
+**Dependências:** Fases 1 a 5; decisões de compartilhamento externo e retenção.
+
+---
+
+### Fase 7 — Templates, notificações e melhoria contínua
+
+<badge color="info">P2</badge> **Objetivo:** reduzir trabalho repetitivo e facilitar adoção consistente pela equipe.
+
+**Entregas**
+
+- Modelos de projeto/campanha.
+- Modelos de briefing, diagnóstico e relatório.
+- Duplicação de projetos com regras explícitas sobre o que copiar.
+- Recorrência configurável, com confirmação ou criação automática conforme decisão.
+- Campos, categorias e estados configuráveis dentro de limites definidos.
+- Notificações internas de eventos relevantes.
+- Preferências de notificação por usuário.
+- Painéis de atividade e pendências.
+- Coleta de feedback e análise de uso.
+- Experimentos de UX e melhorias com base em evidências.
+
+**Critérios de saída**
+
+- Duplicar um projeto não mistura dados históricos nem responsáveis indevidamente.
+- Modelos têm versão e política de atualização.
+- Notificações são configuráveis e não geram ruído excessivo.
+- Recorrência tem comportamento previsível e auditável.
+- Melhorias de produto são priorizadas com dados de uso e feedback.
+
+**Dependências:** fluxos principais estáveis; decisões de templates, recorrência e notificações.
+
+---
+
+### Fase 8 — Integrações e capacidades avançadas (pós-V1)
+
+<badge color="secondary">P3</badge> **Objetivo:** ampliar o ecossistema apenas quando houver demanda comprovada.
+
+Possíveis evoluções:
+
+- Integração com Drive e armazenamento externo.
+- Calendários e ferramentas de comunicação.
+- CRM e plataformas de automação.
+- Plataformas de anúncios e analytics.
+- Webhooks e API pública.
+- IA assistiva para interpretação e elaboração de recomendações, sempre com revisão humana.
+- Benchmarking agregado, somente com base legal, privacidade e volume suficientes.
+- Separação de serviços ou infraestrutura adicional quando métricas operacionais justificarem.
+
+**Critério de entrada:** caso de uso validado, demanda recorrente, risco avaliado, custo de manutenção conhecido e benefício superior à complexidade adicionada.
+
+---
+
+## 7. Backlog estruturado por épicos
+
+Os épicos abaixo são unidades de planejamento. As tarefas técnicas devem ser criadas depois da auditoria e refinadas em histórias menores.
+
+| ID | Épico | Resultado | Fase |
+|---|---|---|---:|
+| EP-00 | Baseline e auditoria | Estado real do repositório e riscos confirmados | 0 |
+| EP-01 | Segurança do MVP | Fluxos existentes protegidos | 0 |
+| EP-02 | Integridade do briefing | Envio e respostas consistentes | 0 |
+| EP-03 | Qualidade e operação mínima | CI, testes e deploy verificável | 0 |
+| EP-04 | Organização e membros | Espaço de trabalho com membros e papéis | 1 |
+| EP-05 | Clientes e projetos | Estrutura de trabalho por cliente/campanha | 1 |
+| EP-06 | Isolamento e autorização | Acesso por organização e projeto | 1 |
+| EP-07 | Catálogo versionado | Formulários históricos reproduzíveis | 2 |
+| EP-08 | Diagnóstico versionado | Resultado explicável e reprocessável | 2 |
+| EP-09 | Revisão do briefing | Aprovação e histórico | 2 |
+| EP-10 | Recomendações | Sugestões persistidas e rastreáveis | 3 |
+| EP-11 | Priorização | Decisões de prioridade justificadas | 3 |
+| EP-12 | Plano e objetivos | Estratégia estruturada por projeto | 4 |
+| EP-13 | Ações e tarefas | Execução colaborativa | 4 |
+| EP-14 | Indicadores e metas | Medição estruturada | 5 |
+| EP-15 | Evidências e impacto | Avaliação de resultados | 5 |
+| EP-16 | Histórico e documentos | Contexto contínuo de cliente/projeto | 6 |
+| EP-17 | Relatórios e encerramento | Comunicação e fechamento do ciclo | 6 |
+| EP-18 | Templates e recorrência | Reutilização de processos | 7 |
+| EP-19 | Notificações | Colaboração com alertas relevantes | 7 |
+| EP-20 | Integrações e IA assistiva | Expansão pós-V1 | 8 |
+
+---
+
+## 8. Dependências entre fases
+
+```text
+Fase 0 — Auditoria e proteção
+   ↓
+Fase 1 — Organização, permissões, clientes e projetos
+   ↓
+Fase 2 — Briefing e diagnóstico versionados
+   ↓
+Fase 3 — Recomendações e priorização
+   ↓
+Fase 4 — Planejamento e execução
+   ↓
+Fase 5 — Indicadores e avaliação de impacto
+   ↓
+Fase 6 — Relatórios, documentos e encerramento
+   ↓
+Fase 7 — Templates, notificações e melhoria contínua
+   ↓
+Fase 8 — Integrações e capacidades avançadas
 ```
-Login
-  └─ Clientes
-       ├─ Cliente
-       │    ├─ Briefings
-       │    └─ Novo briefing
-       └─ Briefing
-            ├─ Diagnóstico
-            ├─ Respostas
-            ├─ Respostas brutas
-            ├─ Ações (revogar, regenerar, reenviar, aprovar)
-            └─ PDF
-  └─ Métricas (fase 2)
-  └─ Configurações (fase 3)
-```
 
-**Público:**
-
-```
-Boas-vindas
-  └─ Etapas do formulário
-       └─ Revisão
-            └─ Enviado
-```
-
-**Navegação do admin:**
-
-- Header com marca, navegação principal e menu de usuário.
-- Breadcrumbs em cliente e briefing.
-- Ações primárias visíveis; ações destrutivas com confirmação.
-- Busca e filtros no nível da lista, não escondidos em menu.
-
-### 9.4 Fluxos e telas
-
-| Tela | Melhoria principal |
-|---|---|
-| `/` | Landing mínima ou redirect claro; nunca template do Next |
-| `/login` | Reforçar confiança, recuperação de senha e mensagens genéricas |
-| `/admin` | Dashboard com métricas, lista de clientes, filtros e busca |
-| `/admin/clientes/[id]` | Histórico de briefings, ações e status |
-| `/admin/briefings/[id]` | Diagnóstico explicado, respostas, ações de ciclo de vida |
-| `/briefing/[token]` | Boas-vindas, progresso, autosave, ramificação, revisão e privacidade |
-| `/print/briefing/[id]` | PDF com capa, sumário, diagnóstico, problemas, oportunidades e respostas |
-| Estados de link | Inválido, expirado, já enviado e revogado com ações claras |
-| Estados vazios | Explicar o próximo passo, não só “nada aqui” |
-| Carregamento | Skeletons com a forma do conteúdo |
-| Erro | Mensagem humana, ação de recuperação e sem PII |
-
-### 9.5 Conteúdo e microcopy
-
-**Princípios:**
-
-- Falar com a administradora como par, não como fornecedor.
-- Falar com o respondente sem julgamento.
-- Explicar o que o sistema fará com a resposta.
-- Nunca usar “erro 422” ou “payload inválido” na interface.
-- Dizer o que aconteceu, por que aconteceu e o que fazer.
-
-**Textos que precisam existir:**
-
-- Aviso de privacidade e consentimento.
-- Explicação de categoria cinza.
-- “Diagnóstico não é sentença.”
-- Estado de salvamento: salvando, salvo, sem conexão.
-- Erros de link inválido, expirado, enviado e revogado.
-- Confirmação de envio e próximo passo.
-- Ações destrutivas: revogar, regenerar, excluir.
-
-### 9.6 Acessibilidade
-
-Meta: **WCAG 2.1 AA**.
-
-Checklist mínimo:
-
-- Navegação completa por teclado.
-- Foco visível e gerenciado ao trocar de etapa.
-- Labels corretos em rádio, checkbox e grupos.
-- `aria-live` para salvamento, erros e confirmações.
-- Contraste de texto e componentes.
-- Alvos de toque de pelo menos 44 px no formulário público.
-- Respeito a `prefers-reduced-motion`.
-- Textos alternativos e hierarquia de headings.
-- Teste com leitor de tela em pelo menos uma passagem completa.
-- Teste com zoom de 200%.
-
-### 9.7 Validação e design ops
-
-- **Testes de usabilidade:** 5 administradoras e 5 respondentes, tarefas reais.
-- **Métricas de experiência:** conclusão por etapa, tempo, abandono, erros de validação, uso do autosave.
-- **Analytics:** eventos de link aberto, início, etapa concluída, revisão, envio e PDF.
-- **Design review:** checklist antes de merge de tela nova.
-- **Figma:** se existir, manter biblioteca e sincronizar tokens; o código continua sendo a fonte de verdade.
-- **Regressão visual:** Playwright screenshots das telas críticas em mobile e desktop.
-- **Changelog de design:** registrar mudanças de padrão e componentes.
-
-### 9.8 Entregáveis de design por fase
-
-| Fase | Entregáveis |
-|---|---|
-| Fase 0 | Auditoria de acessibilidade, correções rápidas, copy de privacidade |
-| Fase 1 | App shell, UI de ciclo de vida, resumo de revisão, estados de erro |
-| Fase 2 | IA do painel, dashboard, PDF com identidade, estados vazios/carregando |
-| Fase 3 | Marca, landing, catálogo de componentes, guia de conteúdo, dark mode, testes de usabilidade |
-| Fase 4 | Design ops, benchmarking visual, novas superfícies |
+Algumas atividades podem ocorrer em paralelo:
+- design system e acessibilidade acompanham todas as fases;
+- CI, observabilidade e segurança evoluem continuamente;
+- privacidade e LGPD são requisitos transversais, não uma entrega isolada;
+- testes e documentação acompanham cada módulo;
+- relatórios operacionais simples podem surgir antes dos relatórios estratégicos completos, desde que respeitem permissões e qualidade dos dados.
 
 ---
 
-## 10. Métricas e critérios de sucesso
+## 9. Trilha transversal de experiência e design
 
-### Confiabilidade
+A experiência deve acompanhar o crescimento funcional. Não deixar para “embelezar” o produto ao final.
 
-| Métrica | Meta |
+### 9.1 Fundamentos
+
+- Definir identidade visual consistente com `PRODUCT.md`.
+- Formalizar tokens semânticos de cor, tipografia, espaçamento, raio e elevação.
+- Documentar componentes e estados.
+- Manter experiência responsiva e acessível.
+- Projetar estados vazios, carregamento, erro, sucesso e permissões insuficientes.
+- Garantir linguagem direta, humana e não julgadora.
+- Diferenciar visualmente sugestão, decisão aprovada e resultado observado.
+
+### 9.2 Experiência por superfície
+
+| Superfície | Prioridade de UX |
 |---|---|
-| Briefings enviados com diagnóstico | 100% |
-| Sucesso de submit | > 99,5% |
-| p95 do autosave | < 500 ms |
-| Sucesso de geração de PDF | > 99% |
-| Disponibilidade mensal | 99,5% |
-| Incidentes P0 | 0 |
+| Formulário público | Clareza, confiança, progresso, autosave e retomada |
+| Painel da equipe | Visibilidade de prioridades, pendências e próximos passos |
+| Cliente | Histórico e contexto sem virar CRM excessivo |
+| Projeto | Visão integrada de briefing, diagnóstico, plano, tarefas e resultados |
+| Diagnóstico | Explicabilidade, evidências e revisão humana |
+| Objetivos | Progresso estratégico distinto de tarefas concluídas |
+| Indicadores | Atualização simples, unidade clara e comparação com meta |
+| Relatórios | Síntese, contexto, transparência e compartilhamento seguro |
 
-### Produto
+### 9.3 Acessibilidade
 
-| Métrica | Meta inicial |
-|---|---|
-| Taxa de conclusão do formulário | > 50% |
-| Tempo mediano de preenchimento | 12–18 min |
-| Briefings revisados pela administradora | > 90% |
-| Briefings aprovados | > 70% |
-| Categorias cinza por briefing | < 20% |
-| Exportações de PDF por briefing revisado | > 50% |
+Adotar WCAG 2.2 AA como referência do produto, conforme `PRODUCT.md`.
 
-### Design e experiência
-
-| Métrica | Meta |
-|---|---|
-| SUS (System Usability Scale) | > 80 |
-| Violações críticas de acessibilidade | 0 |
-| Sucesso de tarefa no mobile | > 90% |
-| Abandono por etapa | Reduzir 30% no primeiro ciclo |
-| Reclamações de “não sei se salvou” | 0 |
-
-### Segurança e privacidade
-
-| Métrica | Meta |
-|---|---|
-| Vulnerabilidades critical/high em produção | 0 |
-| Rotas administrativas com auth no servidor | 100% |
-| PII em payload público | 0 |
-| PII em logs | 0 |
-| Testes de 401/403/404/410/422/429 | Cobertos |
+Checklist contínuo:
+- teclado e foco visível;
+- estrutura semântica e headings;
+- labels e instruções;
+- contraste;
+- leitor de tela;
+- mensagens de estado anunciadas;
+- zoom e layouts responsivos;
+- alvos de interação adequados;
+- respeito a movimento reduzido.
 
 ---
 
-## 11. Riscos e mitigação
+## 10. Segurança, privacidade e operação como trabalho contínuo
 
-| Risco | Probabilidade | Impacto | Mitigação |
-|---|---|---|---|
-| Over-engineering arquitetural | Média | Alto | Casos de uso só onde há transação/invariante; sem abstração genérica |
-| Versionamento de catálogo travar o time | Média | Alto | Começar com `catalogVersion` + `QuestionVersion`; não fazer snapshot por briefing |
-| PDF continuar falhando em serverless | Alta | Alto | Adaptador isolado; testar em preview; worker se necessário |
-| LGPD virar projeto infinito | Média | Alto | Entregar consentimento, retenção, exportação e exclusão em incrementos |
-| Design system virar burocracia | Média | Médio | Tokens e componentes primeiro; Storybook só com equipe |
-| Testes de usabilidade atrasarem | Média | Médio | 5 pessoas, tarefas curtas, rodar a cada fase |
-| Dependência de uma única administradora | Alta | Médio | Documentação, runbooks, evolução para papéis |
-| Mudança de regra quebrar histórico | Média | Alto | Versão de regras/catálogo e reprocessamento explícito |
-| Aumento de escopo de IA | Baixa | Médio | IA só como assistente opcional, com revisão humana |
+Não concentrar segurança e LGPD em uma única fase. Cada épico deve incluir seus requisitos transversais.
 
----
+### Segurança
 
-## 12. Não-objetivos
+- autenticação e autorização no servidor;
+- isolamento por organização e projeto;
+- princípio do menor privilégio;
+- validação de entrada;
+- rate limiting e proteção de origem;
+- gestão de segredos;
+- links externos seguros, expirados e revogáveis;
+- arquivos privados;
+- auditoria de ações críticas.
 
-Não fazem parte deste ciclo:
+### Privacidade
 
-- Microserviços, GraphQL ou event sourcing.
-- Aplicativo mobile nativo.
-- IA generativa como núcleo do diagnóstico.
-- White-label por cliente.
-- Cobrança/assinatura.
-- Cadastro público de contas.
-- Catálogo visual de perguntas antes de o catálogo versionado estar estável.
-- Storybook completo antes de haver equipe de design/engenharia.
-- Dashboard analítico avançado antes de haver volume de dados.
+- minimização de dados;
+- aviso de privacidade e base legal adequada;
+- retenção por categoria;
+- acesso, correção, exportação e exclusão/anonimização quando aplicáveis;
+- logs sem dados pessoais desnecessários;
+- gestão de suboperadores;
+- documentação do ciclo de vida dos dados.
 
----
+Consentimento não deve ser tratado como base legal universal. A aplicação de cada base legal e os prazos de retenção precisam de validação adequada ao contexto.
 
-## 13. Primeiros 30 dias
+### Operação
 
-### Semana 1 — Segurança e baseline
-
-- Allowlist de admin e signup desativado.
-- Redirect seguro.
-- Headers de segurança e `noindex`.
-- Proxy restrito ao admin.
-- Schema de env com Zod.
-- Home redirecionando.
-- CI inicial.
-
-### Semana 2 — Integridade do envio
-
-- Caso de uso de submit.
-- Transação e transição condicional.
-- `missingRequiredKeys` persistido.
-- Ordem determinística do diagnóstico.
-- Testes de concorrência.
-- Guarda de status no autosave.
-
-### Semana 3 — Validação e ciclo de vida
-
-- Validação semântica de respostas.
-- Revogar/regenerar link.
-- Aprovação e histórico.
-- Rate limit e CSRF.
-- Audit log.
-- Testes de API.
-
-### Semana 4 — Experiência e operação
-
-- App shell do admin.
-- Resumo de revisão.
-- Correções de acessibilidade.
-- E2E smoke.
-- Design audit.
-- Deploy em preview com PDF.
+- CI com lint, typecheck, testes e build;
+- testes de integração com PostgreSQL;
+- E2E da jornada principal;
+- logs estruturados e request ID;
+- error tracking e health checks;
+- alertas para falhas importantes;
+- backups automáticos e testes de restauração;
+- runbooks;
+- RPO/RTO definidos com base no impacto de negócio e capacidade da infraestrutura.
 
 ---
 
-## 14. Definition of Done
+## 11. Decisões de produto que bloqueiam refinamento técnico
+
+As decisões abaixo já estão identificadas nos requisitos e na arquitetura. Devem ser fechadas antes de implementar os respectivos módulos.
+
+| Decisão pendente | Impacto | Fase limite |
+|---|---|---:|
+| Matriz detalhada de permissões | Políticas de acesso e interface | 1 |
+| Escopo de acesso a projetos: individual, equipe ou ambos | Consultas e autorização | 1 |
+| Fórmula, pesos e escalas de prioridade | Cálculo e histórico | 3 |
+| Deduplicação e versionamento de recomendações | Persistência e atualização | 3 |
+| Tipos, unidades e validação de indicadores | Schema e medições | 5 |
+| Quem valida medições e em quais condições | Autorização e fluxo | 5 |
+| Compartilhamento externo de relatórios | Token, expiração, escopo e autenticação | 6 |
+| Herança e duplicação de modelos | Comportamento de templates | 7 |
+| Recorrência: criação automática ou confirmação | Jobs e ciclo de vida | 7 |
+| Eventos e preferências de notificação | Canais e regras | 7 |
+| Política de arquivamento e exclusão | Integridade e privacidade | Transversal |
+| RPO/RTO e retenção de backup | Operação e custo | 0–6 |
+
+---
+
+## 12. Definition of Ready
+
+Uma história está pronta para desenvolvimento quando:
+
+- [ ] Está ligada a um requisito ou problema observado.
+- [ ] Tem usuário/ator e contexto definidos.
+- [ ] Tem resultado esperado e critério de aceite verificável.
+- [ ] Dependências de produto e arquitetura estão identificadas.
+- [ ] Regras de permissão e organização foram consideradas.
+- [ ] Estados de erro, vazio e carregamento foram pensados.
+- [ ] Impacto em dados, migrações e histórico foi avaliado.
+- [ ] Decisões pendentes foram resolvidas ou explicitamente isoladas.
+- [ ] Escopo cabe em uma entrega revisável.
+
+---
+
+## 13. Definition of Done
 
 Uma entrega só está pronta quando:
 
-- O critério de aceite é verificável.
-- Há teste automatizado do caminho feliz e dos erros relevantes.
-- `lint`, `typecheck`, unitários, integração e build passam no CI.
-- Não introduz regressão de segurança, privacidade ou acessibilidade.
-- Logs e mensagens não expõem PII.
-- Funciona em mobile e desktop.
-- Foi validada em preview antes de produção.
-- Migrações e variáveis de ambiente foram previstas.
-- Documentação de produto, requisitos, arquitetura e design foi atualizada.
-- O impacto operacional (backup, retenção, custo) foi considerado.
+- [ ] Critérios de aceite foram atendidos.
+- [ ] Regras de negócio estão no domínio/caso de uso adequado.
+- [ ] Autenticação, autorização e isolamento foram testados.
+- [ ] Entradas são validadas no servidor.
+- [ ] Transações e concorrência foram avaliadas.
+- [ ] Histórico/auditoria foi implementado quando necessário.
+- [ ] Testes automatizados cobrem caminho feliz e falhas relevantes.
+- [ ] Lint, typecheck, testes e build passam no CI.
+- [ ] Interface é responsiva e acessível.
+- [ ] Logs não expõem tokens ou PII desnecessária.
+- [ ] Migração, rollback e compatibilidade foram avaliados.
+- [ ] Documentação de produto, requisitos, arquitetura e roadmap foi atualizada.
+- [ ] Impacto operacional e de privacidade foi considerado.
 
 ---
 
-## 15. Mapa com os documentos existentes
+## 14. Métricas de sucesso e revisão do roadmap
 
-| Documento | Uso neste roadmap |
-|---|---|
-| `docs/01-produto.md` | Visão, personas, escopo, métricas e evolução de produto |
-| `docs/02-requisitos.md` | RF/RNF, critérios de aceite, contratos de API e LGPD |
-| `docs/03-inspecao-e-arquitetura.md` | Achados SEC/DATA/PERF/PROD/QUAL, arquitetura-alvo e plano de ação |
-| `docs/04-roadmap-melhorias.md` | Sequência integrada de arquitetura, segurança, produto e design |
+Revisar o roadmap ao final de cada fase e sempre que houver mudança significativa de escopo.
 
-### Rastreabilidade dos achados
+### Perguntas para a revisão
 
-| Achado | Fase |
-|---|---|
-| SEC-01, SEC-02, SEC-05, SEC-06, PERF-01, DATA-04, DATA-06, PROD-01, A11Y-01, A11Y-02, QUAL-05 | Fase 0 |
-| DATA-01, DATA-02, DATA-03, DATA-05, SEC-03, SEC-04, SEC-07, QUAL-06, PROD-04 | Fase 1 |
-| LGPD-01, DEPLOY-01, PERF-04, PROD-05, PROD-06 | Fase 2 |
-| QUAL-07, QUAL-08, identidade visual, acessibilidade aprofundada | Fase 3 |
-| Multiusuário, catálogo visual, analytics, IA, integrações | Fase 4 |
+1. A fase entregou uma capacidade utilizável de ponta a ponta?
+2. A equipe consegue executar o fluxo sem depender de contornos manuais?
+3. O produto ficou mais seguro e rastreável?
+4. Há evidência de uso e valor?
+5. O que deve ser simplificado, adiado ou removido?
+6. Alguma decisão pendente bloqueia a fase seguinte?
+7. O roadmap ainda reflete `PRODUCT.md` e `02-requisitos.md`?
+
+### Regras de mudança
+
+- Não adicionar uma funcionalidade apenas porque é tecnicamente interessante.
+- Não antecipar IA ou integração sem caso de uso validado.
+- Não ampliar personalização antes de estabilizar o fluxo padrão.
+- Não sacrificar isolamento e integridade para acelerar interface.
+- Atualizar este roadmap quando uma decisão de produto alterar sequência, dependência ou escopo.
 
 ---
 
-## 16. Decisão final
+## 15. Mapa de rastreabilidade dos documentos
 
-O caminho mais curto para um produto confiável não é adicionar funcionalidades; é **fechar as brechas de confiança** e **transformar a experiência em linguagem de produto**.
+| Documento | Responsabilidade | Como influencia o roadmap |
+|---|---|---|
+| `PRODUCT.md` | Visão, usuários, problema, princípios, limites e direção | Define o resultado que as fases devem construir |
+| `02-requisitos.md` | Atores, requisitos, regras, dados, segurança e critérios de aceite | Define o comportamento e o que precisa ser validado |
+| `03-inspecao-e-arquitetura.md` | Estado técnico histórico, arquitetura-alvo, riscos e evolução | Define dependências e abordagem técnica |
+| `04-roadmap-melhorias.md` | Sequenciamento e acompanhamento das entregas | Organiza fases, épicos, critérios e decisões |
 
-A ordem recomendada é:
+### Regras de consistência
 
-1. **Blindar** o que já existe.
-2. **Proteger** os dados e o envio.
-3. **Fechar** o ciclo operacional.
-4. **Dar identidade** ao produto.
-5. **Escalar** apenas quando a operação pedir.
+- Se o roadmap propuser algo que não está na visão do produto, revisar antes de implementar.
+- Se um requisito mudar, avaliar impacto nas fases e dependências.
+- Se a arquitetura mudar, atualizar os épicos e critérios técnicos.
+- Se o código divergir dos documentos, registrar o estado real e decidir se o documento ou o código deve mudar.
+- Não manter estimativas, métricas ou decisões antigas como verdade sem validação.
 
-Esse sequenciamento preserva o que o projeto já tem de melhor — o núcleo determinístico, a ramificação por dados e a atenção ao respondente — e evita trocar complexidade técnica por complexidade de produto.
+---
+
+## 16. Próxima atividade recomendada
+
+A próxima atividade não é começar todos os módulos. É executar a **Fase 0 — Auditoria, estabilização e proteção do MVP**.
+
+Ordem sugerida:
+
+1. confirmar commit, branch e alterações locais;
+2. revisar schema Prisma e migrações;
+3. auditar autenticação, autorização e escopo das rotas;
+4. validar autosave, envio e reprocessamento;
+5. executar a suíte de testes e identificar lacunas;
+6. verificar CI, deploy, PDF, storage e variáveis de ambiente;
+7. classificar achados e converter apenas problemas confirmados em tarefas;
+8. revisar a matriz de permissões necessária à Fase 1.
+
+**Recomendação final:** construir a plataforma por capacidades completas e conectadas. Primeiro garantir que a equipe possa trabalhar com segurança em organizações, clientes e projetos; depois conectar briefing e diagnóstico a recomendações, planejamento, execução e resultados. Isso preserva a identidade do produto e evita que ele se transforme em um conjunto de telas sem uma jornada estratégica coerente.
