@@ -8,8 +8,8 @@ import {
 } from "../keywords";
 
 /**
- * Campos onde uma menção a cuidado com divulgação apareceria naturalmente.
- * "Prazo/orçamento/restrição" é o lugar mais provável depois da descrição.
+ * Fields where a mention of advertising caution would naturally appear.
+ * "Deadline/budget/restriction" is the most likely place after the description.
  */
 const AWARENESS_KEYS: readonly string[] = [
   Q.BUSINESS_DESCRIPTION,
@@ -18,16 +18,16 @@ const AWARENESS_KEYS: readonly string[] = [
 ];
 
 /**
- * `regulated_profession_flag` — autônoma de área com publicidade regulada, sem
- * menção a restrição de divulgação.
+ * `regulated_profession_flag` — a freelancer in a field with regulated
+ * advertising, with no mention of advertising restrictions.
  *
- * Não é um julgamento sobre o negócio: é um lembrete de que a campanha precisa
- * passar pelas regras do conselho de classe (CFM, OAB, CVM…) antes de ir ao ar.
- * Descobrir isso depois da peça pronta custa retrabalho.
+ * It's not a judgment about the business: it's a reminder that the campaign
+ * must go through the professional council's rules (CFM, OAB, CVM…) before
+ * going live. Finding out after the piece is done costs rework.
  *
- * A pergunta ramificada `free_regulated_council` existe justamente para
- * levantar o tema — se ela foi respondida, o assunto já está na mesa e a regra
- * não dispara, inclusive quando a resposta é "não há restrição".
+ * The branch question `free_regulated_council` exists precisely to raise the
+ * topic — if it was answered, the subject is already on the table and the
+ * rule doesn't fire, even when the answer is "there's no restriction".
  */
 export const regulatedProfessionFlagRule: SignalRule = {
   code: "regulated_profession_flag",
@@ -43,7 +43,7 @@ export const regulatedProfessionFlagRule: SignalRule = {
     const fields = matchedTerms(String(description.value), REGULATED_FIELD_TERMS);
     if (fields.length === 0) return null;
 
-    // O tema já foi levantado explicitamente pela pergunta ramificada.
+    // The topic was already raised explicitly by the branch question.
     if (getAnswer(ctx, Q.FREE_REGULATED_COUNCIL)) return null;
 
     const mentionsRegulation = AWARENESS_KEYS.some((key) =>

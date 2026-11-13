@@ -1,17 +1,16 @@
 import type { DiagnosisCategory, QuestionCategory } from "../types";
 
 /**
- * De qual categoria de diagnóstico cada categoria de pergunta faz parte.
+ * Which diagnosis category each question category belongs to.
  *
- * Os dois conjuntos são distintos de propósito. As categorias de PERGUNTA
- * existem para agrupar o formulário em blocos que fazem sentido para quem
- * responde ("marca", "concorrência"). As categorias de DIAGNÓSTICO existem
- * para agrupar o que é avaliado junto — e várias categorias de pergunta
- * alimentam a mesma avaliação: marca, negócio e concorrência formam, juntas,
- * o posicionamento.
+ * The two sets are distinct on purpose. QUESTION categories exist to group
+ * the form into blocks that make sense to the respondent ("brand",
+ * "competition"). DIAGNOSIS categories exist to group what is evaluated
+ * together — and several question categories feed the same evaluation: brand,
+ * business and competition together make up positioning.
  *
- * `closing` não alimenta nenhuma: são perguntas de arremate, sem peso na
- * avaliação.
+ * `closing` feeds none: they're wrap-up questions with no weight in the
+ * evaluation.
  */
 export const QUESTION_TO_DIAGNOSIS_CATEGORY: Readonly<
   Record<QuestionCategory, DiagnosisCategory | null>
@@ -26,7 +25,7 @@ export const QUESTION_TO_DIAGNOSIS_CATEGORY: Readonly<
   closing: null,
 };
 
-/** As categorias avaliadas, na ordem em que aparecem no painel. */
+/** The evaluated categories, in the order they appear in the panel. */
 export const DIAGNOSIS_CATEGORIES: readonly DiagnosisCategory[] = [
   "positioning",
   "audience",
@@ -35,7 +34,7 @@ export const DIAGNOSIS_CATEGORIES: readonly DiagnosisCategory[] = [
   "current_marketing",
 ];
 
-/** Rótulos em português para o painel e o PDF. */
+/** Portuguese labels for the panel and the PDF (user-facing). */
 export const DIAGNOSIS_CATEGORY_LABELS: Readonly<
   Record<DiagnosisCategory, string>
 > = {
@@ -59,7 +58,7 @@ export const QUESTION_CATEGORY_LABELS: Readonly<
   closing: "Para finalizar",
 };
 
-/** Ordem dos blocos no formulário público. */
+/** Order of the blocks in the public form. */
 export const QUESTION_CATEGORY_ORDER: readonly QuestionCategory[] = [
   "business",
   "goals",

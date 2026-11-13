@@ -6,31 +6,31 @@ import {
 } from "./diagnosis/categoryMap";
 
 /**
- * Montagem das etapas do formulário público.
+ * Builds the public form's steps.
  *
- * Nem uma pergunta por vez (lento e cansativo), nem uma lista única enorme
- * (intimidadora): blocos por categoria, com teto de perguntas por tela.
+ * Neither one question at a time (slow and tiring) nor one huge list
+ * (intimidating): blocks by category, with a cap on questions per screen.
  */
 
-/** Teto de perguntas por etapa. Categoria maior que isso vira várias etapas. */
+/** Cap on questions per step. A larger category becomes several steps. */
 export const MAX_QUESTIONS_PER_STEP = 6;
 
 export interface FormStep {
-  /** Índice base 1, para "Etapa 3 de 8". */
+  /** 1-based index, for "Etapa 3 de 8". */
   index: number;
   category: QuestionCategory;
   title: string;
-  /** Verdadeiro quando a categoria foi dividida e esta não é a primeira parte. */
+  /** True when the category was split and this isn't the first part. */
   continued: boolean;
   questionKeys: string[];
 }
 
 /**
- * Divide as perguntas visíveis em etapas.
+ * Splits the visible questions into steps.
  *
- * ATENÇÃO ao consumir: o total de etapas MUDA quando `business_type` é
- * respondida, porque a ramificação acrescenta perguntas. Isso é esperado — a
- * interface precisa deixar claro que o formulário cresceu, senão parece bug.
+ * CAREFUL when consuming: the number of steps CHANGES when `business_type` is
+ * answered, because the branch adds questions. That's expected — the UI must
+ * make clear the form grew, otherwise it looks like a bug.
  */
 export function buildSteps(ctx: EvalContext): FormStep[] {
   const visible = visibleQuestions(ctx);

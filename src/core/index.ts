@@ -1,8 +1,8 @@
 /**
- * Ponto de entrada do motor de regras.
+ * Rules engine entry point.
  *
- * Tudo o que a camada de API precisa saber está aqui: monte um `EvalContext`
- * com as perguntas e respostas, chame `processBriefing`, persista o resultado.
+ * Everything the API layer needs to know is here: build an `EvalContext` with
+ * the questions and answers, call `processBriefing`, persist the result.
  */
 
 import type {
@@ -55,8 +55,8 @@ export interface ProcessedBriefing {
 }
 
 /**
- * Monta um contexto de avaliação. Indexar as respostas por `key` acontece uma
- * vez aqui, e não dentro de cada regra.
+ * Builds an evaluation context. Indexing answers by `key` happens once here,
+ * not inside each rule.
  */
 export function buildContext(input: {
   businessType: BusinessType | null;
@@ -75,13 +75,13 @@ export function buildContext(input: {
 }
 
 /**
- * Roda o motor inteiro: sinais, pontuação por categoria e as listas de
- * problemas e oportunidades.
+ * Runs the whole engine: signals, per-category scoring and the lists of
+ * problems and opportunities.
  *
- * O contexto é filtrado UMA vez, no começo, para conter apenas respostas de
- * perguntas visíveis — assim as três etapas enxergam exatamente o mesmo
- * conjunto de dados. A operação é idempotente: remover respostas invisíveis
- * não muda o cálculo de visibilidade, já que elas nunca entraram nele.
+ * The context is filtered ONCE, at the start, to contain only answers to
+ * visible questions — so all three stages see exactly the same data. The
+ * operation is idempotent: removing invisible answers doesn't change the
+ * visibility calculation, since they never entered it.
  */
 export function processBriefing(ctx: EvalContext): ProcessedBriefing {
   const visibleCtx = withVisibleAnswersOnly(ctx);

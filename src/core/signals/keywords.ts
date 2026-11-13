@@ -1,13 +1,13 @@
 /**
- * Listas de termos usadas pelas regras de sinal.
+ * Term lists used by the signal rules.
  *
- * Ficam isoladas aqui de propósito: ajustar o vocabulário (o que quase sempre
- * é o que se quer afinar depois de ver briefings reais) não deve exigir tocar
- * na lógica das regras. Todos os termos são comparados já normalizados
- * (minúsculo, sem acento), então escreva-os em minúsculo e sem acento.
+ * Kept isolated here on purpose: tuning the vocabulary (almost always what
+ * needs refining after seeing real briefings) shouldn't require touching the
+ * rules' logic. Terms are matched against Portuguese answers in normalized
+ * form (lowercase, no accents), so write them lowercase and without accents.
  */
 
-/** Metas vagas: crescimento sem número nem prazo. */
+/** Vague goals: growth with no number or deadline. */
 export const VAGUE_GOAL_TERMS: readonly string[] = [
   "crescer",
   "crescimento",
@@ -31,7 +31,7 @@ export const VAGUE_GOAL_TERMS: readonly string[] = [
   "mais clientes",
 ];
 
-/** Público sem recorte nenhum. */
+/** An audience with no segmentation at all. */
 export const BROAD_AUDIENCE_TERMS: readonly string[] = [
   "todo mundo",
   "todos",
@@ -46,7 +46,7 @@ export const BROAD_AUDIENCE_TERMS: readonly string[] = [
   "qualquer idade",
 ];
 
-/** Diferenciais que qualquer concorrente também alegaria. */
+/** Differentiators any competitor would also claim. */
 export const GENERIC_DIFFERENTIATOR_TERMS: readonly string[] = [
   "qualidade",
   "bom atendimento",
@@ -70,8 +70,8 @@ export const GENERIC_DIFFERENTIATOR_TERMS: readonly string[] = [
 ];
 
 /**
- * Menções a chamada para ação ou oferta. A ausência delas, com objetivo de
- * vendas/leads, é o que caracteriza `goal_behavior_contradiction`.
+ * Mentions of a call to action or an offer. Their absence, with a sales/leads
+ * goal, is what characterizes `goal_behavior_contradiction`.
  */
 export const CTA_OFFER_TERMS: readonly string[] = [
   "cta",
@@ -108,11 +108,11 @@ export const CTA_OFFER_TERMS: readonly string[] = [
 ];
 
 /**
- * Áreas com publicidade regulada por conselho de classe. Vale para
+ * Fields whose advertising is regulated by a professional council. Used by
  * `regulated_profession_flag`.
  */
 export const REGULATED_FIELD_TERMS: readonly string[] = [
-  // saúde
+  // health
   "medico", "medica", "medicina", "clinica", "consultorio", "saude",
   "psicologo", "psicologa", "psicologia", "terapeuta", "terapia",
   "nutricionista", "nutricao", "dentista", "odontologia", "odontologica",
@@ -120,18 +120,18 @@ export const REGULATED_FIELD_TERMS: readonly string[] = [
   "farmaceutico", "farmacia", "veterinario", "veterinaria", "psiquiatra",
   "estetica", "harmonizacao", "botox", "preenchimento", "cirurgia",
   "cirurgiao", "dermatologia", "nutrologia",
-  // direito
+  // law
   "advogado", "advogada", "advocacia", "juridico", "juridica", "direito",
   "escritorio de advocacia", "oab",
-  // finanças / contábil
+  // finance / accounting
   "contador", "contadora", "contabilidade", "contabil",
   "consultor financeiro", "investimentos", "assessor de investimentos",
   "corretora", "credito", "financas", "planejador financeiro", "cvm",
 ];
 
 /**
- * Sinais de que a pessoa já considera as restrições de divulgação da área.
- * Presentes, o `regulated_profession_flag` não dispara.
+ * Signs that the person already accounts for the field's advertising
+ * restrictions. When present, `regulated_profession_flag` doesn't fire.
  */
 export const REGULATION_AWARENESS_TERMS: readonly string[] = [
   "conselho",
@@ -161,8 +161,8 @@ export const REGULATION_AWARENESS_TERMS: readonly string[] = [
 ];
 
 /**
- * Respostas que negam investimento em tráfego pago. Presentes, não faz sentido
- * cobrar métricas — não houve investimento a medir.
+ * Answers that deny any paid-traffic investment. When present, asking for
+ * metrics makes no sense — there was no investment to measure.
  */
 export const NO_PAID_TRAFFIC_TERMS: readonly string[] = [
   "nao",
@@ -184,8 +184,8 @@ export const NO_PAID_TRAFFIC_TERMS: readonly string[] = [
 ];
 
 /**
- * Termos que indicam que o processo de compra foi de fato descrito, e não
- * apenas mencionado. Reservado para evolução de `unclear_conversion`.
+ * Terms indicating the purchase process was actually described, not just
+ * mentioned. Reserved for a future evolution of `unclear_conversion`.
  */
 export const PURCHASE_STEP_TERMS: readonly string[] = [
   "site",

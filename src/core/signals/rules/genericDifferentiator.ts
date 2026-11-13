@@ -5,23 +5,23 @@ import { answerIds, getAnswer } from "../helpers";
 import { GENERIC_DIFFERENTIATOR_TERMS } from "../keywords";
 
 /**
- * Quantos tokens próprios (fora do vocabulário genérico) bastam para
- * considerar que há algo específico na resposta.
+ * How many own tokens (outside the generic vocabulary) are enough to consider
+ * the answer contains something specific.
  */
 const MIN_SPECIFIC_TOKENS = 3;
 
-/** Tokens que compõem os termos genéricos — descontados da contagem. */
+/** Tokens that make up the generic terms — excluded from the count. */
 const GENERIC_TOKENS: ReadonlySet<string> = new Set(
   GENERIC_DIFFERENTIATOR_TERMS.flatMap((term) => words(term)),
 );
 
 /**
- * `generic_differentiator` — o diferencial vale para qualquer concorrente.
+ * `generic_differentiator` — the differentiator applies to any competitor.
  *
- * Não basta citar "qualidade": a regra só dispara se, removidos os termos
- * genéricos, quase nada sobra. "Qualidade no atendimento e o único ateliê da
- * cidade com forno a lenha importado" cita "qualidade", mas tem substância —
- * e por isso não dispara.
+ * Mentioning "qualidade" isn't enough: the rule only fires if, once generic
+ * terms are removed, almost nothing is left. "Qualidade no atendimento e o
+ * único ateliê da cidade com forno a lenha importado" mentions "qualidade" but
+ * has substance — so it doesn't fire.
  */
 export const genericDifferentiatorRule: SignalRule = {
   code: "generic_differentiator",

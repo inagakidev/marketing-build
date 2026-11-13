@@ -1,8 +1,8 @@
 /**
- * Auxiliares comuns às regras de sinal.
+ * Helpers shared by the signal rules.
  *
- * Todas as regras leem respostas por estas funções para que o tratamento de
- * "não respondida" seja idêntico em todas elas.
+ * Every rule reads answers through these functions so that "unanswered" is
+ * handled identically in all of them.
  */
 
 import type { AnswerRecord, EvalContext } from "../types";
@@ -17,20 +17,20 @@ export function getAnswer(
   return answer;
 }
 
-/** Texto achatado de uma resposta; string vazia se não respondida. */
+/** An answer's flattened text; empty string if unanswered. */
 export function getText(ctx: EvalContext, key: string): string {
   const answer = getAnswer(ctx, key);
   return answer ? valueToText(answer.value) : "";
 }
 
-/** Valores de uma resposta de múltipla escolha; [] se não respondida. */
+/** A multiple-choice answer's values; [] if unanswered. */
 export function getValues(ctx: EvalContext, key: string): string[] {
   const answer = getAnswer(ctx, key);
   if (!answer) return [];
   return Array.isArray(answer.value) ? answer.value : [answer.value];
 }
 
-/** Ids das respostas informadas, ignorando as ausentes. Para rastreabilidade. */
+/** Ids of the given answers, ignoring missing ones. For traceability. */
 export function answerIds(
   ...answers: (AnswerRecord | undefined)[]
 ): string[] {

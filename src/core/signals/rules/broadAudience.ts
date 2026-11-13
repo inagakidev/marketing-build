@@ -7,11 +7,11 @@ import { BROAD_AUDIENCE_TERMS } from "../keywords";
 const MIN_WORDS = 15;
 
 /**
- * `broad_audience` — o cliente ideal não tem recorte.
+ * `broad_audience` — the ideal client has no segmentation.
  *
- * "Todo mundo" é o caso óbvio; o menos óbvio é a resposta curta demais para
- * conter qualquer segmentação ("mulheres"), que também não orienta decisão
- * nenhuma de canal ou mensagem.
+ * "Todo mundo" (everyone) is the obvious case; the less obvious one is an
+ * answer too short to contain any segmentation ("mulheres"), which doesn't
+ * guide any channel or message decision either.
  */
 export const broadAudienceRule: SignalRule = {
   code: "broad_audience",

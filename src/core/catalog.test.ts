@@ -9,19 +9,19 @@ import { buildContext, processBriefing } from "./index";
 import { resolveVisibility } from "./visibility";
 
 /**
- * Testes sobre o CATÁLOGO REAL que vai para o banco.
+ * Tests on the REAL catalog that goes into the database.
  *
- * Os testes de `visibility.test.ts` e `rules.test.ts` usam catálogos
- * artificiais para isolar comportamento. Estes aqui checam o dado de verdade:
- * uma regra apontando para uma chave que não existe não quebra nada em tempo
- * de execução — a pergunta apenas nunca aparece, silenciosamente. É o tipo de
- * defeito que só apareceria num briefing real, com o cliente do outro lado.
+ * `visibility.test.ts` and `rules.test.ts` use artificial catalogs to isolate
+ * behavior. These check the actual data: a rule pointing to a key that
+ * doesn't exist breaks nothing at runtime — the question just silently never
+ * appears. It's the kind of defect that would only show up in a real
+ * briefing, with the client on the other side.
  */
 
 const ALL: QuestionSeed[] = [...CORE_QUESTIONS, ...BRANCH_QUESTIONS];
 const ALL_KEYS = new Set(ALL.map((q) => q.key));
 
-/** Reproduz a atribuição de `order` feita pelo seed. */
+/** Reproduces the `order` assignment done by the seed. */
 function toSpecs(): QuestionSpec[] {
   return ALL.map((q, index) => ({
     key: q.key,
@@ -33,7 +33,7 @@ function toSpecs(): QuestionSpec[] {
   }));
 }
 
-/** Todas as chaves referenciadas por uma regra, recursivamente. */
+/** Every key referenced by a rule, recursively. */
 function referencedKeys(rule: VisibilityRule): string[] {
   if ("all" in rule) return rule.all.flatMap(referencedKeys);
   if ("any" in rule) return rule.any.flatMap(referencedKeys);
@@ -43,18 +43,18 @@ function referencedKeys(rule: VisibilityRule): string[] {
     : [];
 }
 
-describe("integridade do catálogo", () => {
-  it("tem 30 fixas e 21 ramificadas", () => {
+describe("catalog integrity", () => {
+  it("has 30 fixed and 21 branch questions", () => {
     expect(CORE_QUESTIONS).toHaveLength(30);
     expect(BRANCH_QUESTIONS).toHaveLength(21);
   });
 
-  it("não repete chaves", () => {
+  it("doesn't repeat keys", () => {
     const keys = ALL.map((q) => q.key);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("usa apenas chaves declaradas em questionKeys.ts", () => {
+  it("uses only keys declared in questionKeys.ts", () => {
     const declared = new Set<string>(Object.values(Q));
     for (const question of ALL) {
       expect(declared, `chave não declarada: ${question.key}`).toContain(
@@ -63,19 +63,19 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("declara toda chave de questionKeys.ts no catálogo", () => {
+  it("declares every questionKeys.ts key in the catalog", () => {
     for (const key of Object.values(Q)) {
       expect(ALL_KEYS, `chave sem pergunta: ${key}`).toContain(key);
     }
   });
 
-  it("usa apenas categorias conhecidas", () => {
+  it("uses only known categories", () => {
     for (const question of ALL) {
       expect(QUESTION_CATEGORY_ORDER).toContain(question.category);
     }
   });
 
-  it("só oferece opções em perguntas de escolha, e nunca as omite", () => {
+  it("offers options only on choice questions, and never omits them", () => {
     for (const question of ALL) {
       const isChoice =
         question.answerType === "single_choice" ||
@@ -95,7 +95,7 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("não repete valores dentro de uma mesma pergunta", () => {
+  it("doesn't repeat values within the same question", () => {
     for (const question of ALL) {
       const values = (question.options ?? []).map((o) => o.value);
       expect(new Set(values).size, `opções repetidas em ${question.key}`).toBe(
@@ -104,7 +104,7 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("só referencia perguntas que existem nas regras de visibilidade", () => {
+  it("references only existing questions in visibility rules", () => {
     for (const question of ALL) {
       if (!question.visibilityRule) continue;
       for (const key of referencedKeys(question.visibilityRule)) {
@@ -115,9 +115,9 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("só referencia perguntas ANTERIORES nas regras de visibilidade", () => {
-    // A resolução de visibilidade é de passada única: uma regra que aponta
-    // para uma pergunta posterior nunca seria satisfeita.
+  it("references only EARLIER questions in visibility rules", () => {
+    // Visibility resolution is single-pass: a rule pointing to a later
+    // question would never be satisfied.
     const position = new Map(ALL.map((q, i) => [q.key, i]));
 
     for (const question of ALL) {
@@ -132,9 +132,9 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("mantém as ramificadas opcionais", () => {
-    // Obrigatória e invisível para os demais tipos de negócio deixaria a
-    // categoria cinza sem que o cliente pudesse fazer nada.
+  it("keeps branch questions optional", () => {
+    // Required and invisible for other business types would leave the
+    // category gray with nothing the client could do about it.
     for (const question of BRANCH_QUESTIONS) {
       expect(question.required ?? false, `${question.key} não deveria ser obrigatória`).toBe(
         false,
@@ -142,14 +142,14 @@ describe("integridade do catálogo", () => {
     }
   });
 
-  it("dá regra de visibilidade a toda pergunta ramificada", () => {
+  it("gives every branch question a visibility rule", () => {
     for (const question of BRANCH_QUESTIONS) {
       expect(question.visibilityRule, `${question.key} sem regra`).toBeDefined();
     }
   });
 });
 
-describe("visibilidade sobre o catálogo real", () => {
+describe("visibility on the real catalog", () => {
   const specs = toSpecs();
 
   const BUSINESS_TYPES: BusinessType[] = [
@@ -161,7 +161,7 @@ describe("visibilidade sobre o catálogo real", () => {
     "other",
   ];
 
-  it("mostra as 30 fixas para qualquer tipo de negócio", () => {
+  it("shows the 30 fixed questions for any business type", () => {
     for (const businessType of BUSINESS_TYPES) {
       const visible = resolveVisibility(
         buildContext({
@@ -174,7 +174,7 @@ describe("visibilidade sobre o catálogo real", () => {
       );
 
       for (const question of CORE_QUESTIONS) {
-        // `posting_frequency` depende de haver canal marcado.
+        // `posting_frequency` depends on a channel being checked.
         if (question.key === Q.POSTING_FREQUENCY) continue;
         expect(visible, `${question.key} sumiu para ${businessType}`).toContain(
           question.key,
@@ -183,7 +183,7 @@ describe("visibilidade sobre o catálogo real", () => {
     }
   });
 
-  it("mostra a cada tipo de negócio apenas a sua ramificação", () => {
+  it("shows each business type only its own branch", () => {
     const expectedCounts: Record<string, number> = {
       local_business: 5,
       ecommerce: 4,
@@ -211,7 +211,7 @@ describe("visibilidade sobre o catálogo real", () => {
     }
   });
 
-  it("libera a frequência de publicação só depois de marcar um canal", () => {
+  it("unlocks posting frequency only after a channel is checked", () => {
     const base = {
       businessType: "local_business" as const,
       questions: specs,
@@ -234,10 +234,10 @@ describe("visibilidade sobre o catálogo real", () => {
   });
 });
 
-describe("motor completo sobre o catálogo real", () => {
+describe("full engine on the real catalog", () => {
   const specs = toSpecs();
 
-  it("um briefing vazio deixa cinza toda categoria que tem obrigatória", () => {
+  it("an empty briefing turns gray every category that has a required question", () => {
     const { diagnoses } = processBriefing(
       buildContext({ businessType: null, questions: specs, answers: [] }),
     );
@@ -255,17 +255,17 @@ describe("motor completo sobre o catálogo real", () => {
       expect(byCategory[category].score, category).toBeNull();
     }
 
-    // `digital_presence` é a exceção: no catálogo atual ela não tem nenhuma
-    // pergunta obrigatória, então nunca fica cinza — sem respostas, também não
-    // há sinal a detectar, e ela fica verde. É o comportamento correto, mas
-    // vale saber que "verde" aqui significa "nada a apontar", não
-    // "bem trabalhada". Tornar alguma pergunta do bloco obrigatória mudaria
-    // isso, e este teste quebraria para avisar.
+    // `digital_presence` is the exception: in the current catalog it has no
+    // required question, so it never turns gray — with no answers there's no
+    // signal to detect either, and it stays green. That's correct, but worth
+    // knowing that "green" here means "nothing to point out", not "well
+    // handled". Making any question in the block required would change that,
+    // and this test would break to warn us.
     expect(byCategory.digital_presence.status).toBe("green");
     expect(byCategory.digital_presence.score).toBe(100);
   });
 
-  it("um briefing vago dispara os sinais esperados", () => {
+  it("a vague briefing fires the expected signals", () => {
     const answers = [
       { id: "1", questionKey: Q.BUSINESS_NAME, value: "Doce Vida" },
       { id: "2", questionKey: Q.BUSINESS_DESCRIPTION, value: "Faço bolos" },
@@ -319,11 +319,11 @@ describe("motor completo sobre o catálogo real", () => {
     expect(byCategory.current_marketing.score).toBe(20);
     expect(byCategory.current_marketing.status).toBe("red");
 
-    // digital_presence não tem obrigatórias e não disparou sinal.
+    // digital_presence has no required questions and fired no signal.
     expect(byCategory.digital_presence.status).toBe("green");
   });
 
-  it("um briefing bem preenchido não dispara sinal nenhum", () => {
+  it("a well-filled briefing fires no signal at all", () => {
     const answers = [
       { id: "1", questionKey: Q.BUSINESS_NAME, value: "Doce Vida" },
       {

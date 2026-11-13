@@ -13,7 +13,7 @@ import {
   QUESTION_TO_DIAGNOSIS_CATEGORY,
 } from "./categoryMap";
 
-/** Penalidade em pontos por severidade de sinal. */
+/** Point penalty per signal severity. */
 export const SEVERITY_PENALTY: Readonly<Record<SignalSeverity, number>> = {
   light: 15,
   moderate: 25,
@@ -22,15 +22,15 @@ export const SEVERITY_PENALTY: Readonly<Record<SignalSeverity, number>> = {
 
 export const STARTING_SCORE = 100;
 
-/** Piso de cada faixa de status. */
+/** Floor of each status band. */
 export const SCORE_BANDS = {
   green: 80,
   yellow: 50,
 } as const;
 
 /**
- * Converte pontuação em status.
- * 80–100 verde · 50–79 amarelo · 0–49 vermelho.
+ * Converts a score into a status.
+ * 80–100 green · 50–79 yellow · 0–49 red.
  */
 export function scoreToStatus(score: number): Exclude<DiagnosisStatus, "gray"> {
   if (score >= SCORE_BANDS.green) return "green";
@@ -39,17 +39,17 @@ export function scoreToStatus(score: number): Exclude<DiagnosisStatus, "gray"> {
 }
 
 /**
- * Calcula o diagnóstico das 5 categorias.
+ * Computes the diagnosis for the 5 categories.
  *
- * Cada categoria começa com 100 pontos e perde pontos por sinal detectado.
- * A exceção é a falta de dado obrigatório: se uma pergunta obrigatória e
- * VISÍVEL da categoria ficou sem resposta, a categoria não é pontuada e recebe
- * `gray` ("sem dados suficientes"), ignorando qualquer sinal. Pontuar sobre
- * dado incompleto produziria um número que parece uma avaliação sem ser uma.
+ * Each category starts at 100 points and loses points per detected signal.
+ * The exception is missing required data: if a required and VISIBLE question
+ * in the category was left unanswered, the category isn't scored and gets
+ * `gray` ("not enough data"), ignoring any signal. Scoring incomplete data
+ * would produce a number that looks like an evaluation without being one.
  *
- * O recorte por visibilidade importa: as perguntas ramificadas de outros tipos
- * de negócio são obrigatórias no catálogo mas invisíveis para este briefing —
- * cobrá-las deixaria toda categoria permanentemente cinza.
+ * Filtering by visibility matters: branch questions for other business types
+ * are required in the catalog but invisible to this briefing — demanding them
+ * would leave every category permanently gray.
  */
 export function buildDiagnosis(
   ctx: EvalContext,
@@ -88,7 +88,7 @@ export function buildDiagnosis(
   });
 }
 
-/** Chaves das obrigatórias visíveis sem resposta, agrupadas por categoria. */
+/** Keys of unanswered visible required questions, grouped by category. */
 function findMissingRequired(
   ctx: EvalContext,
   visible: ReadonlySet<string>,
@@ -100,7 +100,7 @@ function findMissingRequired(
     if (!visible.has(question.key)) continue;
 
     const category = QUESTION_TO_DIAGNOSIS_CATEGORY[question.category];
-    if (category == null) continue; // `closing` não é avaliada
+    if (category == null) continue; // `closing` isn't evaluated
 
     const answer = ctx.answersByKey[question.key];
     if (answer && !isBlank(answer.value)) continue;

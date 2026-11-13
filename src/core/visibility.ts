@@ -1,10 +1,10 @@
 /**
- * Motor de visibilidade condicional — orientado a dados.
+ * Conditional visibility engine — data-driven.
  *
- * Não existe nenhum `if (businessType === "local_business")` aqui nem em
- * qualquer outro lugar do código: a condição de exibição de cada pergunta vive
- * na coluna `questions.visibilityRule` (JSON). Adicionar ou editar uma
- * ramificação é uma alteração de dados, não de código, e não exige deploy.
+ * There is no `if (businessType === "local_business")` here or anywhere else
+ * in the code: each question's display condition lives in the
+ * `questions.visibilityRule` (JSON) column. Adding or editing a branch is a
+ * data change, not a code change, and needs no deploy.
  */
 
 import type {
@@ -20,8 +20,8 @@ const BUSINESS_TYPE_FIELD = "business_type";
 const ANSWER_FIELD_PREFIX = "answer:";
 
 /**
- * Avalia uma regra. Regra ausente (`null`/`undefined`) = sempre visível — é o
- * caso das perguntas do núcleo fixo.
+ * Evaluates a rule. A missing rule (`null`/`undefined`) = always visible — the
+ * case for the fixed core questions.
  */
 export function evaluateRule(
   rule: VisibilityRule | null | undefined,
@@ -42,13 +42,13 @@ export function evaluateRule(
 }
 
 /**
- * O subconjunto do contexto de que a visibilidade precisa. Tipado à parte
- * porque `resolveVisibility` avalia contra um conjunto de respostas *filtrado*,
- * não contra o contexto bruto.
+ * The subset of the context visibility needs. Typed separately because
+ * `resolveVisibility` evaluates against a *filtered* set of answers, not the
+ * raw context.
  */
 export interface VisibilityContext {
   businessType: string | null;
-  /** Valores por `questionKey`. Ausente = não respondida. */
+  /** Values by `questionKey`. Missing = unanswered. */
   values: Record<string, AnswerValue | undefined>;
 }
 
@@ -69,8 +69,8 @@ function evaluateFieldRule(rule: FieldRule, ctx: VisibilityContext): boolean {
     case "not_in":
       return !asList(actual).some((v) => asRuleList(rule.value).includes(v));
     case "contains_any": {
-      // Busca por substring no texto achatado — serve para respostas livres,
-      // diferente de `in`, que compara opções inteiras.
+      // Substring search in the flattened text — meant for free-text answers,
+      // unlike `in`, which compares whole options.
       const haystack = normalize(valueToText(actual));
       if (!haystack) return false;
       return asRuleList(rule.value).some(
@@ -78,8 +78,8 @@ function evaluateFieldRule(rule: FieldRule, ctx: VisibilityContext): boolean {
       );
     }
     default: {
-      // Operador desconhecido (regra gravada por uma versão futura): esconder é
-      // mais seguro do que mostrar uma pergunta fora de contexto.
+      // Unknown operator (rule stored by a future version): hiding is safer
+      // than showing a question out of context.
       return false;
     }
   }
@@ -98,14 +98,14 @@ function resolveField(
   return undefined;
 }
 
-/** Valores normalizados de uma resposta, para comparação de igualdade. */
+/** An answer's normalized values, for equality comparison. */
 function asList(value: AnswerValue | undefined): string[] {
   if (value == null) return [];
   const list = Array.isArray(value) ? value : [value];
   return list.map((v) => normalize(v));
 }
 
-/** O `value` da regra, aceito como escalar ou lista. */
+/** The rule's `value`, accepted as a scalar or a list. */
 function asRuleList(value: unknown): string[] {
   if (value == null) return [];
   const list = Array.isArray(value) ? value : [value];
@@ -117,29 +117,28 @@ function normalizeScalar(value: unknown): string {
 }
 
 /**
- * Resolve quais perguntas estão visíveis, em passada única na ordem do
- * catálogo.
+ * Resolves which questions are visible, in a single pass in catalog order.
  *
- * Duas propriedades importantes:
+ * Two important properties:
  *
- * 1. **A resposta de uma pergunta invisível não conta.** Considere: o cliente
- *    marca `local_business`, responde "atende presencial?", depois volta e
- *    troca para `ecommerce`. A resposta antiga continua no banco, mas a
- *    pergunta ficou invisível — e uma regra que dependesse dela passaria a
- *    enxergar um valor fantasma. Aqui ela é tratada como ausente.
+ * 1. **An invisible question's answer doesn't count.** Consider: the client
+ *    picks `local_business`, answers "in-person service?", then goes back and
+ *    switches to `ecommerce`. The old answer is still in the database, but the
+ *    question became invisible — and a rule depending on it would see a ghost
+ *    value. Here it's treated as missing.
  *
- * 2. **Uma regra só enxerga perguntas anteriores** na ordenação. Isso torna a
- *    resolução determinística e de passada única, e reflete o fluxo real: o
- *    formulário é preenchido de cima para baixo, então condicionar a exibição
- *    a uma resposta que ainda nem foi pedida não faria sentido. Uma alternativa
- *    seria iterar até um ponto fixo, mas regras mutuamente dependentes
- *    (A visível se B vazia, B visível se A vazia) oscilariam sem convergir.
+ * 2. **A rule only sees earlier questions** in the ordering. That makes
+ *    resolution deterministic and single-pass, and mirrors the real flow: the
+ *    form is filled top to bottom, so conditioning display on an answer that
+ *    hasn't even been asked yet makes no sense. An alternative would be to
+ *    iterate to a fixed point, but mutually dependent rules (A visible if B is
+ *    empty, B visible if A is empty) would oscillate without converging.
  */
 export function resolveVisibility(ctx: EvalContext): Set<string> {
   const ordered = [...ctx.questions].sort((a, b) => a.order - b.order);
   const visible = new Set<string>();
 
-  // Acumula apenas os valores já liberados por perguntas visíveis e anteriores.
+  // Accumulates only values already released by earlier visible questions.
   const values: Record<string, AnswerValue | undefined> = {};
   const visibilityCtx: VisibilityContext = {
     businessType: ctx.businessType,
@@ -160,7 +159,7 @@ export function resolveVisibility(ctx: EvalContext): Set<string> {
   return visible;
 }
 
-/** As perguntas visíveis, na ordem do catálogo. */
+/** The visible questions, in catalog order. */
 export function visibleQuestions(ctx: EvalContext): QuestionSpec[] {
   const visible = resolveVisibility(ctx);
   return ctx.questions

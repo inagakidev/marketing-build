@@ -6,12 +6,12 @@ import { answerIds, getAnswer } from "../helpers";
 const MIN_WORDS = 10;
 
 /**
- * `unclear_conversion` — o caminho até a compra não está descrito.
+ * `unclear_conversion` — the path to purchase isn't described.
  *
- * Diferente das outras regras, esta dispara também quando a resposta está em
- * branco: `purchase_process` é opcional, então a ausência nunca viraria `gray`
- * e passaria despercebida. Sem saber como o cliente compra hoje, não há como
- * apontar onde a conversão trava.
+ * Unlike the other rules, this one also fires when the answer is blank:
+ * `purchase_process` is optional, so its absence would never become `gray`
+ * and would go unnoticed. Without knowing how the client buys today, there's
+ * no way to point out where conversion stalls.
  */
 export const unclearConversionRule: SignalRule = {
   code: "unclear_conversion",

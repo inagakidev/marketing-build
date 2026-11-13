@@ -10,11 +10,11 @@ import { unclearConversionRule } from "./rules/unclearConversion";
 import { vagueGoalRule } from "./rules/vagueGoal";
 
 /**
- * Todas as regras de sinal. Registrar uma nova é adicionar o arquivo em
- * `rules/` e a linha aqui — nada mais no sistema precisa saber que ela existe.
+ * All signal rules. Registering a new one means adding the file in `rules/`
+ * and the line here — nothing else in the system needs to know it exists.
  *
- * A ordem não afeta o resultado: as regras são independentes e a pontuação
- * apenas soma as penalidades.
+ * Order doesn't affect the result: rules are independent and scoring just
+ * adds up the penalties.
  */
 export const SIGNAL_RULES: readonly SignalRule[] = [
   // positioning

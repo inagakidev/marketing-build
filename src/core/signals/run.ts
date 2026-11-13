@@ -3,13 +3,13 @@ import { resolveVisibility } from "../visibility";
 import { SIGNAL_RULES } from "./registry";
 
 /**
- * Roda todas as regras e devolve os sinais detectados.
+ * Runs every rule and returns the detected signals.
  *
- * Antes de avaliar, o contexto é filtrado para conter apenas respostas de
- * perguntas VISÍVEIS. Sem isso, um cliente que respondeu como `local_business`
- * e depois trocou para `ecommerce` carregaria respostas órfãs capazes de
- * disparar sinais sobre perguntas que ele nem enxerga mais — o mesmo critério
- * já aplicado em `resolveVisibility`.
+ * Before evaluating, the context is filtered to contain only answers to
+ * VISIBLE questions. Without this, a client who answered as `local_business`
+ * and then switched to `ecommerce` would carry orphan answers able to fire
+ * signals about questions they no longer even see — the same criterion
+ * already applied in `resolveVisibility`.
  */
 export function runSignals(
   ctx: EvalContext,
@@ -33,7 +33,7 @@ export function runSignals(
   return detected;
 }
 
-/** Um contexto equivalente, sem as respostas de perguntas invisíveis. */
+/** An equivalent context, without answers to invisible questions. */
 export function withVisibleAnswersOnly(ctx: EvalContext): EvalContext {
   const visible = resolveVisibility(ctx);
 

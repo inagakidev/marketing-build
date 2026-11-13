@@ -12,15 +12,15 @@ function ctx(
   return { businessType, values };
 }
 
-describe("evaluateRule — regra ausente", () => {
-  it("considera visível quando não há regra", () => {
+describe("evaluateRule — missing rule", () => {
+  it("treats the question as visible when there is no rule", () => {
     expect(evaluateRule(null, ctx())).toBe(true);
     expect(evaluateRule(undefined, ctx())).toBe(true);
   });
 });
 
-describe("evaluateRule — operadores", () => {
-  it("equals compara contra o tipo de negócio", () => {
+describe("evaluateRule — operators", () => {
+  it("equals compares against the business type", () => {
     const rule = {
       field: "business_type",
       operator: "equals" as const,
@@ -31,7 +31,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({}, null))).toBe(false);
   });
 
-  it("equals ignora acento e caixa", () => {
+  it("equals ignores accents and case", () => {
     const rule = {
       field: "answer:frequencia",
       operator: "equals" as const,
@@ -40,7 +40,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({ frequencia: "Esporádica" }))).toBe(true);
   });
 
-  it("not_equals é o complemento de equals", () => {
+  it("not_equals is the complement of equals", () => {
     const rule = {
       field: "business_type",
       operator: "not_equals" as const,
@@ -50,7 +50,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({}, "ecommerce"))).toBe(false);
   });
 
-  it("not_empty distingue respondida de vazia", () => {
+  it("not_empty distinguishes answered from empty", () => {
     const rule = { field: "answer:canais", operator: "not_empty" as const };
     expect(evaluateRule(rule, ctx({ canais: ["instagram"] }))).toBe(true);
     expect(evaluateRule(rule, ctx({ canais: [] }))).toBe(false);
@@ -58,13 +58,13 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({}))).toBe(false);
   });
 
-  it("is_empty é o complemento de not_empty", () => {
+  it("is_empty is the complement of not_empty", () => {
     const rule = { field: "answer:canais", operator: "is_empty" as const };
     expect(evaluateRule(rule, ctx({}))).toBe(true);
     expect(evaluateRule(rule, ctx({ canais: ["instagram"] }))).toBe(false);
   });
 
-  it("in casa qualquer valor de uma múltipla escolha", () => {
+  it("in matches any value of a multiple choice", () => {
     const rule = {
       field: "answer:canais",
       operator: "in" as const,
@@ -74,7 +74,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({ canais: ["instagram"] }))).toBe(false);
   });
 
-  it("not_in exclui quem marcou algum dos valores", () => {
+  it("not_in excludes anyone who picked one of the values", () => {
     const rule = {
       field: "answer:canais",
       operator: "not_in" as const,
@@ -84,7 +84,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({ canais: ["tiktok"] }))).toBe(false);
   });
 
-  it("contains_any busca substring em texto livre", () => {
+  it("contains_any searches for a substring in free text", () => {
     const rule = {
       field: "answer:descricao",
       operator: "contains_any" as const,
@@ -94,7 +94,7 @@ describe("evaluateRule — operadores", () => {
     expect(evaluateRule(rule, ctx({ descricao: "Vendo bolos" }))).toBe(false);
   });
 
-  it("esconde a pergunta quando o operador é desconhecido", () => {
+  it("hides the question when the operator is unknown", () => {
     const rule = {
       field: "business_type",
       operator: "teleport" as never,
@@ -104,7 +104,7 @@ describe("evaluateRule — operadores", () => {
   });
 });
 
-describe("evaluateRule — combinadores", () => {
+describe("evaluateRule — combinators", () => {
   const isLocal = {
     field: "business_type",
     operator: "equals" as const,
@@ -115,26 +115,26 @@ describe("evaluateRule — combinadores", () => {
     operator: "not_empty" as const,
   };
 
-  it("all exige todas as condições", () => {
+  it("all requires every condition", () => {
     const rule = { all: [isLocal, hasChannels] };
     expect(evaluateRule(rule, ctx({ canais: ["ig"] }, "local_business"))).toBe(true);
     expect(evaluateRule(rule, ctx({}, "local_business"))).toBe(false);
     expect(evaluateRule(rule, ctx({ canais: ["ig"] }, "ecommerce"))).toBe(false);
   });
 
-  it("any exige ao menos uma", () => {
+  it("any requires at least one", () => {
     const rule = { any: [isLocal, hasChannels] };
     expect(evaluateRule(rule, ctx({}, "local_business"))).toBe(true);
     expect(evaluateRule(rule, ctx({ canais: ["ig"] }, "ecommerce"))).toBe(true);
     expect(evaluateRule(rule, ctx({}, "ecommerce"))).toBe(false);
   });
 
-  it("not inverte", () => {
+  it("not inverts", () => {
     expect(evaluateRule({ not: isLocal }, ctx({}, "ecommerce"))).toBe(true);
     expect(evaluateRule({ not: isLocal }, ctx({}, "local_business"))).toBe(false);
   });
 
-  it("aninha combinadores", () => {
+  it("nests combinators", () => {
     const rule = { all: [isLocal, { not: hasChannels }] };
     expect(evaluateRule(rule, ctx({}, "local_business"))).toBe(true);
     expect(evaluateRule(rule, ctx({ canais: ["ig"] }, "local_business"))).toBe(false);
@@ -142,7 +142,7 @@ describe("evaluateRule — combinadores", () => {
 });
 
 describe("resolveVisibility", () => {
-  it("mostra as perguntas do tipo de negócio e esconde as dos outros", () => {
+  it("shows the business type's questions and hides the others'", () => {
     const questions = [
       question("business_type", { order: 1, answerType: "single_choice" }),
       question("local_city", {
@@ -176,7 +176,7 @@ describe("resolveVisibility", () => {
     expect(visible.has("ecom_shipping")).toBe(false);
   });
 
-  it("libera a pergunta dependente só depois da resposta que a condiciona", () => {
+  it("unlocks the dependent question only after the answer it depends on", () => {
     const questions = [
       question("active_channels", { order: 1, answerType: "multi_choice" }),
       question("posting_frequency", {
@@ -200,10 +200,10 @@ describe("resolveVisibility", () => {
     expect(comCanais.has("posting_frequency")).toBe(true);
   });
 
-  it("ignora a resposta de uma pergunta que ficou invisível", () => {
-    // Cenário real: o cliente marcou local_business, respondeu a pergunta
-    // ramificada, e depois voltou e trocou para ecommerce. A resposta órfã
-    // continua no banco e não pode liberar nada.
+  it("ignores the answer to a question that became invisible", () => {
+    // Real scenario: the client picked local_business, answered the branch
+    // question, then went back and switched to ecommerce. The orphan answer
+    // is still in the database and must not unlock anything.
     const questions = [
       question("business_type", { order: 1, answerType: "single_choice" }),
       question("local_city", {
@@ -226,7 +226,7 @@ describe("resolveVisibility", () => {
         questions,
         answers: [
           answer("business_type", "ecommerce"),
-          answer("local_city", "Curitiba"), // resposta órfã
+          answer("local_city", "Curitiba"), // orphan answer
         ],
       }),
     );
@@ -235,9 +235,9 @@ describe("resolveVisibility", () => {
     expect(visible.has("depende_da_cidade")).toBe(false);
   });
 
-  it("não deixa uma regra enxergar resposta de pergunta posterior", () => {
-    // A resolução é de passada única na ordem do catálogo: condicionar a
-    // exibição a algo que ainda nem foi perguntado não é suportado.
+  it("doesn't let a rule see the answer to a later question", () => {
+    // Resolution is single-pass in catalog order: conditioning display on
+    // something that hasn't even been asked yet isn't supported.
     const questions = [
       question("depende_do_futuro", {
         order: 1,
@@ -253,7 +253,7 @@ describe("resolveVisibility", () => {
     expect(visible.has("depende_do_futuro")).toBe(false);
   });
 
-  it("não entra em laço com regras mutuamente dependentes", () => {
+  it("doesn't loop with mutually dependent rules", () => {
     const questions = [
       question("a", {
         order: 1,
@@ -272,15 +272,15 @@ describe("resolveVisibility", () => {
       }),
     );
 
-    // `a` é avaliada primeiro, quando `b` ainda não entrou no contexto: visível.
-    // `b` então enxerga `a` respondida: invisível. Determinístico, sem laço.
+    // `a` is evaluated first, before `b` enters the context: visible.
+    // `b` then sees `a` answered: invisible. Deterministic, no loop.
     expect(visible.has("a")).toBe(true);
     expect(visible.has("b")).toBe(false);
   });
 });
 
 describe("visibleQuestions", () => {
-  it("devolve as visíveis ordenadas", () => {
+  it("returns the visible ones in order", () => {
     const questions = [
       question("terceira", { order: 30 }),
       question("primeira", { order: 10 }),

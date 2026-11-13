@@ -1,10 +1,10 @@
 /**
- * Construtores de contexto para os testes.
+ * Context builders for tests.
  *
- * Ficam em `src/core` (e não em `tests/`) porque são parte do vocabulário do
- * motor: montar um contexto exige conhecer a forma de `QuestionSpec` e
- * `AnswerRecord`, e duplicar isso em cada arquivo de teste convidaria a
- * divergências.
+ * They live in `src/core` (not in `tests/`) because they're part of the
+ * engine's vocabulary: building a context requires knowing the shape of
+ * `QuestionSpec` and `AnswerRecord`, and duplicating that in every test file
+ * would invite drift.
  */
 
 import type {
@@ -19,7 +19,7 @@ import { buildContext } from "../index";
 
 let orderCounter = 0;
 
-/** Uma pergunta com padrões sensatos; sobrescreva só o que o teste precisa. */
+/** A question with sensible defaults; override only what the test needs. */
 export function question(
   key: string,
   overrides: Partial<QuestionSpec> = {},
@@ -36,7 +36,7 @@ export function question(
   };
 }
 
-/** Zera o contador de ordem para que cada teste seja independente. */
+/** Resets the order counter so each test is independent. */
 export function resetQuestionOrder(): void {
   orderCounter = 0;
 }
@@ -50,8 +50,8 @@ export function answer(
 }
 
 /**
- * Contexto mínimo: as perguntas são inferidas das respostas informadas,
- * salvo se `questions` for passado explicitamente.
+ * Minimal context: questions are inferred from the given answers, unless
+ * `questions` is passed explicitly.
  */
 export function context(input: {
   businessType?: BusinessType | null;

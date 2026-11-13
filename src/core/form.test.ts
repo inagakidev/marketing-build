@@ -9,7 +9,7 @@ import type { QuestionSpec } from "./types";
 beforeEach(resetQuestionOrder);
 
 describe("buildSteps", () => {
-  it("agrupa por categoria, na ordem do formulário", () => {
+  it("groups by category, in form order", () => {
     const questions = [
       question("oferta1", { category: "offer", order: 10 }),
       question("negocio1", { category: "business", order: 20 }),
@@ -22,7 +22,7 @@ describe("buildSteps", () => {
     expect(steps.map((s) => s.index)).toEqual([1, 2, 3]);
   });
 
-  it("quebra categoria grande em várias etapas", () => {
+  it("splits a large category into several steps", () => {
     const questions = Array.from({ length: 14 }, (_, i) =>
       question(`p${i}`, { category: "business", order: i }),
     );
@@ -34,7 +34,7 @@ describe("buildSteps", () => {
     expect(steps.map((s) => s.continued)).toEqual([false, true, true]);
   });
 
-  it("nunca passa do teto de perguntas por etapa", () => {
+  it("never exceeds the cap of questions per step", () => {
     const questions = Array.from({ length: 25 }, (_, i) =>
       question(`p${i}`, { category: "audience", order: i }),
     );
@@ -46,7 +46,7 @@ describe("buildSteps", () => {
     }
   });
 
-  it("ignora categorias sem pergunta visível", () => {
+  it("skips categories without a visible question", () => {
     const questions = [
       question("visivel", { category: "business", order: 1 }),
       question("escondida", {
@@ -67,7 +67,7 @@ describe("buildSteps", () => {
     expect(steps.map((s) => s.category)).toEqual(["business"]);
   });
 
-  it("numera as etapas sem buraco", () => {
+  it("numbers the steps without gaps", () => {
     const questions = Array.from({ length: 20 }, (_, i) =>
       question(`p${i}`, { category: i < 10 ? "business" : "offer", order: i }),
     );
@@ -79,7 +79,7 @@ describe("buildSteps", () => {
   });
 });
 
-describe("buildSteps sobre o catálogo real", () => {
+describe("buildSteps on the real catalog", () => {
   const specs: QuestionSpec[] = [...CORE_QUESTIONS, ...BRANCH_QUESTIONS].map(
     (q, index) => ({
       key: q.key,
@@ -91,9 +91,9 @@ describe("buildSteps sobre o catálogo real", () => {
     }),
   );
 
-  it("o total de etapas cresce depois de escolher o modelo de negócio", () => {
-    // Comportamento esperado, e a razão de a interface precisar avisar: o
-    // formulário fica maior no meio do preenchimento.
+  it("the number of steps grows after choosing the business model", () => {
+    // Expected behavior, and the reason the UI needs to warn: the form gets
+    // bigger halfway through.
     const antes = buildSteps(context({ questions: specs, answers: [] }));
 
     const depois = buildSteps(
@@ -107,7 +107,7 @@ describe("buildSteps sobre o catálogo real", () => {
     expect(depois.length).toBeGreaterThan(antes.length);
   });
 
-  it("cobre todas as perguntas visíveis exatamente uma vez", () => {
+  it("covers every visible question exactly once", () => {
     const steps = buildSteps(
       context({
         businessType: "ecommerce",
@@ -122,7 +122,7 @@ describe("buildSteps sobre o catálogo real", () => {
     const keys = steps.flatMap((s) => s.questionKeys);
     expect(new Set(keys).size).toBe(keys.length);
 
-    // 30 fixas + 4 do e-commerce = 34 (posting_frequency liberada pelo canal).
+    // 30 fixed + 4 e-commerce = 34 (posting_frequency unlocked by the channel).
     expect(keys).toHaveLength(34);
   });
 });

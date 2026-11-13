@@ -11,34 +11,33 @@ import type {
 } from "./types";
 
 /**
- * `src/core` declara seus próprios union types em vez de importar os enums do
- * Prisma — é o que mantém o motor livre de dependência do client gerado.
- * O preço disso é a possibilidade de os dois conjuntos divergirem em silêncio:
- * alguém adiciona um valor no schema, o motor nunca fica sabendo, e a regra
- * correspondente simplesmente não roda.
+ * `src/core` declares its own union types instead of importing the Prisma
+ * enums — that's what keeps the engine free of the generated client. The price
+ * is that the two sets can drift silently: someone adds a value to the schema,
+ * the engine never finds out, and the corresponding rule simply doesn't run.
  *
- * Estes testes são a trava. Se algum falhar, atualize `src/core/types.ts` para
- * refletir o schema — não o contrário.
+ * These tests are the lock. If one fails, update `src/core/types.ts` to match
+ * the schema — not the other way around.
  */
 
 function values(prismaEnum: Record<string, string>): string[] {
   return Object.values(prismaEnum).sort();
 }
 
-describe("enums do core x schema do Prisma", () => {
-  it("QuestionCategory bate", () => {
+describe("core enums vs Prisma schema", () => {
+  it("QuestionCategory matches", () => {
     expect([...QUESTION_CATEGORY_ORDER].sort()).toEqual(
       values(PrismaEnums.QuestionCategory),
     );
   });
 
-  it("DiagnosisCategory bate", () => {
+  it("DiagnosisCategory matches", () => {
     expect([...DIAGNOSIS_CATEGORIES].sort()).toEqual(
       values(PrismaEnums.DiagnosisCategory),
     );
   });
 
-  it("SignalSeverity bate e toda severidade tem penalidade definida", () => {
+  it("SignalSeverity matches and every severity has a defined penalty", () => {
     const severities = values(PrismaEnums.SignalSeverity);
     expect(Object.keys(SEVERITY_PENALTY).sort()).toEqual(severities);
 
@@ -47,12 +46,12 @@ describe("enums do core x schema do Prisma", () => {
     }
   });
 
-  it("DiagnosisStatus bate", () => {
+  it("DiagnosisStatus matches", () => {
     const fromCore: DiagnosisStatus[] = ["green", "yellow", "red", "gray"];
     expect([...fromCore].sort()).toEqual(values(PrismaEnums.DiagnosisStatus));
   });
 
-  it("BusinessType bate", () => {
+  it("BusinessType matches", () => {
     const fromCore: BusinessType[] = [
       "local_business",
       "ecommerce",
@@ -64,7 +63,7 @@ describe("enums do core x schema do Prisma", () => {
     expect([...fromCore].sort()).toEqual(values(PrismaEnums.BusinessType));
   });
 
-  it("AnswerType bate", () => {
+  it("AnswerType matches", () => {
     const fromCore: AnswerType[] = [
       "short_text",
       "long_text",
@@ -75,23 +74,23 @@ describe("enums do core x schema do Prisma", () => {
   });
 });
 
-describe("mapa de categorias", () => {
-  it("cobre toda categoria de pergunta", () => {
+describe("category map", () => {
+  it("covers every question category", () => {
     for (const category of QUESTION_CATEGORY_ORDER) {
       expect(QUESTION_TO_DIAGNOSIS_CATEGORY).toHaveProperty(category);
     }
   });
 
-  it("aponta apenas para categorias de diagnóstico válidas", () => {
+  it("points only to valid diagnosis categories", () => {
     for (const target of Object.values(QUESTION_TO_DIAGNOSIS_CATEGORY)) {
       if (target == null) continue;
       expect(DIAGNOSIS_CATEGORIES).toContain(target);
     }
   });
 
-  it("alimenta cada categoria de diagnóstico a partir de ao menos uma de pergunta", () => {
-    // Uma categoria de diagnóstico sem origem nunca ficaria cinza por falta de
-    // dado obrigatório — provavelmente um erro de mapeamento.
+  it("feeds each diagnosis category from at least one question category", () => {
+    // A diagnosis category with no source would never turn gray for missing
+    // required data — most likely a mapping mistake.
     const covered = new Set(Object.values(QUESTION_TO_DIAGNOSIS_CATEGORY));
     for (const category of DIAGNOSIS_CATEGORIES) {
       expect(covered.has(category)).toBe(true);
