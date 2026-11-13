@@ -9,6 +9,7 @@ import { MemberAvatar } from "@/components/admin/MemberAvatar";
 import { PermissionDenied } from "@/components/admin/PermissionDenied";
 import { RevokeInvitationButton } from "@/components/admin/RevokeInvitationButton";
 import { formatDate, MEMBERSHIP_ROLE_LABELS } from "@/lib/labels";
+import { PageBody, PageHeader } from "@/components/admin/PageHeader";
 
 /**
  * Members and access (EP-04.5), after the "Membros e acessos" block of the
@@ -30,14 +31,9 @@ export default async function MembrosPage() {
   const activeCount = members.filter((m) => m.status === "active").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-[0.8125rem] text-muted-foreground">{organization.name}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Membros e acessos</h1>
-        </div>
-        <InviteMemberDialog />
-      </div>
+    <>
+      <PageHeader context={organization.name} title="Membros e acessos" actions={<InviteMemberDialog />} />
+      <PageBody>
 
       <section aria-labelledby="members-title" className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
@@ -109,6 +105,7 @@ export default async function MembrosPage() {
           </ul>
         )}
       </section>
-    </div>
+      </PageBody>
+    </>
   );
 }

@@ -2,7 +2,6 @@ import { cn } from "cn";
 import { DIAGNOSIS_CATEGORY_LABELS } from "@/core/diagnosis/categoryMap";
 import { DIAGNOSIS_STATUS_LABELS } from "@/lib/labels";
 import type { DiagnosisCategory, DiagnosisStatus } from "@/core/types";
-import { BrandGlyph } from "./BrandMark";
 
 /**
  * Login screen showcase panel.
@@ -44,9 +43,9 @@ export function LoginBrandPanel() {
       />
 
       <div className="relative flex items-center gap-3">
-        <span className="inline-flex size-9 items-center justify-center rounded-lg bg-neutral-50 text-neutral-950">
-          <BrandGlyph className="size-5" />
-        </span>
+        {/* DS v2 symbol, inverted over black (frame 01). Decorative: the name follows. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG */}
+        <img src="/brand/symbol.svg" alt="" aria-hidden="true" className="h-9 w-auto invert" />
         <span className="text-sm font-semibold tracking-tight">
           Briefing Inteligente
         </span>

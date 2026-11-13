@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShieldX } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
+import { PageBody } from "@/components/admin/PageHeader";
 
 /**
  * Insufficient-permission state (CODE-AND-UI.md). The server already refuses
@@ -14,6 +15,7 @@ export function PermissionDenied({
   description?: string;
 }) {
   return (
+    <PageBody>
     <EmptyState
       icon={ShieldX}
       title="Você não tem permissão para fazer isso."
@@ -24,5 +26,6 @@ export function PermissionDenied({
         </Link>
       }
     />
+    </PageBody>
   );
 }
