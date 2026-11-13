@@ -27,3 +27,15 @@ Context: confirmation audit (`docs/PHASE-0-AUDIT.md`, §5).
 | ID | Decision | Alternatives considered | Impact |
 |---|---|---|---|
 | D7 | **Everything in English** (code, comments, documentation, commits, PRs, branches) **except user-facing text, which stays in pt-BR**. Documentation files in English UPPERCASE without numeric prefixes; variables, functions and code files in camelCase. Details in `docs/guidelines/CODE-AND-UI.md`. | Keep documentation in pt-BR | Existing docs translated and renamed (`docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/PHASE-0-AUDIT.md`); code comments translated in a follow-up PR. |
+
+## 2026-11-13 — Permission matrix for Phase 1 (PD-01, PD-02, PD-13)
+
+Context: Phase 1 (EP-04 to EP-06) was blocked on these decisions (`docs/ROADMAP.md`, §16).
+
+| ID | Decision | Alternatives considered | Impact |
+|---|---|---|---|
+| D8 | **PD-01:** the Phase 1 matrix in `docs/REQUIREMENTS.md` §2.3. Actions from later phases are added when each phase is refined. | Define the full matrix for every phase now | Policies such as `canManageProject` are implemented and tested against §2.3; later phases extend the matrix instead of reopening it. |
+| D9 | **PD-02:** each member has **exactly one role** per organization. AUTH-10 (multiple roles) is deferred. | Multiple roles with permissions summed; multiple roles with explicit denies winning | `Membership` stores a single role; no combination rule to implement or test. Adding multiple roles later requires a new decision. |
+| D10 | **PD-13:** project access is by **individual assignment** (main owner and collaborators, `ProjectMember`). | Access by team; team and individual combined | No `Team` entity in Phase 1. A team can be added later as an invitation shortcut without changing the access rule. |
+| D11 | **Leaders** see every project and client in the organization; **only administrators** invite, deactivate or change the role of members. | Leaders see only their projects; leaders invite members or leaders | Least privilege for membership changes; leaders can coordinate and distribute work across the organization. Inviting can be opened to leaders later through AUTH-05. |
+

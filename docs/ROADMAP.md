@@ -692,7 +692,7 @@ Review the roadmap at the end of each phase and whenever there's a significant s
 
 The next activity is not to start every module. It is to execute **Phase 0 — Audit, stabilization and MVP protection**.
 
-> **Update:** Phase 0 was completed and merged into `main` (see `docs/PHASE-0-AUDIT.md`). The next step is **Phase 1**, which depends on the permission matrix (PD-01, PD-02, PD-13).
+> **Update:** Phase 0 was completed and merged into `main` (see `docs/PHASE-0-AUDIT.md`). The next step is **Phase 1**. Its blocking decisions (PD-01, PD-02, PD-13) were settled on 2026-11-13 (D8–D11, `docs/REQUIREMENTS.md` §2.3).
 
 Suggested order:
 

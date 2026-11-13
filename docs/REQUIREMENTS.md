@@ -94,11 +94,37 @@ V1 must cover the strategic journey end to end, but may deliver each module with
 | AUTH-07 | Allow a main owner and collaborators per project. | Must | Assignments are persisted and shown on the project. |
 | AUTH-08 | Restrict actions by project scope when applicable. | Must | A member without access neither reads nor changes the project. |
 | AUTH-09 | Record author, date and context of relevant actions. | Must | Auditable events carry the actor's identity and the affected entity. |
-| AUTH-10 | Support multiple roles per member, if allowed by configuration. | Should | Permission combination follows a documented and tested rule. |
+| AUTH-10 | Support multiple roles per member, if allowed by configuration. Deferred: V1 uses one role per member (D9). | Should | Permission combination follows a documented and tested rule. |
 | AUTH-11 | Allow inviting, revoking access and deactivating members. | Must | A deactivated member loses access without erasing authorship history. |
 | AUTH-12 | Prevent removing a member from erasing authorship or history. | Must | Records keep a historical reference, even after deactivation. |
 
-**Pending decision:** detailed permission matrix by role and action; combination rule when a member has more than one role; whether leaders can invite members; whether access is by project, team or both.
+**Decided (D8–D11, `docs/DECISIONS.md`):** project access is by individual assignment (PD-13); each member has exactly one role per organization (PD-02); leaders see every project in the organization; only administrators invite, deactivate or change the role of members.
+
+### 2.3 Permission matrix — Phase 1 (PD-01)
+
+Organization role × action. "Participant" means the member is the project's main owner or a collaborator. Actions from later phases (diagnosis approval, priority changes, measurement validation, reports) are added to this matrix when their phase is refined, configurable by the administrator per AUTH-05.
+
+| Action | Administrator | Leader | Member |
+|---|:-:|:-:|:-:|
+| Configure the organization | Yes | No | No |
+| Invite, deactivate or reactivate members | Yes | No | No |
+| Change a member's role | Yes | No | No |
+| View clients | All | All | Only clients of projects they participate in |
+| Create or edit a client | Yes | Yes | No |
+| Delete a client | Yes (policy depends on PD-12) | No | No |
+| Create a project | Yes | Yes | No |
+| View a project | All | All | Only as participant |
+| Edit a project; create, revoke or regenerate briefing links | Yes | Yes | Only as participant |
+| Assign the main owner and collaborators | Yes | Yes | Only as main owner |
+| Close or reopen a project (with justification) | Yes | Yes | Only as main owner |
+| Read the audit log | Yes | No | No |
+
+Rules:
+
+- Owners and collaborators must be active members of the same organization (PROJ-02).
+- A deactivated member loses every permission immediately; authorship stays in history (AUTH-11, AUTH-12).
+- Denied access to a record outside the member's scope returns not-found, so its existence isn't revealed (AUTH-06).
+- Every cell above has a negative test (`docs/guidelines/QUALITY.md`).
 
 ---
 
@@ -704,8 +730,8 @@ The decisions below need to be resolved before detailing the corresponding imple
 
 | ID | Topic | Decision needed | Impact |
 |---|---|---|---|
-| PD-01 | Permissions | Matrix of actions by role and scope | Authorization, UX and tests |
-| PD-02 | Multiple roles | How to combine the permissions of a member with more than one role | Security |
+| PD-01 | Permissions | ~~Matrix of actions by role and scope~~ **Decided for Phase 1 (D8, section 2.3)** | Authorization, UX and tests |
+| PD-02 | Multiple roles | ~~How to combine the permissions of a member with more than one role~~ **Decided: one role per member (D9)** | Security |
 | PD-03 | Priority | Formula, weights, scales and tie-breaking | Recommendation engine |
 | PD-04 | Recommendations | Deduplication, conflicts and versioning | Strategic consistency |
 | PD-05 | Indicators | Accepted data types, units and formats | Data model |
@@ -716,7 +742,7 @@ The decisions below need to be resolved before detailing the corresponding imple
 | PD-10 | Recurrence | Automatic creation or suggestion of a new project | Automation and notifications |
 | PD-11 | Notifications | Mandatory events, preferences and initial channels | Communication |
 | PD-12 | Archiving/deletion | Policy per entity and retention exceptions | LGPD and integrity |
-| PD-13 | Project access | Whether access is by individual assignment, team or a combination | Authorization |
+| PD-13 | Project access | ~~Whether access is by individual assignment, team or a combination~~ **Decided: individual assignment (D10)** | Authorization |
 | PD-14 | Approval | Which entities require approval and by which roles | Workflows |
 
 ---

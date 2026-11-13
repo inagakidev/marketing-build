@@ -352,7 +352,7 @@ Organization membership defines baseline access. Project participation can restr
 
 ### 6.4 Roles and permissions
 
-The product foresees administrators, leaders and members, but the detailed matrix is still a pending decision. The implementation must avoid scattered conditionals like `if (role === "admin")`.
+The product foresees administrators, leaders and members. The Phase 1 matrix is decided in `docs/REQUIREMENTS.md` §2.3 (D8–D11): one role per member, project access by individual assignment. The implementation must avoid scattered conditionals like `if (role === "admin")`.
 
 Recommendation:
 
