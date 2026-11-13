@@ -1,17 +1,11 @@
+import type { MembershipRole, MembershipStatus } from "@/modules/identity/domain/membership";
+
 /**
  * Which membership a signed-in user acts through (EP-04.2, D9, D13).
  *
  * Pure: it receives the user's memberships and decides. No Prisma import, so
- * the rule is unit-tested and the policies built on it (EP-04.3) stay pure
- * too. The unions mirror the Prisma enums; `membershipAccess.test.ts` locks
- * them together.
+ * the rule is unit-tested.
  */
-
-export const MEMBERSHIP_ROLES = ["admin", "leader", "member"] as const;
-export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number];
-
-export const MEMBERSHIP_STATUSES = ["active", "deactivated"] as const;
-export type MembershipStatus = (typeof MEMBERSHIP_STATUSES)[number];
 
 export interface MembershipRef {
   organizationId: string;

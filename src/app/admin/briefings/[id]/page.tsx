@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
+import { canEditProject } from "@/modules/identity/domain/permissions";
 import { loadBriefingDetail } from "@/server/briefingDetail";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -56,7 +57,7 @@ export default async function BriefingPage({
         </div>
 
         <div className="flex gap-2">
-          <ReprocessButton briefingId={briefing.id} />
+          {canEditProject(user.role, null) && <ReprocessButton briefingId={briefing.id} />}
           <a
             href={`/api/briefings/${briefing.id}/pdf`}
             className={buttonVariants({ variant: "brand" })}

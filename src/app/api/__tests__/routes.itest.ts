@@ -43,6 +43,9 @@ const SUFFIX = `api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 let alice: SessionUser;
 let bob: SessionUser;
+/** Alice's organization, with the other two roles (EP-04.3). */
+let leader: SessionUser;
+let member: SessionUser;
 let bobClientId: string;
 let bobBriefingId: string;
 
@@ -64,22 +67,30 @@ function req(method: string, path: string, init: { body?: unknown; rawBody?: str
 const params = <T extends Record<string, string>>(value: T) => ({ params: Promise.resolve(value) });
 
 beforeAll(async () => {
-  // Each one administers their own organization, as the session would load it.
-  const make = async (who: string): Promise<SessionUser> => {
-    const organization = await prisma.organization.create({ data: { name: `Org ${who} ${SUFFIX}` } });
+  // Alice and Bob each administer their own organization, as the session
+  // would load it; the leader and the member join Alice's.
+  const make = async (
+    who: string,
+    role: SessionUser["role"] = "admin",
+    organizationId?: string,
+  ): Promise<SessionUser> => {
+    const orgId =
+      organizationId ?? (await prisma.organization.create({ data: { name: `Org ${who} ${SUFFIX}` } })).id;
     const user = await prisma.user.create({
       data: {
         supabaseAuthId: `auth-${who}-${SUFFIX}`,
         name: who,
         email: `${who}-${SUFFIX}@exemplo.test`,
-        memberships: { create: { organizationId: organization.id, role: "admin" } },
+        memberships: { create: { organizationId: orgId, role } },
       },
       select: { id: true, name: true, email: true },
     });
-    return { ...user, organizationId: organization.id, role: "admin" };
+    return { ...user, organizationId: orgId, role };
   };
   alice = await make("alice");
   bob = await make("bob");
+  leader = await make("leader", "leader", alice.organizationId);
+  member = await make("member", "member", alice.organizationId);
 
   const bobClient = await prisma.client.create({
     data: { userId: bob.id, name: "Cliente do Bob", contactEmail: `c-${SUFFIX}@exemplo.test` },
@@ -93,7 +104,7 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  const userIds = [alice?.id, bob?.id].filter(Boolean);
+  const userIds = [alice?.id, bob?.id, leader?.id, member?.id].filter(Boolean);
   const organizationIds = [alice?.organizationId, bob?.organizationId].filter(Boolean);
   await prisma.membership.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.organization.deleteMany({ where: { id: { in: organizationIds } } });
@@ -157,6 +168,50 @@ describe("isolation between accounts → 404, no side effects", () => {
     const reprocess = await reprocessRoute.POST(req("POST", "/x"), params({ id: bobBriefingId }));
     const pdf = await pdfRoute.GET(req("GET", "/x", { origin: null }), params({ id: bobBriefingId }));
     expect([get.status, reprocess.status, pdf.status]).toEqual([404, 404, 404]);
+  });
+});
+
+describe("role permissions (EP-04.3, REQUIREMENTS §2.3) → 403, no side effects", () => {
+  const clientBody = { name: "Cliente proibido", contactEmail: "proibido@exemplo.test" };
+
+  it("a member doesn't create, edit or delete clients", async () => {
+    session.current = member;
+    expect((await clientsRoute.POST(req("POST", "/api/clients", { body: clientBody }))).status).toBe(403);
+    expect(
+      (await clientRoute.PATCH(req("PATCH", "/x", { body: { name: "X" } }), params({ id: bobClientId }))).status,
+    ).toBe(403);
+    expect((await clientRoute.DELETE(req("DELETE", "/x"), params({ id: bobClientId }))).status).toBe(403);
+    expect(await prisma.client.count({ where: { userId: member.id } })).toBe(0);
+  });
+
+  it("a member doesn't create briefing links or reprocess briefings", async () => {
+    session.current = member;
+    expect(
+      (await briefingsRoute.POST(req("POST", "/api/briefings", { body: { clientId: bobClientId } }))).status,
+    ).toBe(403);
+    expect((await reprocessRoute.POST(req("POST", "/x"), params({ id: bobBriefingId }))).status).toBe(403);
+  });
+
+  it("a leader creates and edits clients but doesn't delete them", async () => {
+    session.current = leader;
+    const create = await clientsRoute.POST(req("POST", "/api/clients", { body: clientBody }));
+    expect(create.status).toBe(201);
+    const { client } = await create.json();
+
+    const edit = await clientRoute.PATCH(req("PATCH", "/x", { body: { name: "Editado" } }), params({ id: client.id }));
+    expect(edit.status).toBe(200);
+
+    expect((await clientRoute.DELETE(req("DELETE", "/x"), params({ id: client.id }))).status).toBe(403);
+    expect(await prisma.client.count({ where: { id: client.id } })).toBe(1);
+  });
+
+  it("the role check doesn't reveal whether a record exists", async () => {
+    session.current = member;
+    const missing = await clientRoute.DELETE(req("DELETE", "/x"), params({ id: "does-not-exist" }));
+    const existing = await clientRoute.DELETE(req("DELETE", "/x"), params({ id: bobClientId }));
+    expect(missing.status).toBe(403);
+    expect(existing.status).toBe(403);
+    expect(await missing.json()).toEqual(await existing.json());
   });
 });
 

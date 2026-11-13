@@ -2,7 +2,8 @@ import { cache } from "react";
 import { prisma } from "./db";
 import { createSupabaseServerClient, supabaseConfigured } from "./supabase";
 import { decideProvisioning } from "./security/provisioning";
-import { decideMembershipAccess, type MembershipRole } from "./security/membershipAccess";
+import type { MembershipRole } from "@/modules/identity/domain/membership";
+import { decideMembershipAccess } from "./security/membershipAccess";
 
 /**
  * Session of whoever uses the panel.

@@ -364,6 +364,8 @@ Recommendation:
 
 Don't assume every leader can perform any action or that every member can only view. Confirm the matrix in the requirements document before coding.
 
+Implemented in `src/modules/identity/domain/permissions.ts` (EP-04.3): one pure function per row of the matrix, tested cell by cell. Routes call `authorize(can…(user.role))` from `src/server/security/authorization.ts` right after authenticating, before reading any record, and a denial becomes a 403. Screens use the same functions to hide actions and show the insufficient-permission state.
+
 ### 6.5 Row Level Security
 
 If PostgreSQL/Supabase RLS is used as a second barrier, policies must reflect the real membership and project-scope model. Don't enable RLS with permissive policies just to "mark it as protected".
