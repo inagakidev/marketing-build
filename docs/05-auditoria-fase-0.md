@@ -89,6 +89,18 @@ Só achados confirmados/parciais. Ordem por risco (roadmap §3.1).
 13. Testes de API para as rotas existentes, incluindo os negativos (sem sessão, outro usuário, link expirado/enviado).
 14. **DEPLOY-01**: documentar a limitação e decidir a estratégia de PDF (depende de D1).
 
+### Andamento
+
+| Item | Situação | Onde |
+|---|---|---|
+| SEC-01 | **corrigido**: login nunca cria usuário; conta desconhecida vê "sem acesso" e pode sair; cadastro prévio `pending:` é vinculado só com e-mail confirmado | `src/server/security/provisioning.ts`, `src/server/auth.ts` |
+| SEC-02 | **corrigido**: `safeRedirectPath` no servidor e no cliente | `src/lib/safeRedirect.ts` |
+| SEC-03 | **corrigido**: checagem de `Origin`/`Sec-Fetch-Site` nas mutações autenticadas e no PDF → 403 | `src/server/security/origin.ts` |
+| SEC-04 | **corrigido**: rate limit no Postgres nas rotas públicas (por IP) e no PDF (por usuário) → 429 + `Retry-After`; autosave respeita o `Retry-After` | `src/server/security/rateLimit*.ts` |
+| SEC-05 | **corrigido**: `robots.txt`, `X-Robots-Tag: noindex` nas superfícies privadas, `Referrer-Policy: no-referrer` nas que carregam token | `src/app/robots.ts`, `next.config.ts` |
+| SEC-06 | **parcial**: headers de segurança e CSP sem `script-src`. Restringir scripts exige nonce por requisição e renderização dinâmica de todas as páginas; fica como evolução P2 | `next.config.ts` |
+| PERF-01 | **corrigido**: o proxy roda só nas superfícies autenticadas | `src/proxy.ts` |
+
 **Fica para fases posteriores** (conforme roadmap): DATA-02/DATA-04 → Fase 2 (EP-07/08); DATA-05 → Fase 2 (EP-09); QUAL-06 → contínuo; LGPD-01 e NEW-04 → dependem de PD-12.
 
 ---

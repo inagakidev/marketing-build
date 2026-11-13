@@ -82,6 +82,8 @@ Todas estão documentadas com comentários em `.env.example`. Resumo:
 4. Rode `npm run db:migrate` e `npm run db:seed:admin` novamente apontando para o Supabase — isso cria a administradora tanto no Supabase Auth quanto na tabela local `users`, com o vínculo entre os dois.
 5. Apague/deixe vazio o `DEV_ADMIN_EMAIL`.
 
+> **Quem pode entrar.** Estar autenticado no Supabase não basta: só acessa o painel quem já existe na tabela `users` (criado por `db:seed:admin`). Uma conta criada apenas no Supabase — inclusive pelo signup público dele — vê a tela "Esta conta não tem acesso ao painel". Nenhum usuário é criado a partir de um login. Recomenda-se também desligar o signup público em *Authentication → Providers → Email* no Supabase. Política provisória até os convites da Fase 1 (decisão D3 em `docs/decisoes.md`).
+
 ## Como a API funciona
 
 Cada rota vive em `src/app/api/**/route.ts` e segue o mesmo formato: recebe a requisição, chama uma função de `src/server/*.ts` (acesso a banco via Prisma) e/ou `src/core/*.ts` (motor de regras, puro e sem I/O), e devolve JSON.
@@ -89,6 +91,8 @@ Cada rota vive em `src/app/api/**/route.ts` e segue o mesmo formato: recebe a re
 ### Rotas autenticadas (painel da administradora)
 
 Protegidas por `src/proxy.ts` (middleware do Next 16) + `requireUser`/`getSessionUser` em cada rota — a checagem existe nos dois lugares de propósito, porque o proxy não cobre toda navegação interna.
+
+As rotas que alteram dados (e o PDF) também recusam requisições de outra origem com `403` (`src/server/security/origin.ts`), como proteção contra CSRF.
 
 | Rota | Método | Função |
 |---|---|---|
@@ -102,6 +106,8 @@ Protegidas por `src/proxy.ts` (middleware do Next 16) + `requireUser`/`getSessio
 ### Rotas públicas (o cliente respondendo, sem login)
 
 Autenticadas apenas pelo token opaco na URL — a única credencial do respondente.
+
+Têm rate limiting por IP (e o PDF, por usuário), com contador no próprio Postgres (`src/server/security/rateLimit.ts`, tabela `rate_limit_buckets`). Ao estourar o limite, a resposta é `429` com `Retry-After`. Os limites ficam em `RATE_LIMITS` (`rateLimitRules.ts`).
 
 | Rota | Método | Função |
 |---|---|---|
@@ -146,6 +152,12 @@ Não depende de Next, Prisma ou Supabase — recebe objetos simples (`EvalContex
 npm test          # unitários — motor de regras, visibilidade, diagnóstico, textos
 npm run db:up
 npm run test:db   # integração — exercita as rotas de servidor contra Postgres real
+```
+
+Antes de considerar uma mudança pronta, o gate completo (ver `AGENTS.md`) é:
+
+```bash
+npm run lint && npm run typecheck && npm test && npm run test:db && npm run build
 ```
 
 ## Deploy
