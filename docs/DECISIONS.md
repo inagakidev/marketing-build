@@ -39,3 +39,12 @@ Context: Phase 1 (EP-04 to EP-06) was blocked on these decisions (`docs/ROADMAP.
 | D10 | **PD-13:** project access is by **individual assignment** (main owner and collaborators, `ProjectMember`). | Access by team; team and individual combined | No `Team` entity in Phase 1. A team can be added later as an invitation shortcut without changing the access rule. |
 | D11 | **Leaders** see every project and client in the organization; **only administrators** invite, deactivate or change the role of members. | Leaders see only their projects; leaders invite members or leaders | Least privilege for membership changes; leaders can coordinate and distribute work across the organization. Inviting can be opened to leaders later through AUTH-05. |
 
+## 2026-11-13 — Member onboarding for EP-04
+
+Context: planning EP-04 (organization and members). These choices aren't listed PDs, but they shape the session and invitation stories.
+
+| ID | Decision | Alternatives considered | Impact |
+|---|---|---|---|
+| D12 | Invitations are delivered as a **link the administrator copies and sends**, like the briefing link (BRF-05). The token is opaque, stored only as a hash, single-use and valid for 7 days. Accepting it creates the Supabase account server-side and the membership in one transaction. Replaces the interim access rule D3. | Supabase `inviteUserByEmail` (needs custom SMTP in production) | No email provider or new dependency. Holding the link is the authorization, so the accept route is rate-limited and the link can be revoked. |
+| D13 | In V1 a person belongs to **one organization**. The schema supports many (ORG-02), but the session uses the single active membership and an invitation for someone already in another organization is refused. | Several organizations with a selector in the panel | No organization switcher in EP-04; it becomes a backlog item if a real case appears. |
+
