@@ -5,10 +5,15 @@ import { PrismaClient } from "../../src/generated/prisma/client";
 import { PENDING_AUTH_PREFIX } from "../../src/server/security/provisioning";
 
 /**
- * Creates the administrator — the MVP's panel user.
+ * Creates the administrator and makes them an active admin of the
+ * organization.
  *
  * There's no public admin sign-up on purpose (AUTH-02, decision D3): the
- * account is born here, by running `npm run db:seed:admin`.
+ * first account is born here, by running `npm run db:seed:admin`. Everyone
+ * else joins through invitations (D12).
+ *
+ * V1 has one organization (D13): the script reuses it when it exists and
+ * creates it otherwise. Running it again never duplicates anything.
  *
  * Works in two modes:
  *
@@ -33,6 +38,9 @@ const NAME = process.env.ADMIN_NAME?.trim() || "Administradora";
 // Lowercase: login compares normalized emails (src/server/auth.ts).
 const EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 const PASSWORD = process.env.ADMIN_PASSWORD;
+
+/** Same placeholder as the migration backfill; renamed later in the panel. */
+const ORGANIZATION_NAME = "Minha organização";
 
 /** Marks a local record that has no Supabase Auth counterpart yet. */
 const PENDING_PREFIX = PENDING_AUTH_PREFIX;
@@ -108,10 +116,56 @@ async function main(): Promise<void> {
         data: { name: NAME, email: EMAIL, supabaseAuthId },
       });
 
+  await ensureAdminMembership(user.id);
+
   console.log(`Administrator ready: ${user.name} <${user.email}>`);
   if (supabaseAuthId.startsWith(PENDING_PREFIX)) {
     console.log("  (link to Supabase Auth still pending)");
   }
+}
+
+/**
+ * Gives the user an active admin membership in the organization, creating the
+ * organization on an empty database. Reactivates and promotes an existing
+ * membership: the script is also the way to recover administrator access.
+ */
+async function ensureAdminMembership(userId: string): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const organization =
+      (await tx.organization.findFirst({ orderBy: { createdAt: "asc" } })) ??
+      (await tx.organization.create({ data: { name: ORGANIZATION_NAME } }));
+
+    const where = {
+      organizationId_userId: { organizationId: organization.id, userId },
+    };
+    const existing = await tx.membership.findUnique({ where });
+
+    if (existing?.role === "admin" && existing.status === "active") return;
+
+    const membership = existing
+      ? await tx.membership.update({
+          where,
+          data: { role: "admin", status: "active", deactivatedAt: null },
+        })
+      : await tx.membership.create({
+          data: { organizationId: organization.id, userId, role: "admin" },
+        });
+
+    await tx.auditEvent.create({
+      data: {
+        organizationId: organization.id,
+        actorId: null,
+        entityType: "membership",
+        entityId: membership.id,
+        action: existing ? "membership.restored" : "membership.created",
+        metadata: {
+          role: "admin",
+          source: "seed",
+          ...(existing && { previousRole: existing.role, previousStatus: existing.status }),
+        },
+      },
+    });
+  });
 }
 
 /**

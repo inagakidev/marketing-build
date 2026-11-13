@@ -162,7 +162,7 @@ Answers are also validated against the catalog (`core/answerValidation.ts`) befo
 | `npm run db:migrate` | Apply Prisma migrations |
 | `npm run db:reset` | Reset the local database and reapply migrations + seed (destructive) |
 | `npm run db:seed` | Seed the question catalog |
-| `npm run db:seed:admin` | Create/update the administrator account |
+| `npm run db:seed:admin` | Create/update the administrator account and its admin membership in the organization (also restores access if it was deactivated) |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run dev:data` | Create a sample client + briefing and print the public link |
 

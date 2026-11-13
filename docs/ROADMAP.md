@@ -246,13 +246,13 @@ Phases are capability milestones. They can be split into smaller sprints. There'
 
 | Story | Delivers |
 |---|---|
-| EP-04.1 Schema and migration | `Organization`, `Membership` (one role; active/deactivated), `Invitation`, `AuditEvent`; backfill creates the initial organization and makes every existing user its administrator. |
+| EP-04.1 Schema and migration | `Organization`, `Membership` (one role; active/deactivated), `Invitation`, `AuditEvent`; backfill creates the initial organization and makes every existing user its administrator. `db:seed:admin` creates or restores the administrator's membership. |
 | EP-04.2 Organization-aware session | `SessionUser` carries `organizationId` and `role`; no or deactivated membership means no access on the next request. |
 | EP-04.3 Central policies | Pure policy functions for the §2.3 matrix, applied to the existing client routes before anyone can be invited. |
 | EP-04.4 Invitations | Create, revoke and accept invitation links (D12); rate limit and origin check on acceptance. |
 | EP-04.5 Members screen | List members and pending invitations; change role; deactivate/reactivate; the organization always keeps one active administrator. |
 | EP-04.6 Audit | `AuditEvent` written in the same transaction for every invitation, role and status change. Reading the log is backlog. |
-| EP-04.7 Docs | Retire D3, update `db:seed:admin`, ARCHITECTURE and README. |
+| EP-04.7 Docs | Retire D3, update ARCHITECTURE and README. |
 
 Client and project ownership (EP-05) and `organizationId` scoping of every query (EP-06) stay out of EP-04.
 
