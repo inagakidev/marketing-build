@@ -32,14 +32,23 @@ export async function POST(
       });
     }
 
-    const result = await submitBriefing(briefing.id);
+    // A checagem acima é só o caminho rápido; a decisão que vale é tomada
+    // dentro da transação, com a linha travada (DATA-01).
+    const outcome = await submitBriefing(briefing.id);
 
-    if (!result.ok) {
+    if (outcome.ok) {
+      return ok({ submitted: true, alreadySubmitted: outcome.alreadySubmitted });
+    }
+    if ("missing" in outcome) {
       return fail(422, "Ainda faltam perguntas obrigatórias.", {
-        missingRequiredKeys: result.missing,
+        missingRequiredKeys: outcome.missing,
       });
     }
-
-    return ok({ submitted: true, alreadySubmitted: false });
+    if (outcome.problem === "not_found") {
+      return fail(404, "Link inválido.", { problem: "not_found" });
+    }
+    return fail(410, "Este link expirou e não aceita mais respostas.", {
+      problem: outcome.problem,
+    });
   });
 }

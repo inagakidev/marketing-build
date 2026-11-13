@@ -230,7 +230,7 @@ describe("envio e diagnóstico", () => {
 
     const resultado = await submitBriefing(briefing.id);
     expect(resultado.ok).toBe(false);
-    if (!resultado.ok) {
+    if (!resultado.ok && "missing" in resultado) {
       expect(resultado.missing).toContain(Q.SUCCESS_6_MONTHS);
       expect(resultado.missing).toContain(Q.IDEAL_CLIENT);
     }

@@ -52,6 +52,9 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
         { "Retry-After": String(error.retryAfterSeconds) },
       );
     }
+    if (error instanceof InvalidJsonError) {
+      return fail(400, "O corpo da requisição não é um JSON válido.");
+    }
     if (error instanceof ZodError) {
       return fail(400, "Dados inválidos.", { issues: formatIssues(error) });
     }
@@ -68,6 +71,14 @@ function formatIssues(error: ZodError): Record<string, string> {
   return issues;
 }
 
+/** Corpo da requisição ilegível: erro do cliente (400), não do servidor (NEW-01). */
+export class InvalidJsonError extends Error {
+  constructor() {
+    super("Corpo da requisição não é JSON válido.");
+    this.name = "InvalidJsonError";
+  }
+}
+
 /** Lê e valida o corpo JSON da requisição. */
 export async function parseBody<T>(
   request: Request,
@@ -77,7 +88,7 @@ export async function parseBody<T>(
   try {
     raw = await request.json();
   } catch {
-    throw new SyntaxError("Corpo da requisição não é JSON válido.");
+    throw new InvalidJsonError();
   }
   return schema.parse(raw);
 }

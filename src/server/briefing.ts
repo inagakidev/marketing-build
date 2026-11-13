@@ -9,8 +9,11 @@ import {
   type AnswerValue,
   type BusinessType,
   type EvalContext,
+  type QuestionOption,
   type QuestionSpec,
   type VisibilityRule,
+  validateAnswerValue,
+  type ProcessedBriefing,
 } from "@/core";
 
 /**
@@ -35,9 +38,65 @@ export type BriefingAccessProblem =
   | "expired"
   | "already_submitted";
 
+/** Cliente do Prisma ou transação em curso: as leituras servem aos dois. */
+type Db = Prisma.TransactionClient;
+
+const CLOSED_STATUSES = ["submitted", "ready_for_review", "approved"];
+
+/**
+ * Por que um briefing não aceita mais respostas, ou `null` se aceita.
+ *
+ * "Já enviado" vem antes de "expirado": um briefing enviado cujo link venceu
+ * depois continua sendo, para o respondente, um briefing enviado.
+ */
+export function briefingAccessProblem(
+  briefing: { status: string; expiresAt: Date | null },
+  now: Date = new Date(),
+): "expired" | "already_submitted" | null {
+  if (CLOSED_STATUSES.includes(briefing.status)) return "already_submitted";
+  if (briefing.expiresAt && briefing.expiresAt < now) return "expired";
+  return null;
+}
+
+/** O briefing não aceita mais respostas (enviado ou expirado). */
+export class BriefingClosedError extends Error {
+  constructor(public readonly problem: "expired" | "already_submitted") {
+    super(problem === "expired" ? "Link expirado" : "Briefing já enviado");
+    this.name = "BriefingClosedError";
+  }
+}
+
+/** Respostas incompatíveis com o catálogo. `issues` é indexado pela chave da pergunta. */
+export class InvalidAnswersError extends Error {
+  constructor(
+    public readonly issues: Record<string, string>,
+    message = "Respostas inválidas",
+  ) {
+    super(message);
+    this.name = "InvalidAnswersError";
+  }
+}
+
+/**
+ * Trava a linha do briefing até o fim da transação.
+ *
+ * Autosave, envio e reprocessamento passam todos por aqui: com a linha
+ * travada eles se enfileiram, então nenhum deles vê um estado intermediário
+ * do outro (DATA-01).
+ */
+async function lockBriefing(tx: Db, briefingId: string) {
+  const rows = await tx.$queryRaw<{ status: string; expiresAt: Date | null }[]>`
+    SELECT status::text AS status, "expiresAt"
+    FROM briefings
+    WHERE id = ${briefingId}
+    FOR UPDATE
+  `;
+  return rows[0] ?? null;
+}
+
 /** Perguntas do catálogo, no formato que o motor entende. */
-export async function loadQuestionSpecs(): Promise<QuestionSpec[]> {
-  const questions = await prisma.question.findMany({
+export async function loadQuestionSpecs(db: Db = prisma): Promise<QuestionSpec[]> {
+  const questions = await db.question.findMany({
     orderBy: { order: "asc" },
   });
 
@@ -52,14 +111,17 @@ export async function loadQuestionSpecs(): Promise<QuestionSpec[]> {
 }
 
 /** Monta o contexto de avaliação de um briefing a partir do banco. */
-export async function loadEvalContext(briefingId: string): Promise<EvalContext> {
+export async function loadEvalContext(
+  briefingId: string,
+  db: Db = prisma,
+): Promise<EvalContext> {
   const [briefing, questions, answers] = await Promise.all([
-    prisma.briefing.findUniqueOrThrow({
+    db.briefing.findUniqueOrThrow({
       where: { id: briefingId },
       select: { businessType: true },
     }),
-    loadQuestionSpecs(),
-    prisma.answer.findMany({
+    loadQuestionSpecs(db),
+    db.answer.findMany({
       where: { briefingId },
       select: { id: true, value: true, question: { select: { key: true } } },
     }),
@@ -77,56 +139,61 @@ export async function loadEvalContext(briefingId: string): Promise<EvalContext> 
 }
 
 /**
- * Roda o motor e regrava sinais e diagnóstico.
+ * Recalcula e regrava sinais e diagnóstico (reprocessamento explícito).
  *
- * Apaga tudo antes de recriar, dentro de uma transação: reprocessar precisa ser
- * idempotente, e um sinal que deixou de valer (porque o cliente corrigiu a
- * resposta) não pode sobreviver ao reprocessamento.
+ * Leitura das respostas, cálculo e gravação acontecem na MESMA transação, com
+ * a linha do briefing travada: o resultado corresponde exatamente às
+ * respostas gravadas naquele instante.
  */
-export async function processAndPersist(briefingId: string) {
-  const ctx = await loadEvalContext(briefingId);
-  const result = processBriefing(ctx);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.signal.deleteMany({ where: { briefingId } });
-    await tx.diagnosis.deleteMany({ where: { briefingId } });
-
-    // Os sinais precisam ser criados antes para que o diagnóstico possa
-    // referenciar seus ids em `signalIds`.
-    const createdSignals = await Promise.all(
-      result.signals.map((signal) =>
-        tx.signal.create({
-          data: {
-            briefingId,
-            code: signal.code,
-            category: signal.category,
-            severity: signal.severity,
-            description: signal.description,
-            sourceAnswerIds: signal.sourceAnswerIds,
-          },
-          select: { id: true, code: true },
-        }),
-      ),
-    );
-
-    const signalIdByCode = new Map(
-      createdSignals.map((s) => [s.code, s.id] as const),
-    );
-
-    await tx.diagnosis.createMany({
-      data: result.diagnoses.map((diagnosis) => ({
-        briefingId,
-        category: diagnosis.category,
-        score: diagnosis.score,
-        status: diagnosis.status,
-        signalIds: diagnosis.signals
-          .map((s) => signalIdByCode.get(s.code))
-          .filter((id): id is string => id != null),
-      })),
-    });
+export async function processAndPersist(briefingId: string): Promise<ProcessedBriefing> {
+  return prisma.$transaction(async (tx) => {
+    await lockBriefing(tx, briefingId);
+    const result = processBriefing(await loadEvalContext(briefingId, tx));
+    await persistResult(tx, briefingId, result);
+    return result;
   });
+}
 
-  return result;
+/**
+ * Apaga e recria sinais e diagnóstico. Idempotente: um sinal que deixou de
+ * valer não sobrevive. Precisa rodar dentro de uma transação.
+ */
+async function persistResult(tx: Db, briefingId: string, result: ProcessedBriefing) {
+  await tx.signal.deleteMany({ where: { briefingId } });
+  await tx.diagnosis.deleteMany({ where: { briefingId } });
+
+  // Os sinais precisam ser criados antes para que o diagnóstico possa
+  // referenciar seus ids em `signalIds`.
+  const createdSignals = [];
+  for (const signal of result.signals) {
+    createdSignals.push(
+      await tx.signal.create({
+        data: {
+          briefingId,
+          code: signal.code,
+          category: signal.category,
+          severity: signal.severity,
+          description: signal.description,
+          sourceAnswerIds: signal.sourceAnswerIds,
+        },
+        select: { id: true, code: true },
+      }),
+    );
+  }
+
+  const signalIdByCode = new Map(createdSignals.map((s) => [s.code, s.id] as const));
+
+  await tx.diagnosis.createMany({
+    data: result.diagnoses.map((diagnosis) => ({
+      briefingId,
+      category: diagnosis.category,
+      score: diagnosis.score,
+      status: diagnosis.status,
+      signalIds: diagnosis.signals
+        .map((s) => signalIdByCode.get(s.code))
+        .filter((id): id is string => id != null),
+    })),
+  });
 }
 
 /** Cria um briefing com token único e prazo de validade. */
@@ -168,16 +235,7 @@ export async function loadBriefingByToken(token: string) {
 
   if (!briefing) return { problem: "not_found" as const, briefing: null };
 
-  if (briefing.expiresAt && briefing.expiresAt < new Date()) {
-    return { problem: "expired" as const, briefing };
-  }
-
-  const closed = ["submitted", "ready_for_review", "approved"];
-  if (closed.includes(briefing.status)) {
-    return { problem: "already_submitted" as const, briefing };
-  }
-
-  return { problem: null, briefing };
+  return { problem: briefingAccessProblem(briefing), briefing };
 }
 
 /**
@@ -195,21 +253,46 @@ export async function saveAnswers(
   const keys = entries.map((e) => e.questionKey);
   const questions = await prisma.question.findMany({
     where: { key: { in: keys } },
-    select: { id: true, key: true },
+    select: { id: true, key: true, answerType: true, options: true },
   });
-  const questionIdByKey = new Map(questions.map((q) => [q.key, q.id] as const));
+  const questionByKey = new Map(questions.map((q) => [q.key, q] as const));
 
-  const unknown = keys.filter((key) => !questionIdByKey.has(key));
+  const unknown = keys.filter((key) => !questionByKey.has(key));
   if (unknown.length > 0) {
-    throw new Error(`Perguntas desconhecidas: ${unknown.join(", ")}`);
+    throw new InvalidAnswersError(
+      Object.fromEntries(unknown.map((key) => [key, "Pergunta desconhecida."])),
+      `Perguntas desconhecidas: ${unknown.join(", ")}`,
+    );
   }
 
-  await prisma.$transaction(async (tx) => {
-    for (const entry of entries) {
-      const questionId = questionIdByKey.get(entry.questionKey) as string;
-      const blank = isBlankValue(entry.value);
+  // Valida o lote inteiro antes de gravar: ou entra tudo, ou nada (DATA-03).
+  const issues: Record<string, string> = {};
+  for (const entry of entries) {
+    if (isBlankValue(entry.value)) continue;
+    const question = questionByKey.get(entry.questionKey)!;
+    const problem = validateAnswerValue(
+      {
+        answerType: question.answerType,
+        options: (question.options as QuestionOption[] | null) ?? null,
+      },
+      entry.value,
+    );
+    if (problem) issues[entry.questionKey] = problem;
+  }
+  if (Object.keys(issues).length > 0) throw new InvalidAnswersError(issues);
 
-      if (blank) {
+  await prisma.$transaction(async (tx) => {
+    // O estado é conferido COM a linha travada: um envio concorrente ou já
+    // concluído impede a gravação (DATA-01).
+    const current = await lockBriefing(tx, briefingId);
+    if (!current) throw new Error(`Briefing ${briefingId} não encontrado`);
+    const problem = briefingAccessProblem(current);
+    if (problem) throw new BriefingClosedError(problem);
+
+    for (const entry of entries) {
+      const questionId = questionByKey.get(entry.questionKey)!.id;
+
+      if (isBlankValue(entry.value)) {
         await tx.answer.deleteMany({ where: { briefingId, questionId } });
         continue;
       }
@@ -226,16 +309,13 @@ export async function saveAnswers(
     const data: Prisma.BriefingUpdateInput = {};
 
     if (branch) {
+      // Já validado contra as opções do catálogo, que espelham o enum.
       data.businessType = isBlankValue(branch.value)
         ? null
         : (String(branch.value) as BusinessType);
     }
 
     // Primeira resposta tira o briefing de "aguardando".
-    const current = await tx.briefing.findUniqueOrThrow({
-      where: { id: briefingId },
-      select: { status: true },
-    });
     if (current.status === "awaiting_response" || current.status === "draft") {
       data.status = "in_progress";
     }
@@ -246,25 +326,40 @@ export async function saveAnswers(
   });
 }
 
+export type SubmitOutcome =
+  | { ok: true; alreadySubmitted: boolean }
+  | { ok: false; missing: string[] }
+  | { ok: false; problem: "expired" | "not_found" };
+
 /**
- * Fecha o briefing: valida as obrigatórias visíveis, roda o motor e muda o
- * status. Devolve as pendências em vez de lançar quando falta algo.
+ * Fecha o briefing de forma atômica (DATA-01).
+ *
+ * Numa única transação, com a linha travada: confere o estado, valida as
+ * obrigatórias visíveis, roda o motor, grava sinais e diagnóstico e muda o
+ * status. Se qualquer passo falhar, nada muda — o briefing nunca fica fechado
+ * sem diagnóstico. Reenvio (duplo clique, envio concorrente) é idempotente.
  */
-export async function submitBriefing(briefingId: string) {
-  const ctx = await loadEvalContext(briefingId);
-  const missing = missingRequiredKeys(ctx);
+export async function submitBriefing(briefingId: string): Promise<SubmitOutcome> {
+  return prisma.$transaction(async (tx) => {
+    const current = await lockBriefing(tx, briefingId);
+    if (!current) return { ok: false, problem: "not_found" };
 
-  if (missing.length > 0) {
-    return { ok: false as const, missing };
-  }
+    const problem = briefingAccessProblem(current);
+    if (problem === "already_submitted") return { ok: true, alreadySubmitted: true };
+    if (problem === "expired") return { ok: false, problem: "expired" };
 
-  await prisma.briefing.update({
-    where: { id: briefingId },
-    data: { status: "ready_for_review", submittedAt: new Date() },
+    const ctx = await loadEvalContext(briefingId, tx);
+    const missing = missingRequiredKeys(ctx);
+    if (missing.length > 0) return { ok: false, missing };
+
+    await persistResult(tx, briefingId, processBriefing(ctx));
+    await tx.briefing.update({
+      where: { id: briefingId },
+      data: { status: "ready_for_review", submittedAt: new Date() },
+    });
+
+    return { ok: true, alreadySubmitted: false };
   });
-  const result = await processAndPersist(briefingId);
-
-  return { ok: true as const, result };
 }
 
 /** Chaves das obrigatórias visíveis ainda sem resposta. */

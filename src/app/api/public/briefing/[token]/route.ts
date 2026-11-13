@@ -31,8 +31,9 @@ export async function GET(
     const ctx = await loadEvalContext(briefing.id);
 
     return ok({
+      // Sem o id interno: o token já identifica o briefing para o respondente
+      // e o payload público leva só o necessário (FORM-14, NEW-02).
       briefing: {
-        id: briefing.id,
         status: briefing.status,
         businessType: briefing.businessType,
         expiresAt: briefing.expiresAt,
