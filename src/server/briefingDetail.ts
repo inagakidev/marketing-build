@@ -14,12 +14,11 @@ import {
 } from "@/core";
 
 /**
- * Monta a visão completa de um briefing para o painel e para o PDF.
+ * Builds a briefing's complete view for the panel and the PDF.
  *
- * Reconstrói os sinais e o diagnóstico a partir do que está GRAVADO, e não
- * recalculando: o painel precisa mostrar o mesmo resultado que foi produzido no
- * envio, mesmo que as regras tenham mudado desde então. Recalcular é uma ação
- * explícita da administradora (`/reprocess`).
+ * Rebuilds signals and diagnosis from what is STORED, not by recomputing: the
+ * panel must show the same result produced at submission, even if the rules
+ * changed since. Recomputing is an explicit admin action (`/reprocess`).
  */
 
 export interface AnswerView {
@@ -28,12 +27,12 @@ export interface AnswerView {
   helpText: string | null;
   answerType: string;
   required: boolean;
-  /** Valor cru, como está no banco. Alimenta a aba de respostas brutas. */
+  /** Raw value, as stored in the database. Feeds the raw answers tab. */
   value: string | string[] | null;
   /**
-   * Valor legível: em perguntas de escolha, o RÓTULO da opção em vez do
-   * código. Sem isso o painel e o PDF mostrariam "1_a_3_anos" para quem
-   * precisa ler e escrever a estratégia a partir daí.
+   * Readable value: for choice questions, the option's LABEL instead of its
+   * code. Without it the panel and PDF would show "1_a_3_anos" to whoever
+   * needs to read it and write the strategy from there.
    */
   displayValue: string | string[] | null;
   answeredAt: Date | null;
@@ -66,7 +65,7 @@ export interface BriefingDetail {
   categories: CategoryView[];
   diagnoses: (CategoryDiagnosis & { label: string })[];
   summary: DiagnosisSummary;
-  /** Perguntas obrigatórias visíveis ainda sem resposta. */
+  /** Visible required questions still unanswered. */
   missingRequiredKeys: string[];
   answeredCount: number;
   visibleCount: number;
@@ -77,8 +76,8 @@ export async function loadBriefingDetail(
   userId: string,
 ): Promise<BriefingDetail | null> {
   const briefing = await prisma.briefing.findFirst({
-    // O filtro por `userId` sobe pela relação: um id de briefing de outra
-    // conta não deve nem confirmar que existe.
+    // The `userId` filter goes up the relation: a briefing id from another
+    // account must not even confirm that it exists.
     where: { id: briefingId, client: { userId } },
     select: {
       id: true,
@@ -98,8 +97,8 @@ export async function loadBriefingDetail(
           internalNotes: true,
         },
       },
-      // Ordem explícita: sem ela o painel e o sumário herdariam a ordem
-      // física do banco, que pode mudar entre leituras (DATA-06).
+      // Explicit order: without it the panel and summary would inherit the
+      // database's physical order, which can change between reads (DATA-06).
       signals: { orderBy: { code: "asc" } },
       diagnoses: { orderBy: { category: "asc" } },
     },
@@ -170,8 +169,8 @@ export async function loadBriefingDetail(
     },
   );
 
-  // Reidrata o diagnóstico gravado no formato que o motor produz, para que o
-  // painel e o `buildSummary` trabalhem com a mesma estrutura dos testes.
+  // Rehydrates the stored diagnosis into the shape the engine produces, so the
+  // panel and `buildSummary` work with the same structure as the tests.
   const signalById = new Map(
     briefing.signals.map((s) => [
       s.id,

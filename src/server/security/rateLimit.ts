@@ -14,21 +14,21 @@ import {
 export { RATE_LIMITS, rateLimitKey, type RateLimitScope } from "./rateLimitRules";
 
 /**
- * Rate limiting por janela fixa, com contador no Postgres (SEC-04, D2).
+ * Fixed-window rate limiting with the counter in Postgres (SEC-04, D2).
  *
- * Em Vercel serverless cada instância tem a própria memória, então um contador
- * local não limitaria nada. O Postgres já existe — nenhuma dependência nova.
+ * On Vercel serverless each instance has its own memory, so a local counter
+ * wouldn't limit anything. Postgres already exists — no new dependency.
  *
- * Se o banco falhar ao contar, a requisição PASSA (fail-open): bloquear
- * respondentes legítimos por um problema de infraestrutura seria pior do que
- * deixar de limitar por alguns instantes.
+ * If the database fails to count, the request GOES THROUGH (fail-open):
+ * blocking legitimate respondents over an infrastructure problem would be
+ * worse than not limiting for a few moments.
  */
 
 /**
- * Conta uma requisição e diz se ela está dentro do limite.
+ * Counts a request and says whether it's within the limit.
  *
- * Um único `INSERT ... ON CONFLICT` faz leitura e escrita atômicas: duas
- * requisições simultâneas nunca leem o mesmo valor antigo.
+ * A single `INSERT ... ON CONFLICT` does an atomic read and write: two
+ * simultaneous requests never read the same old value.
  */
 export async function consumeRateLimit(
   scope: string,
@@ -63,8 +63,8 @@ export async function consumeRateLimit(
 }
 
 /**
- * Limpeza ocasional de chaves inativas, sem job agendado: ~1% das chamadas
- * apaga contadores parados há mais de um dia. Não bloqueia a resposta.
+ * Occasional cleanup of idle keys, without a scheduled job: ~1% of calls
+ * delete counters idle for over a day. Doesn't block the response.
  */
 function maybeCleanup(now: Date): void {
   if (Math.random() >= 0.01) return;
@@ -72,20 +72,20 @@ function maybeCleanup(now: Date): void {
   prisma.rateLimitBucket
     .deleteMany({ where: { windowStart: { lt: cutoff } } })
     .catch(() => {
-      // Limpeza é oportunista; a próxima tentativa resolve.
+      // Cleanup is opportunistic; the next attempt will handle it.
     });
 }
 
 export class RateLimitError extends Error {
   constructor(public readonly retryAfterSeconds: number) {
-    super("Muitas requisições");
+    super("Too many requests");
     this.name = "RateLimitError";
   }
 }
 
 /**
- * Aplica o limite da superfície e lança `RateLimitError` se estourar.
- * `identifier` padrão é o IP; rotas autenticadas podem passar o id do usuário.
+ * Applies the surface's limit and throws `RateLimitError` when exceeded.
+ * `identifier` defaults to the IP; authenticated routes can pass the user id.
  */
 export async function enforceRateLimit(
   request: Request,
@@ -96,7 +96,7 @@ export async function enforceRateLimit(
   try {
     result = await consumeRateLimit(scope, identifier, RATE_LIMITS[scope]);
   } catch (error) {
-    // Fail-open (ver comentário do módulo). Loga só o escopo, nunca o IP.
+    // Fail-open (see the module comment). Logs only the scope, never the IP.
     logError("rate-limit", error, { scope });
     return;
   }

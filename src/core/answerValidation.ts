@@ -1,15 +1,15 @@
 import type { AnswerType, AnswerValue, QuestionOption } from "./types";
 
 /**
- * Validação semântica de uma resposta contra o catálogo (DATA-03, FORM-05).
+ * Semantic validation of an answer against the catalog (DATA-03, FORM-05).
  *
- * O schema da borda (zod) só garante "string ou lista de strings". Aqui se
- * confere o que só o catálogo sabe: o formato certo para o tipo da pergunta,
- * opções que existem e limites de tamanho. Uma resposta inválida nunca chega
- * ao banco nem ao diagnóstico.
+ * The boundary schema (zod) only guarantees "string or list of strings". This
+ * checks what only the catalog knows: the right shape for the question type,
+ * options that exist and length limits. An invalid answer never reaches the
+ * database or the diagnosis.
  *
- * Valores em branco não passam por aqui: em branco significa "limpar a
- * resposta" e é tratado antes (ver `saveAnswers`).
+ * Blank values don't come through here: blank means "clear the answer" and is
+ * handled earlier (see `saveAnswers`).
  */
 
 export const ANSWER_LIMITS = {
@@ -22,7 +22,7 @@ export interface AnswerValidationTarget {
   options: QuestionOption[] | null;
 }
 
-/** Devolve a mensagem de erro (pt-BR), ou `null` quando o valor é válido. */
+/** Returns the error message (pt-BR, user-facing), or `null` when the value is valid. */
 export function validateAnswerValue(
   question: AnswerValidationTarget,
   value: AnswerValue,

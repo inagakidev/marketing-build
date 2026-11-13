@@ -5,12 +5,12 @@ import { answerIds, getAnswer } from "../helpers";
 import { NO_PAID_TRAFFIC_TERMS } from "../keywords";
 
 /**
- * `paid_traffic_no_metrics` — investiu em tráfego pago, mas não sabe o
- * resultado em número.
+ * `paid_traffic_no_metrics` — invested in paid traffic but doesn't know the
+ * result in numbers.
  *
- * Severidade `light` de propósito: é uma lacuna de informação a levantar na
- * reunião, não um erro de estratégia. Quem respondeu que nunca investiu não
- * dispara a regra — não há métrica a cobrar.
+ * `light` severity on purpose: it's an information gap to raise in the
+ * meeting, not a strategy error. Whoever answered they never invested doesn't
+ * trigger the rule — there's no metric to ask for.
  */
 export const paidTrafficNoMetricsRule: SignalRule = {
   code: "paid_traffic_no_metrics",

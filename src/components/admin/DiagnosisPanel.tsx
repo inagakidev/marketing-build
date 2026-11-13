@@ -8,11 +8,11 @@ import {
 } from "@/lib/labels";
 
 /**
- * Semáforo, principais problemas e oportunidades.
+ * Traffic light, main problems and opportunities.
  *
- * A ordem da tela é deliberada: primeiro o panorama das cinco categorias,
- * depois o que está pior e por quê, e só então o que dá para aproveitar. É a
- * sequência de uma conversa de diagnóstico — situação, problema, saída.
+ * The screen order is deliberate: first the overview of the five categories,
+ * then what's worst and why, and only then what can be leveraged. It's the
+ * sequence of a diagnosis conversation — situation, problem, way out.
  */
 export function DiagnosisPanel({ detail }: { detail: BriefingDetail }) {
   const { diagnoses, summary } = detail;

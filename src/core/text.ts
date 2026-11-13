@@ -1,26 +1,26 @@
 /**
- * Utilidades de texto para as regras de sinal.
+ * Text utilities for the signal rules.
  *
- * Tudo aqui trabalha sobre texto NORMALIZADO (minúsculo, sem acento), porque
- * as respostas vêm digitadas à mão por clientes: "Não sei", "nao sei" e
- * "NÃO SEI" precisam colidir. Nenhuma regra deve comparar texto cru.
+ * Everything here works on NORMALIZED text (lowercase, no accents), because
+ * answers are typed by hand by clients: "Não sei", "nao sei" and "NÃO SEI"
+ * must collide. No rule should compare raw text.
  */
 
 import type { AnswerValue, QuestionOption } from "./types";
 
-/** Minúsculo, sem acento, espaços colapsados. */
+/** Lowercase, no accents, collapsed whitespace. */
 export function normalize(input: string): string {
   return input
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove os diacríticos separados pelo NFD
+    .replace(/[\u0300-\u036f]/g, "") // strips the diacritics split off by NFD
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
 }
 
 /**
- * Achata um valor de resposta em texto único. multi_choice vira as opções
- * separadas por espaço, o que é o suficiente para busca de termos.
+ * Flattens an answer value into a single string. multi_choice becomes the
+ * options separated by spaces, which is enough for term search.
  */
 export function valueToText(value: AnswerValue | undefined | null): string {
   if (value == null) return "";
@@ -29,9 +29,9 @@ export function valueToText(value: AnswerValue | undefined | null): string {
 }
 
 /**
- * Troca o(s) código(s) gravado(s) pelo rótulo legível da opção, para exibição
- * no painel e no PDF. Sem `options` (perguntas de texto) ou sem rótulo
- * cadastrado para o código, devolve o valor cru como veio.
+ * Swaps the stored code(s) for the option's readable label, for display in
+ * the panel and the PDF. Without `options` (text questions) or without a label
+ * registered for the code, returns the raw value as is.
  */
 export function toDisplayValue(
   value: AnswerValue | null | undefined,
@@ -47,7 +47,7 @@ export function toDisplayValue(
   return labelByValue.get(value) ?? value;
 }
 
-/** Uma resposta é vazia se não tem conteúdo útil (string em branco ou []). */
+/** An answer is empty if it has no useful content (blank string or []). */
 export function isBlank(value: AnswerValue | undefined | null): boolean {
   if (value == null) return true;
   if (Array.isArray(value)) {
@@ -56,7 +56,7 @@ export function isBlank(value: AnswerValue | undefined | null): boolean {
   return value.trim() === "";
 }
 
-/** Tokens alfanuméricos do texto normalizado. */
+/** Alphanumeric tokens of the normalized text. */
 export function words(input: string): string[] {
   const normalized = normalize(input);
   if (!normalized) return [];
@@ -67,21 +67,21 @@ export function wordCount(input: string): number {
   return words(input).length;
 }
 
-/** Há algum dígito no texto? Usado para detectar meta sem número. */
+/** Does the text contain any digit? Used to detect a goal without a number. */
 export function hasDigit(input: string): boolean {
   return /\d/.test(input);
 }
 
 /**
- * O texto contém algum dos termos? Compara sobre a forma normalizada e
- * respeita fronteira de palavra, para "caro" não casar dentro de "carro".
- * Termos com espaço ("todo mundo") são buscados como expressão.
+ * Does the text contain any of the terms? Compares on the normalized form and
+ * respects word boundaries, so "caro" doesn't match inside "carro". Terms
+ * with spaces ("todo mundo") are searched as a phrase.
  */
 export function containsAny(input: string, terms: readonly string[]): boolean {
   return matchedTerms(input, terms).length > 0;
 }
 
-/** Como `containsAny`, mas devolve quais termos casaram (útil em mensagens). */
+/** Like `containsAny`, but returns which terms matched (useful in messages). */
 export function matchedTerms(
   input: string,
   terms: readonly string[],
@@ -104,8 +104,8 @@ function escapeRegExp(input: string): string {
 }
 
 /**
- * Stopwords do português. Removidas antes de medir sobreposição entre dois
- * textos, senão "de/a/o/para" inflam a semelhança de frases sem relação.
+ * Portuguese stopwords. Removed before measuring overlap between two texts,
+ * otherwise "de/a/o/para" inflate the similarity of unrelated sentences.
  */
 export const STOPWORDS: ReadonlySet<string> = new Set([
   "a", "ao", "aos", "as", "com", "como", "da", "das", "de", "dela", "dele",
@@ -118,7 +118,7 @@ export const STOPWORDS: ReadonlySet<string> = new Set([
   "tem", "tenho", "ter", "teu", "tua", "um", "uma", "voce", "voces", "vos",
 ]);
 
-/** Tokens significativos: sem stopwords e com pelo menos 3 caracteres. */
+/** Meaningful tokens: no stopwords and at least 3 characters long. */
 export function contentTokens(input: string): Set<string> {
   return new Set(
     words(input).filter((w) => w.length >= 3 && !STOPWORDS.has(w)),
@@ -126,9 +126,9 @@ export function contentTokens(input: string): Set<string> {
 }
 
 /**
- * Índice de Jaccard entre os tokens significativos de dois textos: 0 = nada em
- * comum, 1 = idênticos. Dois textos vazios devolvem 0 (não há evidência de
- * semelhança).
+ * Jaccard index between the meaningful tokens of two texts: 0 = nothing in
+ * common, 1 = identical. Two empty texts return 0 (no evidence of
+ * similarity).
  */
 export function tokenOverlap(a: string, b: string): number {
   const setA = contentTokens(a);

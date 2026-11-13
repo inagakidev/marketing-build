@@ -2,22 +2,22 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
 /**
- * Instância única do Prisma Client.
+ * Single Prisma Client instance.
  *
- * A partir do Prisma 7 o client não abre conexão sozinho: recebe um driver
- * adapter. Trocar o Postgres local pelo Supabase é trocar a DATABASE_URL —
- * nada aqui muda.
+ * Since Prisma 7 the client doesn't open a connection on its own: it takes a
+ * driver adapter. Swapping the local Postgres for Supabase means changing
+ * DATABASE_URL — nothing here changes.
  *
- * O cache no `globalThis` evita esgotar o pool de conexões durante o
- * desenvolvimento, quando o hot reload do Next reavalia este módulo a cada
- * alteração de arquivo.
+ * Caching on `globalThis` avoids exhausting the connection pool during
+ * development, when Next's hot reload re-evaluates this module on every file
+ * change.
  */
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL não definida. Copie .env.example para .env e preencha.",
+      "DATABASE_URL is not set. Copy .env.example to .env and fill it in.",
     );
   }
 

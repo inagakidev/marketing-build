@@ -1,14 +1,14 @@
 /**
- * Quem pode entrar no painel (SEC-01, decisão D3).
+ * Who can enter the panel (SEC-01, decision D3).
  *
- * Política provisória até os convites da Fase 1: só entra quem já tem
- * registro na tabela `users`, criado por `npm run db:seed:admin` ou ação
- * administrativa equivalente. Uma conta que exista apenas no Supabase — por
- * exemplo, criada pelo signup público dele — é recusada. O sistema nunca cria
- * usuário a partir de um login.
+ * Interim policy until Phase 1 invitations: only people who already have a
+ * record in the `users` table, created by `npm run db:seed:admin` or an
+ * equivalent admin action. An account that exists only in Supabase — e.g.
+ * created through its public sign-up — is rejected. The system never creates
+ * a user from a login.
  */
 
-/** Marca do `supabaseAuthId` de um cadastro local ainda sem conta de login. */
+/** `supabaseAuthId` marker of a local record that has no login account yet. */
 export const PENDING_AUTH_PREFIX = "pending:";
 
 export interface AuthIdentity {
@@ -38,9 +38,9 @@ export function decideProvisioning({
 }): ProvisioningDecision {
   if (byAuthId) return { action: "use", userId: byAuthId.id };
 
-  // Cadastro prévio criado sem Supabase: vincula no primeiro login, desde que
-  // o e-mail esteja confirmado (prova de posse) e o registro ainda não
-  // pertença a outra conta de autenticação.
+  // Pre-registered record created without Supabase: linked on first login, as
+  // long as the email is confirmed (proof of ownership) and the record doesn't
+  // already belong to another auth account.
   if (
     byEmail &&
     authUser.emailConfirmed &&

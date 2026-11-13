@@ -1,14 +1,14 @@
 /**
- * Tipos do motor de regras.
+ * Rules engine types.
  *
- * REGRA DE OURO: nada em `src/core` importa Next, Prisma ou Supabase. O motor
- * recebe objetos simples e devolve objetos simples. Isso é o que permite
- * testá-lo sem banco e o que mantém a lógica de negócio independente da
- * camada de persistência.
+ * GOLDEN RULE: nothing in `src/core` imports Next, Prisma or Supabase. The
+ * engine takes plain objects and returns plain objects. That's what lets us
+ * test it without a database and keeps business logic independent of the
+ * persistence layer.
  *
- * Os union types abaixo espelham os enums do Prisma de propósito, em vez de
- * importá-los: o core não deve depender do client gerado. O teste
- * `enums.test.ts` garante que os dois conjuntos não saiam de sincronia.
+ * The union types below mirror the Prisma enums on purpose instead of
+ * importing them: core must not depend on the generated client. The
+ * `enums.test.ts` test guarantees the two sets don't drift apart.
  */
 
 export type QuestionCategory =
@@ -46,17 +46,17 @@ export type SignalSeverity = "light" | "moderate" | "strong";
 
 export type DiagnosisStatus = "green" | "yellow" | "red" | "gray";
 
-/** Texto e single_choice guardam string; multi_choice guarda string[]. */
+/** Text and single_choice store a string; multi_choice stores string[]. */
 export type AnswerValue = string | string[];
 
-/** Uma opção de `single_choice`/`multi_choice`, como fica na coluna `options` (JSON). */
+/** A `single_choice`/`multi_choice` option, as stored in the `options` (JSON) column. */
 export interface QuestionOption {
   value: string;
   label: string;
 }
 
 // ---------------------------------------------------------------------------
-// Visibilidade condicional
+// Conditional visibility
 // ---------------------------------------------------------------------------
 
 export type ComparisonOperator =
@@ -69,13 +69,13 @@ export type ComparisonOperator =
   | "is_empty";
 
 /**
- * `field` aceita duas formas:
- * - `"business_type"` — o tipo de negócio do briefing (atalho, já que é a
- *   pergunta de ramificação e fica desnormalizada no Briefing).
- * - `"answer:<questionKey>"` — o valor da resposta de outra pergunta.
+ * `field` accepts two forms:
+ * - `"business_type"` — the briefing's business type (a shortcut, since it's
+ *   the branching question and is denormalized onto Briefing).
+ * - `"answer:<questionKey>"` — the value of another question's answer.
  *
- * Referenciamos perguntas por `key` (slug estável), nunca por `id` de banco:
- * ids mudam a cada re-seed e quebrariam as regras já gravadas.
+ * Questions are referenced by `key` (a stable slug), never by database `id`:
+ * ids change on every re-seed and would break the stored rules.
  */
 export interface FieldRule {
   field: string;
@@ -98,10 +98,10 @@ export interface NotRule {
 export type VisibilityRule = FieldRule | AllRule | AnyRule | NotRule;
 
 // ---------------------------------------------------------------------------
-// Entrada do motor
+// Engine input
 // ---------------------------------------------------------------------------
 
-/** Uma pergunta como o motor a enxerga — sem campos de persistência. */
+/** A question as the engine sees it — no persistence fields. */
 export interface QuestionSpec {
   key: string;
   category: QuestionCategory;
@@ -111,9 +111,9 @@ export interface QuestionSpec {
   visibilityRule?: VisibilityRule | null;
 }
 
-/** Uma resposta como o motor a enxerga. */
+/** An answer as the engine sees it. */
 export interface AnswerRecord {
-  /** `Answer.id` no banco — propagado para `sourceAnswerIds`. */
+  /** `Answer.id` in the database — propagated into `sourceAnswerIds`. */
   id: string;
   questionKey: string;
   value: AnswerValue;
@@ -126,18 +126,18 @@ export interface EvalContext {
 }
 
 // ---------------------------------------------------------------------------
-// Saída do motor
+// Engine output
 // ---------------------------------------------------------------------------
 
-/** O que uma regra devolve quando dispara. */
+/** What a rule returns when it fires. */
 export interface SignalRuleHit {
   description: string;
   sourceAnswerIds: string[];
 }
 
 /**
- * Uma regra de sinal. `evaluate` é uma função pura: mesma entrada, mesma
- * saída, sem efeitos colaterais.
+ * A signal rule. `evaluate` is a pure function: same input, same output, no
+ * side effects.
  */
 export interface SignalRule {
   code: string;
@@ -156,10 +156,10 @@ export interface DetectedSignal {
 
 export interface CategoryDiagnosis {
   category: DiagnosisCategory;
-  /** Null quando `status === "gray"`: a categoria não foi pontuada. */
+  /** Null when `status === "gray"`: the category wasn't scored. */
   score: number | null;
   status: DiagnosisStatus;
   signals: DetectedSignal[];
-  /** Perguntas obrigatórias e visíveis que ficaram sem resposta. */
+  /** Visible required questions left unanswered. */
   missingRequiredKeys: string[];
 }

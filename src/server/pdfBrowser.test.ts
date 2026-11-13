@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { chooseBrowserSource } from "./pdfBrowser";
 
 describe("chooseBrowserSource (DEPLOY-01)", () => {
-  it("na Vercel usa o Chromium para serverless", () => {
+  it("uses the serverless Chromium on Vercel", () => {
     expect(chooseBrowserSource({ VERCEL: "1" })).toEqual({ kind: "serverless" });
   });
 
-  it("em AWS Lambda também", () => {
+  it("on AWS Lambda too", () => {
     expect(chooseBrowserSource({ AWS_LAMBDA_FUNCTION_NAME: "fn" })).toEqual({ kind: "serverless" });
   });
 
-  it("localmente usa o Chromium instalado, com caminho opcional", () => {
+  it("uses the installed Chromium locally, with an optional path", () => {
     expect(chooseBrowserSource({})).toEqual({ kind: "local" });
     expect(chooseBrowserSource({ CHROMIUM_EXECUTABLE_PATH: " /usr/bin/chromium " })).toEqual({
       kind: "local",
@@ -18,7 +18,7 @@ describe("chooseBrowserSource (DEPLOY-01)", () => {
     });
   });
 
-  it("CHROMIUM_EXECUTABLE_PATH vazio é ignorado", () => {
+  it("an empty CHROMIUM_EXECUTABLE_PATH is ignored", () => {
     expect(chooseBrowserSource({ CHROMIUM_EXECUTABLE_PATH: "" })).toEqual({ kind: "local" });
   });
 });

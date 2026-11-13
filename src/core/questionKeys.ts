@@ -1,17 +1,17 @@
 /**
- * Chaves estáveis das perguntas e valores de opção.
+ * Stable question keys and option values.
  *
- * Fonte única de verdade compartilhada entre o seed (que grava as perguntas) e
- * o motor de regras (que as referencia). Um erro de digitação vira erro de
- * compilação em vez de uma regra que silenciosamente nunca dispara — que é
- * exatamente o tipo de bug que não aparece em teste manual.
+ * Single source of truth shared between the seed (which writes the questions)
+ * and the rules engine (which references them). A typo becomes a compile
+ * error instead of a rule that silently never fires — exactly the kind of bug
+ * that doesn't show up in manual testing.
  */
 
 export const Q = {
   // business
   BUSINESS_NAME: "business_name",
   BUSINESS_DESCRIPTION: "business_description",
-  /** Pergunta de ramificação: define a `businessType` do briefing. */
+  /** Branching question: sets the briefing's `businessType`. */
   BUSINESS_TYPE: "business_type",
   BUSINESS_AGE: "business_age",
   PRODUCTS_SERVICES: "products_services",
@@ -55,32 +55,32 @@ export const Q = {
   ANYTHING_ELSE: "anything_else",
   CONSTRAINTS: "constraints",
 
-  // ramificação — local_business
+  // branch — local_business
   LOCAL_CITY_REGION: "local_city_region",
   LOCAL_SERVICE_MODE: "local_service_mode",
   LOCAL_UNITS_COUNT: "local_units_count",
   LOCAL_GOOGLE_PROFILE: "local_google_profile",
   LOCAL_HOW_FOUND: "local_how_found",
 
-  // ramificação — ecommerce
+  // branch — ecommerce
   ECOM_SALES_CHANNELS: "ecom_sales_channels",
   ECOM_MAIN_BOTTLENECK: "ecom_main_bottleneck",
   ECOM_SHIPPING: "ecom_shipping",
   ECOM_CONVERSION_TRACKING: "ecom_conversion_tracking",
 
-  // ramificação — info_product
+  // branch — info_product
   INFO_AUDIENCE_STATUS: "info_audience_status",
   INFO_LAUNCH_HISTORY: "info_launch_history",
   INFO_TRANSFORMATION: "info_transformation",
   INFO_SOCIAL_PROOF: "info_social_proof",
 
-  // ramificação — freelancer
+  // branch — freelancer
   FREE_TEAM_SETUP: "free_team_setup",
   FREE_CLIENT_NEED: "free_client_need",
   FREE_PERSONAL_EXPOSURE: "free_personal_exposure",
   FREE_REGULATED_COUNCIL: "free_regulated_council",
 
-  // ramificação — b2b_service
+  // branch — b2b_service
   B2B_DECISION_CYCLE: "b2b_decision_cycle",
   B2B_DECISION_MAKERS: "b2b_decision_makers",
   B2B_DOCUMENTED_CASES: "b2b_documented_cases",
@@ -90,10 +90,10 @@ export const Q = {
 export type QuestionKey = (typeof Q)[keyof typeof Q];
 
 // ---------------------------------------------------------------------------
-// Valores de opção referenciados por regras
+// Option values referenced by rules
 // ---------------------------------------------------------------------------
 
-/** Opções de `closest_goal`. */
+/** `closest_goal` options. */
 export const GOAL = {
   RECOGNITION: "reconhecimento",
   SALES: "vendas",
@@ -102,7 +102,7 @@ export const GOAL = {
   AUTHORITY: "autoridade",
 } as const;
 
-/** Opções de `posting_frequency`. */
+/** `posting_frequency` options. */
 export const POSTING = {
   DAILY: "diaria",
   WEEKLY: "semanal",
@@ -112,6 +112,6 @@ export const POSTING = {
 } as const;
 
 /**
- * Objetivos que exigem conversão — usados por `goal_behavior_contradiction`.
+ * Goals that require conversion — used by `goal_behavior_contradiction`.
  */
 export const CONVERSION_GOALS: readonly string[] = [GOAL.SALES, GOAL.LEADS];

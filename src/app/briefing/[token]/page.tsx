@@ -4,12 +4,12 @@ import { BriefingFlow } from "@/components/briefing/BriefingFlow";
 import { LinkProblem } from "@/components/briefing/LinkProblem";
 
 /**
- * Formulário público, acessado por token e sem login.
+ * Public form, accessed by token without login.
  *
- * O carregamento acontece no servidor para que a primeira tela chegue pronta —
- * a maior parte dos respondentes abre pelo celular, muitas vezes em conexão
- * ruim, e uma tela de esqueleto piscando antes do conteúdo é justamente o que
- * faz o link parecer quebrado.
+ * Loading happens on the server so the first screen arrives ready — most
+ * respondents open it on their phone, often on a poor connection, and a
+ * skeleton screen flashing before the content is exactly what makes the link
+ * look broken.
  */
 export default async function BriefingPage({
   params,

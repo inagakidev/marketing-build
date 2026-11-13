@@ -2,11 +2,11 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 /**
- * Configuração do Prisma 7.
+ * Prisma 7 configuration.
  *
- * A partir da v7 a connection string não pode mais viver no schema.prisma —
- * ela é declarada aqui e o PrismaClient em runtime recebe um driver adapter
- * (ver src/server/db.ts).
+ * Since v7 the connection string can no longer live in schema.prisma — it's
+ * declared here and the runtime PrismaClient takes a driver adapter (see
+ * src/server/db.ts).
  */
 export default defineConfig({
   schema: "prisma/schema.prisma",

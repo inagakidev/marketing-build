@@ -4,15 +4,15 @@ import { Q } from "../../questionKeys";
 import { answerIds, getAnswer } from "../helpers";
 import { VAGUE_GOAL_TERMS } from "../keywords";
 
-/** Abaixo disto, a resposta é curta demais para conter uma meta real. */
+/** Below this, the answer is too short to contain a real goal. */
 const MIN_WORDS = 15;
 
 /**
- * `vague_goal` — a meta de 6 meses não tem número nem prazo.
+ * `vague_goal` — the 6-month goal has no number or deadline.
  *
- * A presença de um dígito é o que mais separa meta de desejo: "quero crescer"
- * vs. "quero 30 clientes novos até dezembro". Por isso qualquer resposta com
- * número escapa da regra, mesmo que curta.
+ * A digit is what best separates a goal from a wish: "quero crescer" vs.
+ * "quero 30 clientes novos até dezembro". That's why any answer with a number
+ * escapes the rule, even a short one.
  */
 export const vagueGoalRule: SignalRule = {
   code: "vague_goal",
@@ -21,7 +21,7 @@ export const vagueGoalRule: SignalRule = {
 
   evaluate(ctx) {
     const answer = getAnswer(ctx, Q.SUCCESS_6_MONTHS);
-    // Sem resposta não é sinal: a ausência vira `gray` no diagnóstico.
+    // No answer isn't a signal: the absence becomes `gray` in the diagnosis.
     if (!answer) return null;
 
     const text = String(answer.value);

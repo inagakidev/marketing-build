@@ -3,11 +3,10 @@ import { buildSteps, type EvalContext, type FormStep } from "@/core";
 import { valueToText } from "@/core/text";
 
 /**
- * Payload do formulário público: etapas, perguntas e respostas já salvas.
+ * Public form payload: steps, questions and already saved answers.
  *
- * Contém apenas o que a tela precisa desenhar. Nada de diagnóstico, sinais ou
- * dados do cliente — este payload vai para quem tem o token, não para a
- * administradora.
+ * Contains only what the screen needs to draw. No diagnosis, signals or client
+ * data — this payload goes to whoever holds the token, not to the admin.
  */
 
 export interface PublicQuestion {
@@ -17,14 +16,14 @@ export interface PublicQuestion {
   answerType: string;
   required: boolean;
   options: { value: string; label: string }[] | null;
-  /** Resposta já gravada, se houver. */
+  /** Already stored answer, if any. */
   value: string | string[] | null;
 }
 
 export interface PublicForm {
   steps: FormStep[];
   questions: PublicQuestion[];
-  /** Chaves obrigatórias ainda sem resposta — o front usa para o passo final. */
+  /** Required keys still unanswered — the frontend uses them for the final step. */
   missingRequiredKeys: string[];
 }
 

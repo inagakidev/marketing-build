@@ -13,10 +13,10 @@ import { useAutosave, type SaveState } from "./useAutosave";
 type Stage = "welcome" | "form" | "review" | "done";
 
 /**
- * Fluxo completo do respondente: boas-vindas, blocos, revisão e agradecimento.
+ * The respondent's whole flow: welcome, blocks, review and thank-you.
  *
- * É um único componente com estágios em vez de quatro rotas: assim voltar uma
- * etapa não recarrega a página nem arrisca perder o que ainda não foi gravado.
+ * It's a single component with stages instead of four routes: going back a
+ * step doesn't reload the page or risk losing what hasn't been saved yet.
  */
 export function BriefingFlow({
   token,
@@ -36,7 +36,7 @@ export function BriefingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  /** Valores dos campos. Fonte da verdade local — ver `useAutosave`. */
+  /** Field values. Local source of truth — see `useAutosave`. */
   const [values, setValues] = useState<Record<string, AnswerValue>>(() =>
     Object.fromEntries(
       initialForm.questions
@@ -54,8 +54,8 @@ export function BriefingFlow({
   );
 
   const steps = form.steps;
-  // A ramificação pode encurtar o formulário: se a etapa atual deixou de
-  // existir, recua para a última válida em vez de mostrar uma tela vazia.
+  // The branch can shorten the form: if the current step no longer exists,
+  // fall back to the last valid one instead of showing an empty screen.
   const safeIndex = Math.min(stepIndex, Math.max(steps.length - 1, 0));
   const step = steps[safeIndex];
 
@@ -65,7 +65,7 @@ export function BriefingFlow({
     autosave.save(key, value);
   }
 
-  /** Obrigatórias sem resposta na etapa atual. */
+  /** Unanswered required questions in the current step. */
   function missingInStep(): string[] {
     if (!step) return [];
     return step.questionKeys.filter((key) => {
@@ -83,8 +83,8 @@ export function BriefingFlow({
       return;
     }
 
-    // Grava antes de avançar: se a rede cair na próxima tela, o que já foi
-    // preenchido aqui está seguro.
+    // Save before moving on: if the network drops on the next screen, what was
+    // filled in here is safe.
     await autosave.flushNow();
     setInvalidKeys([]);
 
@@ -113,7 +113,7 @@ export function BriefingFlow({
       const data = await response.json();
 
       if (response.status === 422) {
-        // Faltou obrigatória: leva de volta à primeira etapa com pendência.
+        // A required question is missing: go back to the first step with pending items.
         const missing: string[] = data.missingRequiredKeys ?? [];
         setInvalidKeys(missing);
         const target = steps.findIndex((s) =>
@@ -323,7 +323,7 @@ export function BriefingFlow({
   );
 }
 
-/** Layout mobile-first: coluna única, respiro nas laterais. */
+/** Mobile-first layout: single column, breathing room on the sides. */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main data-context="public" className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 sm:py-12 space-y-6">
@@ -352,9 +352,9 @@ function SaveIndicator({ state }: { state: SaveState }) {
 }
 
 /**
- * Aviso de que o formulário cresceu depois da pergunta de ramificação.
+ * Notice that the form grew after the branching question.
  *
- * Sem isso o total de etapas muda no meio do preenchimento e parece defeito.
+ * Without it the number of steps changes mid-way and looks like a bug.
  */
 function BranchNotice({
   questions,

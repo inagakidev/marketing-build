@@ -2,21 +2,21 @@ import { serverEnv } from "./env";
 import { launchBrowser } from "./pdfBrowser";
 
 /**
- * Geração de PDF a partir da página de impressão.
+ * PDF generation from the print page.
  *
- * Reaproveitar a página em vez de desenhar o PDF em código é deliberado: o
- * layout já existe, já é responsivo e já está traduzido. Manter dois
- * renderizadores separados garantiria que um deles ficasse desatualizado.
+ * Reusing the page instead of drawing the PDF in code is deliberate: the
+ * layout already exists, is responsive and is already in pt-BR. Keeping two
+ * separate renderers would guarantee one of them goes stale.
  *
- * Qual Chromium é usado (serverless ou local) fica em `pdfBrowser.ts`.
+ * Which Chromium is used (serverless or local) lives in `pdfBrowser.ts`.
  */
 
 /**
- * Renderiza a página de impressão de um briefing em PDF.
+ * Renders a briefing's print page to PDF.
  *
- * Os cookies da requisição são repassados ao navegador: a página de impressão
- * é autenticada, e sem eles o Playwright receberia um redirecionamento para o
- * login e geraria o PDF da tela errada.
+ * The request's cookies are passed on to the browser: the print page is
+ * authenticated, and without them Playwright would get a redirect to the
+ * login and render the PDF of the wrong screen.
  */
 export async function renderBriefingPdf(
   briefingId: string,
@@ -39,19 +39,19 @@ export async function renderBriefingPdf(
     const page = await context.newPage();
 
     const response = await page.goto(url, {
-      // `networkidle` esperaria conexões que o Next mantém abertas em
-      // desenvolvimento e estouraria o tempo limite.
+      // `networkidle` would wait for connections Next keeps open in
+      // development and hit the timeout.
       waitUntil: "domcontentloaded",
       timeout: 30_000,
     });
 
     if (!response || !response.ok()) {
       throw new Error(
-        `Página de impressão respondeu ${response?.status() ?? "sem resposta"}.`,
+        `Print page responded ${response?.status() ?? "with no response"}.`,
       );
     }
 
-    // Garante que as fontes carregaram antes de medir a paginação.
+    // Makes sure fonts loaded before measuring pagination.
     await page.evaluate(() => document.fonts.ready);
 
     const pdf = await page.pdf({
@@ -66,7 +66,7 @@ export async function renderBriefingPdf(
   }
 }
 
-/** Converte o cabeçalho `Cookie` no formato que o Playwright espera. */
+/** Converts the `Cookie` header into the shape Playwright expects. */
 function parseCookieHeader(header: string, domain: string) {
   return header
     .split(";")

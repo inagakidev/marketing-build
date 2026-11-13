@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
- * Conta autenticada no Supabase, mas sem acesso ao painel (SEC-01, D3).
+ * Account authenticated in Supabase but without panel access (SEC-01, D3).
  *
- * Explica o que aconteceu e oferece sair, para que a pessoa possa entrar com
- * outra conta — sem isso ela ficaria presa entre o login e o painel.
+ * Explains what happened and offers to sign out, so the person can sign in
+ * with another account — without it they'd be stuck between login and panel.
  */
 export function NoAccessNotice() {
   const router = useRouter();

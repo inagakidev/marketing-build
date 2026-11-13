@@ -17,9 +17,8 @@ import { runSignals } from "./run";
 beforeEach(resetQuestionOrder);
 
 /**
- * Aplica uma regra a um conjunto de respostas. As perguntas são inferidas e
- * ficam todas visíveis, isolando a regra do motor de visibilidade — que tem
- * testes próprios.
+ * Applies a rule to a set of answers. Questions are inferred and all visible,
+ * isolating the rule from the visibility engine — which has its own tests.
  */
 function evaluate(
   rule: SignalRule,
@@ -30,9 +29,9 @@ function evaluate(
 }
 
 describe("vague_goal", () => {
-  it("dispara por termo genérico mesmo em resposta longa", () => {
-    // Longa o bastante (>15 palavras) para não cair no critério de tamanho:
-    // isola o caminho da lista de palavras-chave.
+  it("fires on a generic term even in a long answer", () => {
+    // Long enough (>15 words) not to hit the length criterion: isolates the
+    // keyword-list path.
     const hit = evaluate(vagueGoalRule, [
       answer(
         Q.SUCCESS_6_MONTHS,
@@ -44,14 +43,14 @@ describe("vague_goal", () => {
     expect(hit?.sourceAnswerIds).toEqual([`ans-${Q.SUCCESS_6_MONTHS}`]);
   });
 
-  it("dispara com resposta curta demais, mesmo sem termo da lista", () => {
+  it("fires on a too-short answer, even without a listed term", () => {
     const hit = evaluate(vagueGoalRule, [
       answer(Q.SUCCESS_6_MONTHS, "Ir bem."),
     ]);
     expect(hit).not.toBeNull();
   });
 
-  it("não dispara quando há número", () => {
+  it("doesn't fire when there's a number", () => {
     expect(
       evaluate(vagueGoalRule, [
         answer(Q.SUCCESS_6_MONTHS, "Quero crescer para 30 clientes por mês"),
@@ -59,7 +58,7 @@ describe("vague_goal", () => {
     ).toBeNull();
   });
 
-  it("não dispara com meta longa e específica", () => {
+  it("doesn't fire on a long, specific goal", () => {
     expect(
       evaluate(vagueGoalRule, [
         answer(
@@ -70,7 +69,7 @@ describe("vague_goal", () => {
     ).toBeNull();
   });
 
-  it("não dispara quando a pergunta não foi respondida", () => {
+  it("doesn't fire when the question wasn't answered", () => {
     expect(evaluate(vagueGoalRule, [])).toBeNull();
     expect(
       evaluate(vagueGoalRule, [answer(Q.SUCCESS_6_MONTHS, "   ")]),
@@ -79,9 +78,9 @@ describe("vague_goal", () => {
 });
 
 describe("broad_audience", () => {
-  it("dispara por termo amplo mesmo em resposta longa", () => {
-    // Longa o bastante para não cair no critério de tamanho: isola o caminho
-    // da lista de palavras-chave.
+  it("fires on a broad term even in a long answer", () => {
+    // Long enough not to hit the length criterion: isolates the keyword-list
+    // path.
     const hit = evaluate(broadAudienceRule, [
       answer(
         Q.IDEAL_CLIENT,
@@ -93,13 +92,13 @@ describe("broad_audience", () => {
     expect(hit?.sourceAnswerIds).toEqual([`ans-${Q.IDEAL_CLIENT}`]);
   });
 
-  it("dispara com resposta curta demais", () => {
+  it("fires on a too-short answer", () => {
     expect(
       evaluate(broadAudienceRule, [answer(Q.IDEAL_CLIENT, "Mulheres")]),
     ).not.toBeNull();
   });
 
-  it("não dispara com público segmentado", () => {
+  it("doesn't fire on a segmented audience", () => {
     expect(
       evaluate(broadAudienceRule, [
         answer(
@@ -112,14 +111,14 @@ describe("broad_audience", () => {
 });
 
 describe("generic_differentiator", () => {
-  it("dispara quando só há termos genéricos", () => {
+  it("fires when there are only generic terms", () => {
     const hit = evaluate(genericDifferentiatorRule, [
       answer(Q.DIFFERENTIATOR, "Qualidade e bom atendimento"),
     ]);
     expect(hit).not.toBeNull();
   });
 
-  it("não dispara quando há substância junto do termo genérico", () => {
+  it("doesn't fire when there's substance alongside the generic term", () => {
     expect(
       evaluate(genericDifferentiatorRule, [
         answer(
@@ -130,7 +129,7 @@ describe("generic_differentiator", () => {
     ).toBeNull();
   });
 
-  it("não dispara quando nenhum termo genérico aparece", () => {
+  it("doesn't fire when no generic term appears", () => {
     expect(
       evaluate(genericDifferentiatorRule, [
         answer(Q.DIFFERENTIATOR, "Entrego em 24 horas com rastreio"),
@@ -140,7 +139,7 @@ describe("generic_differentiator", () => {
 });
 
 describe("positioning_gap", () => {
-  it("dispara quando as percepções não compartilham vocabulário", () => {
+  it("fires when the perceptions share no vocabulary", () => {
     const hit = evaluate(positioningGapRule, [
       answer(Q.CURRENT_PERCEPTION, "Uma padaria de bairro barata e simples"),
       answer(Q.DESIRED_PERCEPTION, "Confeitaria autoral sofisticada para eventos corporativos"),
@@ -152,7 +151,7 @@ describe("positioning_gap", () => {
     ]);
   });
 
-  it("não dispara quando as percepções são próximas", () => {
+  it("doesn't fire when the perceptions are close", () => {
     expect(
       evaluate(positioningGapRule, [
         answer(Q.CURRENT_PERCEPTION, "Confeitaria artesanal de bairro conhecida pelos bolos"),
@@ -161,7 +160,7 @@ describe("positioning_gap", () => {
     ).toBeNull();
   });
 
-  it("não dispara se faltar uma das duas percepções", () => {
+  it("doesn't fire if one of the two perceptions is missing", () => {
     expect(
       evaluate(positioningGapRule, [
         answer(Q.CURRENT_PERCEPTION, "Padaria de bairro"),
@@ -171,14 +170,14 @@ describe("positioning_gap", () => {
 });
 
 describe("unclear_conversion", () => {
-  it("dispara quando o processo de compra não foi descrito", () => {
+  it("fires when the purchase process wasn't described", () => {
     const hit = evaluate(unclearConversionRule, []);
     expect(hit).not.toBeNull();
-    // Não há resposta a rastrear.
+    // There's no answer to trace.
     expect(hit?.sourceAnswerIds).toEqual([]);
   });
 
-  it("dispara quando a descrição é curta demais", () => {
+  it("fires when the description is too short", () => {
     const hit = evaluate(unclearConversionRule, [
       answer(Q.PURCHASE_PROCESS, "Chama no direct"),
     ]);
@@ -186,7 +185,7 @@ describe("unclear_conversion", () => {
     expect(hit?.sourceAnswerIds).toEqual([`ans-${Q.PURCHASE_PROCESS}`]);
   });
 
-  it("não dispara quando o caminho está detalhado", () => {
+  it("doesn't fire when the path is detailed", () => {
     expect(
       evaluate(unclearConversionRule, [
         answer(
@@ -199,7 +198,7 @@ describe("unclear_conversion", () => {
 });
 
 describe("inconsistent_presence", () => {
-  it("dispara com canal ativo e publicação esporádica", () => {
+  it("fires with an active channel and sporadic posting", () => {
     const hit = evaluate(inconsistentPresenceRule, [
       answer(Q.ACTIVE_CHANNELS, ["instagram", "facebook"]),
       answer(Q.POSTING_FREQUENCY, POSTING.SPORADIC),
@@ -211,7 +210,7 @@ describe("inconsistent_presence", () => {
     ]);
   });
 
-  it("dispara quando parou de publicar", () => {
+  it("fires when posting stopped", () => {
     expect(
       evaluate(inconsistentPresenceRule, [
         answer(Q.ACTIVE_CHANNELS, ["instagram"]),
@@ -220,7 +219,7 @@ describe("inconsistent_presence", () => {
     ).not.toBeNull();
   });
 
-  it("não dispara com cadência regular", () => {
+  it("doesn't fire with a regular cadence", () => {
     expect(
       evaluate(inconsistentPresenceRule, [
         answer(Q.ACTIVE_CHANNELS, ["instagram"]),
@@ -229,7 +228,7 @@ describe("inconsistent_presence", () => {
     ).toBeNull();
   });
 
-  it("não dispara sem nenhum canal ativo", () => {
+  it("doesn't fire without any active channel", () => {
     expect(
       evaluate(inconsistentPresenceRule, [
         answer(Q.ACTIVE_CHANNELS, []),
@@ -240,7 +239,7 @@ describe("inconsistent_presence", () => {
 });
 
 describe("paid_traffic_no_metrics", () => {
-  it("dispara quando investiu mas não cita número", () => {
+  it("fires when they invested but cite no number", () => {
     const hit = evaluate(paidTrafficNoMetricsRule, [
       answer(Q.PAID_TRAFFIC, "Já impulsionei publicação no Instagram, veio bastante gente"),
     ]);
@@ -248,7 +247,7 @@ describe("paid_traffic_no_metrics", () => {
     expect(hit?.sourceAnswerIds).toEqual([`ans-${Q.PAID_TRAFFIC}`]);
   });
 
-  it("não dispara quando há número", () => {
+  it("doesn't fire when there's a number", () => {
     expect(
       evaluate(paidTrafficNoMetricsRule, [
         answer(Q.PAID_TRAFFIC, "Investi R$ 300 e trouxe 12 pedidos"),
@@ -256,7 +255,7 @@ describe("paid_traffic_no_metrics", () => {
     ).toBeNull();
   });
 
-  it("não dispara para quem nunca investiu", () => {
+  it("doesn't fire for someone who never invested", () => {
     expect(
       evaluate(paidTrafficNoMetricsRule, [
         answer(Q.PAID_TRAFFIC, "Nunca investi em anúncio"),
@@ -267,13 +266,13 @@ describe("paid_traffic_no_metrics", () => {
     ).toBeNull();
   });
 
-  it("é de severidade leve", () => {
+  it("has light severity", () => {
     expect(paidTrafficNoMetricsRule.severity).toBe("light");
   });
 });
 
 describe("goal_behavior_contradiction", () => {
-  it("dispara com objetivo de vendas e nenhuma menção a conversão", () => {
+  it("fires with a sales goal and no mention of conversion", () => {
     const hit = evaluate(goalBehaviorContradictionRule, [
       answer(Q.CLOSEST_GOAL, GOAL.SALES),
       answer(Q.ACTIVE_CHANNELS, ["instagram"]),
@@ -282,7 +281,7 @@ describe("goal_behavior_contradiction", () => {
     expect(hit).not.toBeNull();
   });
 
-  it("dispara também para objetivo de leads", () => {
+  it("also fires for a leads goal", () => {
     expect(
       evaluate(goalBehaviorContradictionRule, [
         answer(Q.CLOSEST_GOAL, GOAL.LEADS),
@@ -291,7 +290,7 @@ describe("goal_behavior_contradiction", () => {
     ).not.toBeNull();
   });
 
-  it("não dispara quando a presença digital fala em conversão", () => {
+  it("doesn't fire when the digital presence mentions conversion", () => {
     expect(
       evaluate(goalBehaviorContradictionRule, [
         answer(Q.CLOSEST_GOAL, GOAL.SALES),
@@ -300,7 +299,7 @@ describe("goal_behavior_contradiction", () => {
     ).toBeNull();
   });
 
-  it("não dispara para objetivos que não são de conversão", () => {
+  it("doesn't fire for non-conversion goals", () => {
     expect(
       evaluate(goalBehaviorContradictionRule, [
         answer(Q.CLOSEST_GOAL, GOAL.AUTHORITY),
@@ -309,7 +308,7 @@ describe("goal_behavior_contradiction", () => {
     ).toBeNull();
   });
 
-  it("rastreia o objetivo e as respostas de presença digital", () => {
+  it("traces the goal and the digital-presence answers", () => {
     const hit = evaluate(goalBehaviorContradictionRule, [
       answer(Q.CLOSEST_GOAL, GOAL.SALES),
       answer(Q.WHAT_WORKED, "Bastidores"),
@@ -322,7 +321,7 @@ describe("goal_behavior_contradiction", () => {
 });
 
 describe("regulated_profession_flag", () => {
-  it("dispara para autônoma de área regulada sem menção a restrição", () => {
+  it("fires for a freelancer in a regulated field with no mention of restrictions", () => {
     const hit = evaluate(
       regulatedProfessionFlagRule,
       [answer(Q.BUSINESS_DESCRIPTION, "Sou nutricionista e atendo online")],
@@ -332,7 +331,7 @@ describe("regulated_profession_flag", () => {
     expect(hit?.sourceAnswerIds).toEqual([`ans-${Q.BUSINESS_DESCRIPTION}`]);
   });
 
-  it("não dispara quando o tipo de negócio não é freelancer", () => {
+  it("doesn't fire when the business type isn't freelancer", () => {
     expect(
       evaluate(
         regulatedProfessionFlagRule,
@@ -342,7 +341,7 @@ describe("regulated_profession_flag", () => {
     ).toBeNull();
   });
 
-  it("não dispara em área não regulada", () => {
+  it("doesn't fire in an unregulated field", () => {
     expect(
       evaluate(
         regulatedProfessionFlagRule,
@@ -352,7 +351,7 @@ describe("regulated_profession_flag", () => {
     ).toBeNull();
   });
 
-  it("não dispara quando já há menção a cuidado com divulgação", () => {
+  it("doesn't fire when advertising caution is already mentioned", () => {
     expect(
       evaluate(
         regulatedProfessionFlagRule,
@@ -365,7 +364,7 @@ describe("regulated_profession_flag", () => {
     ).toBeNull();
   });
 
-  it("não dispara quando a pergunta ramificada de conselho foi respondida", () => {
+  it("doesn't fire when the council branch question was answered", () => {
     expect(
       evaluate(
         regulatedProfessionFlagRule,
@@ -379,8 +378,8 @@ describe("regulated_profession_flag", () => {
   });
 });
 
-describe("registro de regras", () => {
-  it("expõe as 9 regras da especificação, com códigos únicos", () => {
+describe("rule registry", () => {
+  it("exposes the 9 specified rules, with unique codes", () => {
     const codes = SIGNAL_RULES.map((r) => r.code);
     expect(codes).toHaveLength(9);
     expect(new Set(codes).size).toBe(9);
@@ -399,7 +398,7 @@ describe("registro de regras", () => {
     );
   });
 
-  it("associa cada regra a uma categoria de diagnóstico válida", () => {
+  it("associates each rule with a valid diagnosis category", () => {
     const valid = new Set([
       "positioning",
       "audience",
@@ -414,10 +413,10 @@ describe("registro de regras", () => {
 });
 
 describe("runSignals", () => {
-  it("não avalia respostas de perguntas invisíveis", () => {
-    // `business_description` só é visível para freelancer neste catálogo
-    // artificial; como o briefing é ecommerce, a resposta não deve alimentar
-    // o regulated_profession_flag.
+  it("doesn't evaluate answers to invisible questions", () => {
+    // `business_description` is only visible to freelancers in this artificial
+    // catalog; since the briefing is ecommerce, the answer must not feed
+    // regulated_profession_flag.
     const questions = [
       question(Q.BUSINESS_TYPE, { order: 1, answerType: "single_choice" }),
       question(Q.BUSINESS_DESCRIPTION, {
@@ -445,7 +444,7 @@ describe("runSignals", () => {
     expect(signals).toEqual([]);
   });
 
-  it("devolve um sinal completo por regra que dispara", () => {
+  it("returns a complete signal per rule that fires", () => {
     const signals = runSignals(
       context({
         answers: [answer(Q.SUCCESS_6_MONTHS, "crescer")],

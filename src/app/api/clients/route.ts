@@ -4,7 +4,7 @@ import { assertSameOrigin } from "@/server/security/origin";
 import { prisma } from "@/server/db";
 import { clientInputSchema } from "@/server/validation";
 
-/** Lista os clientes da administradora, com o briefing mais recente de cada. */
+/** Lists the admin's clients, with each one's most recent briefing. */
 export async function GET() {
   return handle(async () => {
     const user = await requireUser();

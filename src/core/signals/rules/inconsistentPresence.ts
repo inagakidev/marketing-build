@@ -3,17 +3,17 @@ import { normalize } from "../../text";
 import { POSTING, Q } from "../../questionKeys";
 import { answerIds, getAnswer, getValues } from "../helpers";
 
-/** Frequências que caracterizam presença abandonada ou irregular. */
+/** Frequencies that characterize an abandoned or irregular presence. */
 const INCONSISTENT_FREQUENCIES: readonly string[] = [
   POSTING.SPORADIC,
   POSTING.STOPPED,
 ];
 
 /**
- * `inconsistent_presence` — há canais ativos, mas sem cadência.
+ * `inconsistent_presence` — there are active channels, but no cadence.
  *
- * Perfil parado é pior do que perfil inexistente: o visitante que chega
- * encontra a última publicação de meses atrás e conclui que o negócio parou.
+ * A stale profile is worse than no profile: a visitor finds the last post from
+ * months ago and concludes the business has stopped.
  */
 export const inconsistentPresenceRule: SignalRule = {
   code: "inconsistent_presence",

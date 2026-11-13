@@ -11,10 +11,10 @@ import type { BriefingDetail } from "@/server/briefingDetail";
 import { formatDateTime } from "@/lib/labels";
 
 /**
- * Respostas cruas, com a chave técnica de cada pergunta.
+ * Raw answers, with each question's technical key.
  *
- * Serve para conferência e para investigar por que um sinal disparou (ou não):
- * as regras referenciam perguntas por `key`, e é essa chave que aparece aqui.
+ * Used for checking and for investigating why a signal fired (or didn't):
+ * rules reference questions by `key`, and that's the key shown here.
  */
 export function RawAnswers({ detail }: { detail: BriefingDetail }) {
   const rows = detail.categories.flatMap((category) =>

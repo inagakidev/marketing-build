@@ -2,7 +2,7 @@ import { fail, handle, ok } from "@/server/api";
 import { requireUser } from "@/server/auth";
 import { loadBriefingDetail } from "@/server/briefingDetail";
 
-/** Briefing processado: respostas por categoria, diagnóstico e sumário. */
+/** Processed briefing: answers by category, diagnosis and summary. */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },

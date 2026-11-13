@@ -20,18 +20,18 @@ function signal(
   };
 }
 
-/** Pega o resultado de uma categoria específica. */
+/** Gets the result for a specific category. */
 function forCategory(
   diagnoses: ReturnType<typeof buildDiagnosis>,
   category: DiagnosisCategory,
 ) {
   const found = diagnoses.find((d) => d.category === category);
-  if (!found) throw new Error(`categoria ausente: ${category}`);
+  if (!found) throw new Error(`missing category: ${category}`);
   return found;
 }
 
-describe("scoreToStatus — faixas", () => {
-  it("mapeia as três faixas pelos seus limites", () => {
+describe("scoreToStatus — bands", () => {
+  it("maps the three bands by their limits", () => {
     expect(scoreToStatus(100)).toBe("green");
     expect(scoreToStatus(80)).toBe("green");
     expect(scoreToStatus(79)).toBe("yellow");
@@ -41,8 +41,8 @@ describe("scoreToStatus — faixas", () => {
   });
 });
 
-describe("penalidades", () => {
-  it("usa os pesos da especificação", () => {
+describe("penalties", () => {
+  it("uses the specified weights", () => {
     expect(SEVERITY_PENALTY.light).toBe(15);
     expect(SEVERITY_PENALTY.moderate).toBe(25);
     expect(SEVERITY_PENALTY.strong).toBe(40);
@@ -50,7 +50,7 @@ describe("penalidades", () => {
 });
 
 describe("buildDiagnosis", () => {
-  it("avalia sempre as 5 categorias", () => {
+  it("always evaluates the 5 categories", () => {
     const diagnoses = buildDiagnosis(context({}), []);
     expect(diagnoses.map((d) => d.category)).toEqual([
       "positioning",
@@ -61,7 +61,7 @@ describe("buildDiagnosis", () => {
     ]);
   });
 
-  it("categoria sem nenhum sinal fica verde com 100", () => {
+  it("a category with no signal is green at 100", () => {
     const diagnoses = buildDiagnosis(context({}), []);
     const positioning = forCategory(diagnoses, "positioning");
 
@@ -70,12 +70,12 @@ describe("buildDiagnosis", () => {
     expect(positioning.signals).toEqual([]);
   });
 
-  it("um sinal strong derruba para 60 — amarelo, não vermelho", () => {
-    // DIVERGÊNCIA DOCUMENTADA: a especificação pedia que um sinal strong
-    // resultasse em `red`, mas 100 − 40 = 60, que cai na faixa amarela
-    // (50–79) definida pela própria especificação. Seguimos a aritmética.
-    // Para que um strong virasse vermelho, a penalidade teria de ser ≥ 51
-    // ou a faixa amarela começar em 65.
+  it("one strong signal drops it to 60 — yellow, not red", () => {
+    // DOCUMENTED DIVERGENCE: the spec asked for one strong signal to result in
+    // `red`, but 100 − 40 = 60, which falls in the yellow band (50–79) the
+    // spec itself defines. We follow the arithmetic. For one strong signal to
+    // turn red, the penalty would have to be ≥ 51 or the yellow band would
+    // have to start at 65.
     const diagnoses = buildDiagnosis(context({}), [
       signal("broad_audience", "audience", "strong"),
     ]);
@@ -85,7 +85,7 @@ describe("buildDiagnosis", () => {
     expect(audience.status).toBe("yellow");
   });
 
-  it("dois sinais strong derrubam para 20 — vermelho", () => {
+  it("two strong signals drop it to 20 — red", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "audience", "strong"),
       signal("b", "audience", "strong"),
@@ -96,7 +96,7 @@ describe("buildDiagnosis", () => {
     expect(audience.status).toBe("red");
   });
 
-  it("um strong e um moderate derrubam para 35 — vermelho", () => {
+  it("one strong and one moderate drop it to 35 — red", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "offer", "strong"),
       signal("b", "offer", "moderate"),
@@ -105,7 +105,7 @@ describe("buildDiagnosis", () => {
     expect(forCategory(diagnoses, "offer").status).toBe("red");
   });
 
-  it("um sinal light mantém a categoria verde", () => {
+  it("one light signal keeps the category green", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "digital_presence", "light"),
     ]);
@@ -113,19 +113,19 @@ describe("buildDiagnosis", () => {
     expect(forCategory(diagnoses, "digital_presence").status).toBe("green");
   });
 
-  it("a pontuação nunca fica abaixo de 0", () => {
+  it("the score never goes below 0", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "positioning", "strong"),
       signal("b", "positioning", "strong"),
       signal("c", "positioning", "strong"),
       signal("d", "positioning", "moderate"),
     ]);
-    // 100 − 145 seria negativo.
+    // 100 − 145 would be negative.
     expect(forCategory(diagnoses, "positioning").score).toBe(0);
     expect(forCategory(diagnoses, "positioning").status).toBe("red");
   });
 
-  it("sinais de uma categoria não afetam as outras", () => {
+  it("one category's signals don't affect the others", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "audience", "strong"),
     ]);
@@ -134,7 +134,7 @@ describe("buildDiagnosis", () => {
     expect(forCategory(diagnoses, "offer").score).toBe(100);
   });
 
-  it("obrigatória sem resposta deixa a categoria cinza, ignorando sinais", () => {
+  it("an unanswered required question turns the category gray, ignoring signals", () => {
     const questions = [
       question("ideal_client", { category: "audience", required: true }),
     ];
@@ -147,11 +147,11 @@ describe("buildDiagnosis", () => {
     expect(audience.status).toBe("gray");
     expect(audience.score).toBeNull();
     expect(audience.missingRequiredKeys).toEqual(["ideal_client"]);
-    // O sinal continua listado para consulta, mas não foi pontuado.
+    // The signal is still listed for reference, but wasn't scored.
     expect(audience.signals).toHaveLength(1);
   });
 
-  it("resposta em branco conta como não respondida", () => {
+  it("a blank answer counts as unanswered", () => {
     const questions = [
       question("ideal_client", { category: "audience", required: true }),
     ];
@@ -162,7 +162,7 @@ describe("buildDiagnosis", () => {
     expect(forCategory(diagnoses, "audience").status).toBe("gray");
   });
 
-  it("obrigatória respondida devolve a categoria à pontuação normal", () => {
+  it("answering the required question restores normal scoring", () => {
     const questions = [
       question("ideal_client", { category: "audience", required: true }),
     ];
@@ -179,9 +179,9 @@ describe("buildDiagnosis", () => {
     expect(audience.score).toBe(60);
   });
 
-  it("não cobra obrigatória que está invisível para este briefing", () => {
-    // A ramificação de e-commerce é obrigatória no catálogo, mas o briefing é
-    // de negócio local: cobrá-la deixaria `offer` permanentemente cinza.
+  it("doesn't demand a required question invisible to this briefing", () => {
+    // The e-commerce branch is required in the catalog, but the briefing is
+    // for a local business: demanding it would leave `offer` permanently gray.
     const questions = [
       question("business_type", { order: 1, answerType: "single_choice" }),
       question("ecom_shipping", {
@@ -209,19 +209,19 @@ describe("buildDiagnosis", () => {
     expect(forCategory(diagnoses, "offer").score).toBe(100);
   });
 
-  it("perguntas de `closing` não afetam nenhuma categoria", () => {
+  it("`closing` questions don't affect any category", () => {
     const questions = [
       question("anything_else", { category: "closing", required: true }),
     ];
     const diagnoses = buildDiagnosis(context({ questions, answers: [] }), []);
 
-    // Nenhuma das 5 categorias fica cinza por causa de `closing`.
+    // None of the 5 categories turns gray because of `closing`.
     expect(diagnoses.every((d) => d.status === "green")).toBe(true);
   });
 
-  it("agrega as categorias de pergunta que alimentam positioning", () => {
-    // business, brand e competition alimentam a mesma categoria: basta uma
-    // obrigatória pendente em qualquer delas para deixá-la cinza.
+  it("aggregates the question categories that feed positioning", () => {
+    // business, brand and competition feed the same category: one pending
+    // required question in any of them is enough to turn it gray.
     const questions = [
       question("desired_perception", { category: "brand", required: true }),
     ];
@@ -235,7 +235,7 @@ describe("buildDiagnosis", () => {
 });
 
 describe("buildSummary", () => {
-  it("lista os problemas da pior categoria para a menos pior", () => {
+  it("lists problems from the worst category to the least bad", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "audience", "strong"),
       signal("b", "audience", "strong"), // audience = 20
@@ -249,7 +249,7 @@ describe("buildSummary", () => {
     expect(problems.map((p) => p.score)).toEqual([20, 35]);
   });
 
-  it("ordena os sinais de um problema pelo peso, do maior para o menor", () => {
+  it("sorts a problem's signals by weight, heaviest first", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("leve", "audience", "light"),
       signal("forte", "audience", "strong"),
@@ -264,7 +264,7 @@ describe("buildSummary", () => {
     ]);
   });
 
-  it("não lista categorias cinzas como problema", () => {
+  it("doesn't list gray categories as problems", () => {
     const questions = [
       question("ideal_client", { category: "audience", required: true }),
     ];
@@ -277,13 +277,13 @@ describe("buildSummary", () => {
     expect(buildSummary(ctx, diagnoses).problems).toEqual([]);
   });
 
-  it("lista categorias verdes como oportunidade", () => {
+  it("lists green categories as opportunities", () => {
     const diagnoses = buildDiagnosis(context({}), [
       signal("a", "audience", "strong"),
     ]);
     const { opportunities } = buildSummary(context({}), diagnoses);
 
-    // audience está amarela; as outras quatro seguem verdes.
+    // audience is yellow; the other four stay green.
     expect(opportunities.map((o) => o.category)).toEqual([
       "positioning",
       "offer",
@@ -292,7 +292,7 @@ describe("buildSummary", () => {
     ]);
   });
 
-  it("inclui o que já funcionou como oportunidade", () => {
+  it("includes what has already worked as an opportunity", () => {
     const ctx = context({
       answers: [answer("what_worked", "Parceria com o café da esquina")],
     });

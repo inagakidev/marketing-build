@@ -16,7 +16,7 @@ export interface DiagnosisProblem {
 }
 
 export interface DiagnosisOpportunity {
-  /** Presente quando a oportunidade vem de uma categoria bem avaliada. */
+  /** Present when the opportunity comes from a well-rated category. */
   category?: DiagnosisCategory;
   label: string;
   detail: string;
@@ -28,15 +28,14 @@ export interface DiagnosisSummary {
 }
 
 /**
- * Monta as duas listas do painel a partir do diagnóstico já calculado.
+ * Builds the panel's two lists from the already computed diagnosis.
  *
- * Problemas = categorias vermelhas, da pior para a menos pior, cada uma com os
- * sinais que causaram a queda (ordenados por peso, para a causa principal
- * aparecer primeiro).
+ * Problems = red categories, worst first, each with the signals that caused
+ * the drop (sorted by weight, so the main cause appears first).
  *
- * Oportunidades = categorias verdes, que são as alavancas já prontas para usar,
- * mais o que o próprio cliente relatou ter funcionado — a evidência mais barata
- * que existe, porque já foi validada no negócio dele.
+ * Opportunities = green categories, the levers already ready to use, plus
+ * what the client reported has worked — the cheapest evidence there is,
+ * because it's already been validated in their business.
  */
 export function buildSummary(
   ctx: EvalContext,

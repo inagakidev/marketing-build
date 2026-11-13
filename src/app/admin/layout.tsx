@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
 
 /**
- * Área autenticada.
+ * Authenticated area.
  *
- * A checagem acontece aqui, no servidor, e não apenas no `proxy.ts`: o proxy é
- * a primeira barreira, mas a autorização precisa valer também para quem chega
- * por navegação interna, quando o proxy pode não rodar.
+ * The check happens here, on the server, and not only in `proxy.ts`: the
+ * proxy is the first barrier, but authorization must also apply to whoever
+ * arrives through internal navigation, when the proxy may not run.
  */
 export default async function AdminLayout({
   children,

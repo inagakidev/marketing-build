@@ -18,7 +18,7 @@ export interface ClientFormValues {
   internalNotes: string;
 }
 
-/** Cadastro e edição de cliente. Um só componente para os dois casos. */
+/** Client creation and editing. A single component for both cases. */
 export function ClientForm({
   clientId,
   initial,

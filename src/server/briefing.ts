@@ -18,16 +18,16 @@ import {
 } from "@/core";
 
 /**
- * Camada de adaptação entre o banco e o motor de regras.
+ * Adapter layer between the database and the rules engine.
  *
- * Tudo o que envolve Prisma vive aqui; `src/core` continua sem saber que
- * existe um banco de dados.
+ * Everything involving Prisma lives here; `src/core` still doesn't know a
+ * database exists.
  */
 
 /**
- * Alfabeto sem caracteres ambíguos (0/O, 1/l/I): o link é lido e digitado por
- * pessoas. 24 caracteres deste alfabeto dão ~124 bits de entropia — o token é
- * a única credencial do respondente, então não pode ser adivinhável.
+ * Alphabet without ambiguous characters (0/O, 1/l/I): the link is read and
+ * typed by people. 24 characters of this alphabet give ~124 bits of entropy —
+ * the token is the respondent's only credential, so it must not be guessable.
  */
 const generateToken = customAlphabet(
   "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz",
@@ -39,16 +39,16 @@ export type BriefingAccessProblem =
   | "expired"
   | "already_submitted";
 
-/** Cliente do Prisma ou transação em curso: as leituras servem aos dois. */
+/** Prisma client or an ongoing transaction: reads work with both. */
 type Db = Prisma.TransactionClient;
 
 const CLOSED_STATUSES = ["submitted", "ready_for_review", "approved"];
 
 /**
- * Por que um briefing não aceita mais respostas, ou `null` se aceita.
+ * Why a briefing no longer accepts answers, or `null` if it does.
  *
- * "Já enviado" vem antes de "expirado": um briefing enviado cujo link venceu
- * depois continua sendo, para o respondente, um briefing enviado.
+ * "Already submitted" comes before "expired": a submitted briefing whose link
+ * expired later is still, for the respondent, a submitted briefing.
  */
 export function briefingAccessProblem(
   briefing: { status: string; expiresAt: Date | null },
@@ -59,19 +59,19 @@ export function briefingAccessProblem(
   return null;
 }
 
-/** O briefing não aceita mais respostas (enviado ou expirado). */
+/** The briefing no longer accepts answers (submitted or expired). */
 export class BriefingClosedError extends Error {
   constructor(public readonly problem: "expired" | "already_submitted") {
-    super(problem === "expired" ? "Link expirado" : "Briefing já enviado");
+    super(problem === "expired" ? "Link expired" : "Briefing already submitted");
     this.name = "BriefingClosedError";
   }
 }
 
-/** Respostas incompatíveis com o catálogo. `issues` é indexado pela chave da pergunta. */
+/** Answers incompatible with the catalog. `issues` is keyed by question key. */
 export class InvalidAnswersError extends Error {
   constructor(
     public readonly issues: Record<string, string>,
-    message = "Respostas inválidas",
+    message = "Invalid answers",
   ) {
     super(message);
     this.name = "InvalidAnswersError";
@@ -79,11 +79,11 @@ export class InvalidAnswersError extends Error {
 }
 
 /**
- * Trava a linha do briefing até o fim da transação.
+ * Locks the briefing row until the end of the transaction.
  *
- * Autosave, envio e reprocessamento passam todos por aqui: com a linha
- * travada eles se enfileiram, então nenhum deles vê um estado intermediário
- * do outro (DATA-01).
+ * Autosave, submission and reprocessing all go through here: with the row
+ * locked they queue up, so none of them sees another's intermediate state
+ * (DATA-01).
  */
 async function lockBriefing(tx: Db, briefingId: string) {
   const rows = await tx.$queryRaw<{ status: string; expiresAt: Date | null }[]>`
@@ -95,7 +95,7 @@ async function lockBriefing(tx: Db, briefingId: string) {
   return rows[0] ?? null;
 }
 
-/** Perguntas do catálogo, no formato que o motor entende. */
+/** Catalog questions, in the shape the engine understands. */
 export async function loadQuestionSpecs(db: Db = prisma): Promise<QuestionSpec[]> {
   const questions = await db.question.findMany({
     orderBy: { order: "asc" },
@@ -111,7 +111,7 @@ export async function loadQuestionSpecs(db: Db = prisma): Promise<QuestionSpec[]
   }));
 }
 
-/** Monta o contexto de avaliação de um briefing a partir do banco. */
+/** Builds a briefing's evaluation context from the database. */
 export async function loadEvalContext(
   briefingId: string,
   db: Db = prisma,
@@ -140,11 +140,11 @@ export async function loadEvalContext(
 }
 
 /**
- * Recalcula e regrava sinais e diagnóstico (reprocessamento explícito).
+ * Recomputes and rewrites signals and diagnosis (explicit reprocessing).
  *
- * Leitura das respostas, cálculo e gravação acontecem na MESMA transação, com
- * a linha do briefing travada: o resultado corresponde exatamente às
- * respostas gravadas naquele instante.
+ * Reading answers, computing and writing happen in the SAME transaction, with
+ * the briefing row locked: the result matches exactly the answers stored at
+ * that moment.
  */
 export async function processAndPersist(briefingId: string): Promise<ProcessedBriefing> {
   return prisma.$transaction(async (tx) => {
@@ -156,15 +156,15 @@ export async function processAndPersist(briefingId: string): Promise<ProcessedBr
 }
 
 /**
- * Apaga e recria sinais e diagnóstico. Idempotente: um sinal que deixou de
- * valer não sobrevive. Precisa rodar dentro de uma transação.
+ * Deletes and recreates signals and diagnosis. Idempotent: a signal that no
+ * longer applies doesn't survive. Must run inside a transaction.
  */
 async function persistResult(tx: Db, briefingId: string, result: ProcessedBriefing) {
   await tx.signal.deleteMany({ where: { briefingId } });
   await tx.diagnosis.deleteMany({ where: { briefingId } });
 
-  // Os sinais precisam ser criados antes para que o diagnóstico possa
-  // referenciar seus ids em `signalIds`.
+  // Signals must be created first so the diagnosis can reference their ids
+  // in `signalIds`.
   const createdSignals = [];
   for (const signal of result.signals) {
     createdSignals.push(
@@ -197,7 +197,7 @@ async function persistResult(tx: Db, briefingId: string, result: ProcessedBriefi
   });
 }
 
-/** Cria um briefing com token único e prazo de validade. */
+/** Creates a briefing with a unique token and an expiry date. */
 export async function createBriefing(clientId: string, ttlDays?: number) {
   const days = ttlDays ?? serverEnv().briefingLinkTtlDays;
   const expiresAt = new Date();
@@ -214,10 +214,10 @@ export async function createBriefing(clientId: string, ttlDays?: number) {
 }
 
 /**
- * Carrega um briefing pelo token e diz se ele ainda pode ser respondido.
+ * Loads a briefing by token and says whether it can still be answered.
  *
- * Devolve `problem` em vez de lançar: cada motivo de recusa tem uma mensagem
- * diferente para o respondente, e um link expirado não é um erro do sistema.
+ * Returns `problem` instead of throwing: each refusal reason has a different
+ * message for the respondent, and an expired link isn't a system error.
  */
 export async function loadBriefingByToken(token: string) {
   const briefing = await prisma.briefing.findUnique({
@@ -228,8 +228,8 @@ export async function loadBriefingByToken(token: string) {
       businessType: true,
       expiresAt: true,
       submittedAt: true,
-      // Apenas o nome do cliente: o formulário público NUNCA expõe e-mail,
-      // telefone ou notas internas.
+      // Only the client's name: the public form NEVER exposes email, phone
+      // or internal notes.
       client: { select: { name: true, user: { select: { name: true } } } },
     },
   });
@@ -240,12 +240,12 @@ export async function loadBriefingByToken(token: string) {
 }
 
 /**
- * Grava respostas (autosave). Faz upsert por (briefing, pergunta) e mantém
- * `businessType` do briefing em sincronia com a pergunta de ramificação.
+ * Stores answers (autosave). Upserts by (briefing, question) and keeps the
+ * briefing's `businessType` in sync with the branching question.
  *
- * Respostas em branco APAGAM o registro em vez de gravar vazio: assim
- * "respondida e depois limpa" e "nunca respondida" são o mesmo estado, que é o
- * que o motor de regras espera.
+ * Blank answers DELETE the record instead of storing an empty value: that way
+ * "answered then cleared" and "never answered" are the same state, which is
+ * what the rules engine expects.
  */
 export async function saveAnswers(
   briefingId: string,
@@ -262,11 +262,11 @@ export async function saveAnswers(
   if (unknown.length > 0) {
     throw new InvalidAnswersError(
       Object.fromEntries(unknown.map((key) => [key, "Pergunta desconhecida."])),
-      `Perguntas desconhecidas: ${unknown.join(", ")}`,
+      `Unknown questions: ${unknown.join(", ")}`,
     );
   }
 
-  // Valida o lote inteiro antes de gravar: ou entra tudo, ou nada (DATA-03).
+  // Validates the whole batch before writing: all or nothing (DATA-03).
   const issues: Record<string, string> = {};
   for (const entry of entries) {
     if (isBlankValue(entry.value)) continue;
@@ -283,10 +283,10 @@ export async function saveAnswers(
   if (Object.keys(issues).length > 0) throw new InvalidAnswersError(issues);
 
   await prisma.$transaction(async (tx) => {
-    // O estado é conferido COM a linha travada: um envio concorrente ou já
-    // concluído impede a gravação (DATA-01).
+    // The state is checked WITH the row locked: a concurrent or completed
+    // submission blocks the write (DATA-01).
     const current = await lockBriefing(tx, briefingId);
-    if (!current) throw new Error(`Briefing ${briefingId} não encontrado`);
+    if (!current) throw new Error(`Briefing ${briefingId} not found`);
     const problem = briefingAccessProblem(current);
     if (problem) throw new BriefingClosedError(problem);
 
@@ -310,13 +310,13 @@ export async function saveAnswers(
     const data: Prisma.BriefingUpdateInput = {};
 
     if (branch) {
-      // Já validado contra as opções do catálogo, que espelham o enum.
+      // Already validated against the catalog options, which mirror the enum.
       data.businessType = isBlankValue(branch.value)
         ? null
         : (String(branch.value) as BusinessType);
     }
 
-    // Primeira resposta tira o briefing de "aguardando".
+    // The first answer moves the briefing out of "awaiting".
     if (current.status === "awaiting_response" || current.status === "draft") {
       data.status = "in_progress";
     }
@@ -333,12 +333,13 @@ export type SubmitOutcome =
   | { ok: false; problem: "expired" | "not_found" };
 
 /**
- * Fecha o briefing de forma atômica (DATA-01).
+ * Closes the briefing atomically (DATA-01).
  *
- * Numa única transação, com a linha travada: confere o estado, valida as
- * obrigatórias visíveis, roda o motor, grava sinais e diagnóstico e muda o
- * status. Se qualquer passo falhar, nada muda — o briefing nunca fica fechado
- * sem diagnóstico. Reenvio (duplo clique, envio concorrente) é idempotente.
+ * In a single transaction, with the row locked: checks the state, validates
+ * the visible required questions, runs the engine, writes signals and
+ * diagnosis and changes the status. If any step fails, nothing changes — the
+ * briefing is never closed without a diagnosis. Resubmission (double click,
+ * concurrent submission) is idempotent.
  */
 export async function submitBriefing(briefingId: string): Promise<SubmitOutcome> {
   return prisma.$transaction(async (tx) => {
@@ -363,7 +364,7 @@ export async function submitBriefing(briefingId: string): Promise<SubmitOutcome>
   });
 }
 
-/** Chaves das obrigatórias visíveis ainda sem resposta. */
+/** Keys of visible required questions still unanswered. */
 export function missingRequiredKeys(ctx: EvalContext): string[] {
   return visibleQuestions(ctx)
     .filter((q) => q.required)

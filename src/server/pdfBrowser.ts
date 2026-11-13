@@ -1,17 +1,17 @@
 import type { Browser } from "playwright-core";
 
 /**
- * Qual Chromium o gerador de PDF usa (DEPLOY-01).
+ * Which Chromium the PDF generator uses (DEPLOY-01).
  *
- * - **Serverless (Vercel/Lambda):** `@sparticuz/chromium`, um Chromium
- *   compactado que cabe numa função e é extraído para /tmp na primeira
- *   chamada de cada instância.
- * - **Local / contêiner:** o Chromium instalado pelo Playwright (dev
- *   dependency) ou o indicado em `CHROMIUM_EXECUTABLE_PATH`.
+ * - **Serverless (Vercel/Lambda):** `@sparticuz/chromium`, a compressed
+ *   Chromium that fits in a function and is extracted to /tmp on each
+ *   instance's first call.
+ * - **Local / container:** the Chromium installed by Playwright (dev
+ *   dependency) or the one set in `CHROMIUM_EXECUTABLE_PATH`.
  *
- * As versões estão fixadas em par no package.json: `playwright-core` 1.63
- * fala o protocolo do Chromium 153, e `@sparticuz/chromium` 153.0.0 entrega
- * esse Chromium. Atualizar um exige atualizar o outro.
+ * Versions are pinned as a pair in package.json: `playwright-core` 1.63
+ * speaks Chromium 153's protocol, and `@sparticuz/chromium` 153.0.0 ships that
+ * Chromium. Upgrading one requires upgrading the other.
  */
 
 export type BrowserSource = { kind: "serverless" } | { kind: "local"; executablePath?: string };
@@ -38,8 +38,8 @@ export async function launchBrowser(
 
   return chromium.launch({
     ...(source.executablePath ? { executablePath: source.executablePath } : {}),
-    // Necessário em contêineres, onde o sandbox do Chromium não tem as
-    // permissões de que precisa.
+    // Needed in containers, where Chromium's sandbox lacks the permissions it
+    // needs.
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
   });
 }

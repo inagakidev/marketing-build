@@ -4,16 +4,16 @@ import { customAlphabet } from "nanoid";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 /**
- * Cria um cliente e um briefing de exemplo e imprime o link público.
+ * Creates a sample client and briefing and prints the public link.
  *
- * Só para desenvolvimento: serve para abrir o formulário no navegador sem
- * precisar do painel autenticado nem do Supabase configurado.
+ * Development only: lets you open the form in the browser without the
+ * authenticated panel or a configured Supabase.
  *
  *   npm run dev:data
  */
 
 const connectionString = process.env.DATABASE_URL;
-if (!connectionString) throw new Error("DATABASE_URL não definida.");
+if (!connectionString) throw new Error("DATABASE_URL is not set.");
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
@@ -62,15 +62,15 @@ async function main(): Promise<void> {
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  console.log("\nDados de exemplo criados.");
-  console.log(`  Cliente:  ${client.name}`);
+  console.log("\nSample data created.");
+  console.log(`  Client:   ${client.name}`);
   console.log(`  Briefing: ${briefing.id}`);
   console.log(`\n  Link:  ${baseUrl}/briefing/${briefing.token}\n`);
 }
 
 main()
   .catch((error) => {
-    console.error("Falha:", error);
+    console.error("Failed:", error);
     process.exitCode = 1;
   })
   .finally(async () => {

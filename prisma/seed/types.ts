@@ -10,9 +10,9 @@ export interface QuestionOption {
 }
 
 /**
- * Uma pergunta como declarada no seed. `order` não aparece aqui: é atribuído
- * automaticamente pela posição na lista, para que reordenar perguntas seja
- * mover linhas em vez de renumerar tudo à mão.
+ * A question as declared in the seed. `order` doesn't appear here: it's
+ * assigned automatically by position in the list, so reordering questions
+ * means moving lines instead of renumbering everything by hand.
  */
 export interface QuestionSeed {
   key: string;
@@ -25,12 +25,12 @@ export interface QuestionSeed {
   visibilityRule?: VisibilityRule;
 }
 
-/** Regra "só aparece para este tipo de negócio". */
+/** "Only shown for this business type" rule. */
 export function onlyFor(businessType: string): VisibilityRule {
   return { field: "business_type", operator: "equals", value: businessType };
 }
 
-/** Opções a partir de pares [valor, rótulo]. */
+/** Options from [value, label] pairs. */
 export function options(
   ...pairs: [string, string][]
 ): QuestionOption[] {

@@ -1,24 +1,26 @@
 /**
- * Destino seguro para o redirecionamento pós-login (SEC-02).
+ * Safe destination for the post-login redirect (SEC-02).
  *
- * O valor vem do query string (`/login?redirect=...`), então é controlado por
- * quem monta o link. Aceitar qualquer coisa transformaria a tela de login num
- * open redirect: um link legítimo do nosso domínio levando a um site falso.
+ * The value comes from the query string (`/login?redirect=...`), so whoever
+ * builds the link controls it. Accepting anything would turn the login screen
+ * into an open redirect: a legitimate link on our domain leading to a fake
+ * site.
  *
- * Usado no servidor e no browser — por isso vive em `src/lib` e é puro.
+ * Used on the server and in the browser — that's why it lives in `src/lib`
+ * and is pure.
  */
 
 export const DEFAULT_REDIRECT = "/admin";
 
-/** Base fictícia: só serve para o `URL` resolver o caminho e revelar a origem. */
+/** Dummy base: only lets `URL` resolve the path and reveal the origin. */
 const PROBE_ORIGIN = "http://interno.invalid";
 
 export function safeRedirectPath(value: unknown): string {
   if (typeof value !== "string") return DEFAULT_REDIRECT;
 
-  // Só caminho absoluto interno. `//x` e `/\x` são lidos pelos navegadores
-  // como "outro host", e caractere de controle pode ser descartado no meio
-  // do caminho, fazendo `/\t/x` virar `//x`.
+  // Only internal absolute paths. Browsers read `//x` and `/\x` as
+  // "another host", and a control character can be dropped mid-path, turning
+  // `/\t/x` into `//x`.
   if (!value.startsWith("/") || value.startsWith("//")) return DEFAULT_REDIRECT;
   if (/[\\\u0000-\u001f\u007f]/.test(value)) return DEFAULT_REDIRECT;
 
@@ -30,7 +32,7 @@ export function safeRedirectPath(value: unknown): string {
   }
   if (url.origin !== PROBE_ORIGIN) return DEFAULT_REDIRECT;
 
-  // Voltar para o próprio login criaria um laço sem saída.
+  // Going back to the login itself would create an endless loop.
   if (url.pathname === "/login") return DEFAULT_REDIRECT;
 
   return `${url.pathname}${url.search}${url.hash}`;

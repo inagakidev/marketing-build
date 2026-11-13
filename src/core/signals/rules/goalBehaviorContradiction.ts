@@ -5,9 +5,9 @@ import { answerIds, getAnswer } from "../helpers";
 import { CTA_OFFER_TERMS } from "../keywords";
 
 /**
- * Respostas de presença digital varridas em busca de menção a conversão.
- * Se nenhuma delas fala em oferta ou chamada para ação, a execução não está
- * apontada para o objetivo declarado.
+ * Digital-presence answers scanned for any mention of conversion. If none of
+ * them talks about an offer or a call to action, execution isn't aimed at the
+ * stated goal.
  */
 const DIGITAL_PRESENCE_KEYS: readonly string[] = [
   Q.ACTIVE_CHANNELS,
@@ -18,12 +18,13 @@ const DIGITAL_PRESENCE_KEYS: readonly string[] = [
 ];
 
 /**
- * `goal_behavior_contradiction` — quer vendas/leads, mas nada na presença
- * digital aponta para conversão.
+ * `goal_behavior_contradiction` — wants sales/leads, but nothing in the
+ * digital presence points to conversion.
  *
- * É o sinal mais caro do conjunto (`strong`) porque contradiz o objetivo
- * declarado: publicar conteúdo sem nenhuma oferta ou chamada para ação e
- * esperar venda é o descompasso mais comum — e o mais caro de não corrigir.
+ * It's the costliest signal in the set (`strong`) because it contradicts the
+ * stated goal: publishing content without any offer or call to action and
+ * expecting sales is the most common mismatch — and the costliest to leave
+ * uncorrected.
  */
 export const goalBehaviorContradictionRule: SignalRule = {
   code: "goal_behavior_contradiction",

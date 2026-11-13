@@ -4,40 +4,40 @@ import { isTrustedRequestOrigin } from "./origin";
 const allowed = ["https://app.exemplo.com"];
 
 describe("isTrustedRequestOrigin (SEC-03)", () => {
-  it("aceita a própria origem", () => {
+  it("accepts its own origin", () => {
     expect(
       isTrustedRequestOrigin({ origin: "https://app.exemplo.com", secFetchSite: "same-origin", allowedOrigins: allowed }),
     ).toBe(true);
   });
 
-  it("recusa outra origem, mesmo que o Sec-Fetch-Site seja omitido", () => {
+  it("rejects another origin, even if Sec-Fetch-Site is omitted", () => {
     expect(
       isTrustedRequestOrigin({ origin: "https://site-malicioso.com", secFetchSite: null, allowedOrigins: allowed }),
     ).toBe(false);
   });
 
-  it("recusa subdomínio irmão (same-site, mas não same-origin)", () => {
+  it("rejects a sibling subdomain (same-site but not same-origin)", () => {
     expect(
       isTrustedRequestOrigin({ origin: "https://outro.exemplo.com", secFetchSite: "same-site", allowedOrigins: allowed }),
     ).toBe(false);
   });
 
-  it("recusa Origin nulo (iframe sandbox, redirecionamentos)", () => {
+  it("rejects a null Origin (sandboxed iframe, redirects)", () => {
     expect(
       isTrustedRequestOrigin({ origin: "null", secFetchSite: "cross-site", allowedOrigins: allowed }),
     ).toBe(false);
   });
 
-  it("sem Origin, decide pelo Sec-Fetch-Site", () => {
+  it("without Origin, decides by Sec-Fetch-Site", () => {
     expect(isTrustedRequestOrigin({ origin: null, secFetchSite: "same-origin", allowedOrigins: allowed })).toBe(true);
     expect(isTrustedRequestOrigin({ origin: null, secFetchSite: "none", allowedOrigins: allowed })).toBe(true);
     expect(isTrustedRequestOrigin({ origin: null, secFetchSite: "cross-site", allowedOrigins: allowed })).toBe(false);
     expect(isTrustedRequestOrigin({ origin: null, secFetchSite: "same-site", allowedOrigins: allowed })).toBe(false);
   });
 
-  it("sem nenhum dos dois cabeçalhos (cliente fora do navegador), aceita", () => {
-    // CSRF depende de um navegador enviando os cookies da vítima; um cliente
-    // sem esses cabeçalhos não é esse cenário, e a sessão continua obrigatória.
+  it("with neither header (non-browser client), accepts", () => {
+    // CSRF depends on a browser sending the victim's cookies; a client without
+    // these headers isn't that scenario, and a session is still required.
     expect(isTrustedRequestOrigin({ origin: null, secFetchSite: null, allowedOrigins: allowed })).toBe(true);
   });
 });

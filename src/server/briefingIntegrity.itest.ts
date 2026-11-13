@@ -12,8 +12,8 @@ import {
 import { processBriefing, Q } from "@/core";
 
 /**
- * Invariantes de integridade do briefing (EP-02): envio atômico (DATA-01) e
- * validação semântica das respostas (DATA-03), contra o Postgres real.
+ * Briefing integrity invariants (EP-02): atomic submission (DATA-01) and
+ * semantic answer validation (DATA-03), against a real Postgres.
  */
 
 const SUFFIX = `integ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -61,8 +61,8 @@ async function storedSignalCodes(briefingId: string): Promise<string[]> {
   return rows.map((r) => r.code).sort();
 }
 
-describe("envio atômico (DATA-01)", () => {
-  it("envios simultâneos fecham o briefing uma única vez, sem erro", async () => {
+describe("atomic submission (DATA-01)", () => {
+  it("simultaneous submissions close the briefing exactly once, without errors", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasCompletas());
 
@@ -78,7 +78,7 @@ describe("envio atômico (DATA-01)", () => {
     expect(await prisma.diagnosis.count({ where: { briefingId: briefing.id } })).toBe(5);
   });
 
-  it("autosave depois do envio é recusado e não altera respostas", async () => {
+  it("autosave after submission is rejected and doesn't change answers", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasCompletas());
     await submitBriefing(briefing.id);
@@ -93,7 +93,7 @@ describe("envio atômico (DATA-01)", () => {
     expect(answer.value).toBe("Todo mundo");
   });
 
-  it("autosave concorrente com o envio: o diagnóstico reflete exatamente as respostas gravadas", async () => {
+  it("autosave concurrent with submission: the diagnosis matches the stored answers exactly", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasCompletas());
 
@@ -104,15 +104,15 @@ describe("envio atômico (DATA-01)", () => {
       saveAnswers(briefing.id, [{ questionKey: Q.IDEAL_CLIENT, value: especifico }]),
     ]);
 
-    // Seja qual for a ordem, o que foi gravado e o que foi diagnosticado
-    // precisam bater: recalcular a partir das respostas finais dá o mesmo.
+    // Whatever the order, what was stored and what was diagnosed must match:
+    // recomputing from the final answers gives the same result.
     const expected = processBriefing(await loadEvalContext(briefing.id))
       .signals.map((s) => s.code)
       .sort();
     expect(await storedSignalCodes(briefing.id)).toEqual(expected);
   });
 
-  it("envio com link expirado é recusado sem fechar o briefing", async () => {
+  it("submission with an expired link is rejected without closing the briefing", async () => {
     const briefing = await createBriefing(clientId);
     await saveAnswers(briefing.id, respostasCompletas());
     await prisma.briefing.update({
@@ -128,8 +128,8 @@ describe("envio atômico (DATA-01)", () => {
   });
 });
 
-describe("validação semântica das respostas (DATA-03)", () => {
-  it("recusa o lote inteiro quando uma resposta é inválida, sem gravar nada", async () => {
+describe("semantic answer validation (DATA-03)", () => {
+  it("rejects the whole batch when one answer is invalid, writing nothing", async () => {
     const briefing = await createBriefing(clientId);
 
     const error = await saveAnswers(briefing.id, [
@@ -144,7 +144,7 @@ describe("validação semântica das respostas (DATA-03)", () => {
     expect(estado.businessType).toBeNull();
   });
 
-  it("recusa lista em pergunta de escolha única", async () => {
+  it("rejects a list on a single-choice question", async () => {
     const briefing = await createBriefing(clientId);
     await expect(
       saveAnswers(briefing.id, [{ questionKey: Q.BUSINESS_TYPE, value: ["local_business"] }]),

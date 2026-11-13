@@ -6,11 +6,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 /**
- * Recalcula o diagnóstico a partir das respostas atuais.
+ * Recomputes the diagnosis from the current answers.
  *
- * O diagnóstico é gravado no envio, então briefings antigos continuam
- * mostrando o resultado das regras vigentes naquele momento. Este botão é a
- * forma de trazê-los para as regras de hoje.
+ * The diagnosis is stored on submission, so old briefings keep showing the
+ * result of the rules in force at that time. This button brings them up to
+ * today's rules.
  */
 export function ReprocessButton({ briefingId }: { briefingId: string }) {
   const router = useRouter();

@@ -13,34 +13,34 @@ const shortText = { answerType: "short_text" as const, options: null };
 const longText = { answerType: "long_text" as const, options: null };
 
 describe("validateAnswerValue (DATA-03 / FORM-05)", () => {
-  it("aceita valores compatíveis com o tipo e as opções", () => {
+  it("accepts values compatible with the type and options", () => {
     expect(validateAnswerValue(single, "a")).toBeNull();
     expect(validateAnswerValue(multi, ["a", "b"])).toBeNull();
     expect(validateAnswerValue(shortText, "Padaria do bairro")).toBeNull();
     expect(validateAnswerValue(longText, "x".repeat(ANSWER_LIMITS.longText))).toBeNull();
   });
 
-  it("recusa opção que não existe no catálogo", () => {
+  it("rejects an option that doesn't exist in the catalog", () => {
     expect(validateAnswerValue(single, "c")).toMatch(/opç/i);
     expect(validateAnswerValue(multi, ["a", "zzz"])).toMatch(/opç/i);
   });
 
-  it("recusa formato trocado entre texto/escolha única e múltipla escolha", () => {
+  it("rejects a shape mixed up between text/single choice and multiple choice", () => {
     expect(validateAnswerValue(single, ["a"])).not.toBeNull();
     expect(validateAnswerValue(shortText, ["texto"])).not.toBeNull();
     expect(validateAnswerValue(multi, "a")).not.toBeNull();
   });
 
-  it("recusa opção repetida na múltipla escolha", () => {
+  it("rejects a repeated option in multiple choice", () => {
     expect(validateAnswerValue(multi, ["a", "a"])).toMatch(/repetid/i);
   });
 
-  it("respeita os limites de tamanho por tipo", () => {
+  it("respects the length limits per type", () => {
     expect(validateAnswerValue(shortText, "x".repeat(ANSWER_LIMITS.shortText + 1))).toMatch(/caracteres/);
     expect(validateAnswerValue(longText, "x".repeat(ANSWER_LIMITS.longText + 1))).toMatch(/caracteres/);
   });
 
-  it("pergunta de escolha sem opções cadastradas recusa qualquer valor", () => {
+  it("a choice question with no registered options rejects any value", () => {
     expect(validateAnswerValue({ answerType: "single_choice", options: null }, "a")).not.toBeNull();
   });
 });

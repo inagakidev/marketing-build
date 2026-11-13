@@ -2,22 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Protege `/admin/*` e renova a sessão do Supabase.
+ * Protects `/admin/*` and refreshes the Supabase session.
  *
- * No Next 16 este arquivo se chama `proxy.ts` — o antigo `middleware.ts` foi
- * descontinuado e renomeado.
+ * In Next 16 this file is called `proxy.ts` — the old `middleware.ts` was
+ * deprecated and renamed.
  *
- * Além de barrar quem não está autenticado, este é o único lugar do fluxo que
- * pode ESCREVER os cookies renovados: Server Components não podem. Sem isso a
- * sessão expiraria mesmo com a pessoa usando o painel.
+ * Besides blocking unauthenticated users, this is the only place in the flow
+ * that can WRITE the refreshed cookies: Server Components can't. Without it
+ * the session would expire even while the person is using the panel.
  */
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Supabase ainda não configurado: deixa passar para que as telas possam
-  // explicar o que falta. A autorização de verdade acontece em cada página e
-  // rota, via `requireUser`/`getSessionUser` — nunca só aqui.
+  // Supabase not configured yet: let it through so the screens can explain
+  // what's missing. Real authorization happens in each page and route, via
+  // `requireUser`/`getSessionUser` — never only here.
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.next({ request });
   }
@@ -41,8 +41,8 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // `getUser` revalida o token no servidor do Supabase. Não troque por
-  // `getSession`, que apenas lê o cookie e é falsificável.
+  // `getUser` revalidates the token on Supabase's server. Don't swap it for
+  // `getSession`, which only reads the cookie and can be forged.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -50,7 +50,7 @@ export async function proxy(request: NextRequest) {
   if (!user && request.nextUrl.pathname.startsWith("/admin")) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
-    // Preserva o destino para voltar a ele depois do login.
+    // Keeps the destination to return to it after login.
     login.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(login);
   }
@@ -60,9 +60,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   /**
-   * Só as superfícies autenticadas (PERF-01). Cada execução custa uma ida ao
-   * Supabase para revalidar o token; o formulário público (`/briefing`,
-   * `/api/public`) não usa sessão e não deve pagar esse custo a cada autosave.
+   * Only the authenticated surfaces (PERF-01). Each run costs a trip to
+   * Supabase to revalidate the token; the public form (`/briefing`,
+   * `/api/public`) has no session and shouldn't pay that cost on every
+   * autosave.
    */
   matcher: [
     "/admin/:path*",

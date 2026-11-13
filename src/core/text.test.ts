@@ -13,24 +13,24 @@ import {
 } from "./text";
 
 describe("normalize", () => {
-  it("remove acentos e caixa", () => {
+  it("removes accents and case", () => {
     expect(normalize("NÃO SEI")).toBe("nao sei");
     expect(normalize("Atenção")).toBe("atencao");
     expect(normalize("Ótimo Preço Justo")).toBe("otimo preco justo");
   });
 
-  it("colapsa espaços e apara as pontas", () => {
+  it("collapses whitespace and trims the ends", () => {
     expect(normalize("  muitos   espaços \n aqui ")).toBe("muitos espacos aqui");
   });
 
-  it("é idempotente", () => {
+  it("is idempotent", () => {
     const once = normalize("Coração  Válido");
     expect(normalize(once)).toBe(once);
   });
 });
 
 describe("isBlank", () => {
-  it("trata nulos, string vazia e array vazio como vazios", () => {
+  it("treats nulls, empty string and empty array as blank", () => {
     expect(isBlank(null)).toBe(true);
     expect(isBlank(undefined)).toBe(true);
     expect(isBlank("")).toBe(true);
@@ -39,24 +39,24 @@ describe("isBlank", () => {
     expect(isBlank(["", "  "])).toBe(true);
   });
 
-  it("reconhece conteúdo útil", () => {
+  it("recognizes useful content", () => {
     expect(isBlank("a")).toBe(false);
     expect(isBlank(["instagram"])).toBe(false);
   });
 });
 
 describe("valueToText", () => {
-  it("achata multi_choice em texto único", () => {
+  it("flattens multi_choice into a single string", () => {
     expect(valueToText(["instagram", "tiktok"])).toBe("instagram tiktok");
   });
 
-  it("devolve string vazia para ausente", () => {
+  it("returns an empty string when missing", () => {
     expect(valueToText(null)).toBe("");
   });
 });
 
-describe("words e wordCount", () => {
-  it("separa por qualquer caractere não alfanumérico", () => {
+describe("words and wordCount", () => {
+  it("splits on any non-alphanumeric character", () => {
     expect(words("bolos, doces e tortas!")).toEqual([
       "bolos",
       "doces",
@@ -65,14 +65,14 @@ describe("words e wordCount", () => {
     ]);
   });
 
-  it("conta palavras ignorando pontuação", () => {
+  it("counts words ignoring punctuation", () => {
     expect(wordCount("crescer muito!!!")).toBe(2);
     expect(wordCount("")).toBe(0);
   });
 });
 
 describe("hasDigit", () => {
-  it("detecta número em qualquer posição", () => {
+  it("detects a number in any position", () => {
     expect(hasDigit("faturar 30 mil")).toBe(true);
     expect(hasDigit("R$5.000")).toBe(true);
     expect(hasDigit("crescer bastante")).toBe(false);
@@ -80,24 +80,24 @@ describe("hasDigit", () => {
 });
 
 describe("containsAny / matchedTerms", () => {
-  it("casa termo isolado independente de acento e caixa", () => {
+  it("matches a single term regardless of accents and case", () => {
     expect(containsAny("Buscamos QUALIDADE acima de tudo", ["qualidade"])).toBe(
       true,
     );
   });
 
-  it("respeita fronteira de palavra", () => {
-    // "caro" não pode casar dentro de "carro"
+  it("respects word boundaries", () => {
+    // "caro" must not match inside "carro"
     expect(containsAny("vendemos carro usado", ["caro"])).toBe(false);
     expect(containsAny("achei caro demais", ["caro"])).toBe(true);
   });
 
-  it("casa expressões com espaço", () => {
+  it("matches phrases with spaces", () => {
     expect(containsAny("atendo todo mundo mesmo", ["todo mundo"])).toBe(true);
     expect(containsAny("atendo todo o bairro", ["todo mundo"])).toBe(false);
   });
 
-  it("devolve quais termos casaram", () => {
+  it("returns which terms matched", () => {
     expect(
       matchedTerms("qualidade e bom atendimento", [
         "qualidade",
@@ -107,13 +107,13 @@ describe("containsAny / matchedTerms", () => {
     ).toEqual(["qualidade", "bom atendimento"]);
   });
 
-  it("não casa nada em texto vazio", () => {
+  it("matches nothing in empty text", () => {
     expect(containsAny("", ["qualidade"])).toBe(false);
   });
 });
 
 describe("contentTokens", () => {
-  it("descarta stopwords e tokens curtos", () => {
+  it("drops stopwords and short tokens", () => {
     const tokens = contentTokens("a marca de bolos para as festas");
     expect(tokens.has("marca")).toBe(true);
     expect(tokens.has("bolos")).toBe(true);
@@ -125,20 +125,20 @@ describe("contentTokens", () => {
 });
 
 describe("tokenOverlap", () => {
-  it("dá 1 para textos com o mesmo vocabulário significativo", () => {
+  it("gives 1 for texts with the same meaningful vocabulary", () => {
     expect(tokenOverlap("bolos artesanais caseiros", "bolos caseiros artesanais")).toBe(1);
   });
 
-  it("dá 0 para textos sem nada em comum", () => {
+  it("gives 0 for texts with nothing in common", () => {
     expect(tokenOverlap("padaria de bairro", "consultoria financeira")).toBe(0);
   });
 
-  it("dá 0 quando um dos lados não tem conteúdo", () => {
+  it("gives 0 when one side has no content", () => {
     expect(tokenOverlap("", "consultoria")).toBe(0);
     expect(tokenOverlap("de a o para", "consultoria")).toBe(0);
   });
 
-  it("fica entre 0 e 1 para sobreposição parcial", () => {
+  it("stays between 0 and 1 for partial overlap", () => {
     const overlap = tokenOverlap(
       "bolos caseiros simples",
       "bolos sofisticados premium",

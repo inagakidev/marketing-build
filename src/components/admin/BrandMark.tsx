@@ -1,11 +1,11 @@
 import { cn } from "cn";
 
 /**
- * Marca do produto: três níveis crescentes.
+ * Product mark: three rising levels.
  *
- * Faz referência ao que o sistema produz — os sinais classificados em faixas
- * (verde/amarelo/vermelho) que formam o diagnóstico. Herda a cor do contexto
- * (`currentColor`), então funciona tanto no painel escuro quanto no claro.
+ * It references what the system produces — signals classified into bands
+ * (green/yellow/red) that make up the diagnosis. It inherits the context color
+ * (`currentColor`), so it works on both dark and light panels.
  */
 export function BrandGlyph({ className }: { className?: string }) {
   return (
@@ -22,7 +22,7 @@ export function BrandGlyph({ className }: { className?: string }) {
   );
 }
 
-/** A marca dentro de um quadrado arredondado, para uso como "logo". */
+/** The mark inside a rounded square, for use as a "logo". */
 export function BrandMarkBadge({ className }: { className?: string }) {
   return (
     <span

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BriefingDetail } from "@/server/briefingDetail";
 
-/** Respostas organizadas por categoria — a leitura principal do briefing. */
+/** Answers organized by category — the main way to read the briefing. */
 export function AnswersByCategory({ detail }: { detail: BriefingDetail }) {
   return (
     <div className="space-y-5">
@@ -57,7 +57,7 @@ function AnswerValue({
     );
   }
 
-  // `whitespace-pre-wrap` preserva as quebras de linha que o cliente digitou —
-  // em respostas longas elas costumam ser a estrutura do raciocínio dele.
+  // `whitespace-pre-wrap` keeps the line breaks the client typed — in long
+  // answers they're usually the structure of their reasoning.
   return <p className="text-sm whitespace-pre-wrap leading-relaxed">{value}</p>;
 }

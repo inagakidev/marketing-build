@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
- * Tela para link inválido, expirado ou já enviado.
+ * Screen for an invalid, expired or already submitted link.
  *
- * Cada caso tem texto próprio: para quem recebeu o link, "expirou" e "não
- * existe" pedem ações completamente diferentes, e uma mensagem genérica de
- * erro só gera uma mensagem de volta perguntando o que houve.
+ * Each case has its own copy: for whoever received the link, "expired" and
+ * "doesn't exist" call for completely different actions, and a generic error
+ * message only produces a reply asking what happened.
  */
 export function LinkProblem({
   problem,

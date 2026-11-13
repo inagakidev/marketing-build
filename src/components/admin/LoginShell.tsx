@@ -2,12 +2,12 @@ import { BrandGlyph } from "./BrandMark";
 import { LoginBrandPanel } from "./LoginBrandPanel";
 
 /**
- * Moldura da tela de login: um único cartão centralizado, dividido em painel de
- * apresentação (à esquerda, no desktop) e área do formulário (à direita).
+ * Login screen frame: a single centered card, split into a showcase panel
+ * (left, on desktop) and the form area (right).
  *
- * Abaixo do breakpoint `lg` o painel some e o cartão vira uma coluna estreita,
- * com a marca reduzida no topo do formulário — o essencial continua visível sem
- * apertar os campos.
+ * Below the `lg` breakpoint the panel disappears and the card becomes a narrow
+ * column, with a reduced mark on top of the form — the essentials stay visible
+ * without squeezing the fields.
  */
 export function LoginShell({ children }: { children: React.ReactNode }) {
   return (

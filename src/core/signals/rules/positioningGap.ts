@@ -4,25 +4,25 @@ import { Q } from "../../questionKeys";
 import { answerIds, getAnswer } from "../helpers";
 
 /**
- * Abaixo desta sobreposição de vocabulário, tratamos as duas percepções como
- * distantes. Valor calibrado para ser tolerante: 0,15 exige que praticamente
- * nenhuma palavra de conteúdo se repita entre as duas respostas.
+ * Below this vocabulary overlap, the two perceptions are treated as distant.
+ * Calibrated to be lenient: 0.15 requires practically no content word to be
+ * repeated between the two answers.
  */
 const MAX_DISTANT_OVERLAP = 0.15;
 
 /**
- * `positioning_gap` — a percepção desejada está longe da atual.
+ * `positioning_gap` — the desired perception is far from the current one.
  *
- * Não é um defeito da resposta, e sim do trabalho pela frente: quanto maior a
- * distância entre como a marca é vista hoje e como quer ser vista, maior o
- * esforço de reposicionamento — e maior o risco de a comunicação soar
- * inverossímil se a mudança for tratada como um simples ajuste de tom.
+ * It's not a flaw in the answer but in the work ahead: the bigger the distance
+ * between how the brand is seen today and how it wants to be seen, the bigger
+ * the repositioning effort — and the bigger the risk of the communication
+ * sounding implausible if the change is treated as a simple tone adjustment.
  *
- * HEURÍSTICA INICIAL, deliberadamente simples: sobreposição de vocabulário
- * (índice de Jaccard sobre tokens significativos). Ela não entende sinônimos —
- * "barata" e "acessível" contam como palavras diferentes. A evolução natural é
- * trocar `tokenOverlap` por similaridade de embeddings, mantendo esta mesma
- * assinatura de regra; nada além deste arquivo precisaria mudar.
+ * INITIAL HEURISTIC, deliberately simple: vocabulary overlap (Jaccard index on
+ * meaningful tokens). It doesn't understand synonyms — "barata" and
+ * "acessível" count as different words. The natural evolution is to swap
+ * `tokenOverlap` for embedding similarity while keeping this same
+ * rule signature; nothing beyond this file would need to change.
  */
 export const positioningGapRule: SignalRule = {
   code: "positioning_gap",
@@ -32,8 +32,8 @@ export const positioningGapRule: SignalRule = {
   evaluate(ctx) {
     const current = getAnswer(ctx, Q.CURRENT_PERCEPTION);
     const desired = getAnswer(ctx, Q.DESIRED_PERCEPTION);
-    // Faltando qualquer uma das duas, não há distância a medir. A ausência já
-    // é tratada como dado obrigatório faltante no diagnóstico.
+    // If either is missing, there's no distance to measure. The absence is
+    // already handled as missing required data in the diagnosis.
     if (!current || !desired) return null;
 
     const overlap = tokenOverlap(String(current.value), String(desired.value));

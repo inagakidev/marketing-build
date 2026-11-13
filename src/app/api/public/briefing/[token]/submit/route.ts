@@ -3,11 +3,11 @@ import { fail, handle, ok } from "@/server/api";
 import { loadBriefingByToken, submitBriefing } from "@/server/briefing";
 
 /**
- * Envio final do briefing.
+ * Final briefing submission.
  *
- * Valida as obrigatórias VISÍVEIS, roda o motor de regras e fecha o briefing
- * como `ready_for_review`. Faltando alguma obrigatória, devolve 422 com as
- * chaves pendentes para o front destacar os campos.
+ * Validates the VISIBLE required questions, runs the rules engine and closes
+ * the briefing as `ready_for_review`. If a required question is missing,
+ * returns 422 with the pending keys so the frontend can highlight the fields.
  */
 export async function POST(
   request: Request,
@@ -22,8 +22,8 @@ export async function POST(
       return fail(404, "Link inválido.", { problem: "not_found" });
     }
     if (problem === "already_submitted") {
-      // Reenvio (duplo clique, ou o respondente voltando pelo histórico) não é
-      // erro: o resultado desejado já aconteceu.
+      // Resubmission (double click, or the respondent going back in history)
+      // isn't an error: the desired outcome already happened.
       return ok({ submitted: true, alreadySubmitted: true });
     }
     if (problem) {
@@ -32,8 +32,8 @@ export async function POST(
       });
     }
 
-    // A checagem acima é só o caminho rápido; a decisão que vale é tomada
-    // dentro da transação, com a linha travada (DATA-01).
+    // The check above is only the fast path; the decision that counts is made
+    // inside the transaction, with the row locked (DATA-01).
     const outcome = await submitBriefing(briefing.id);
 
     if (outcome.ok) {
