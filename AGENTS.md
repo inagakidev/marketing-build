@@ -12,89 +12,29 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Guidelines de desenvolvimento — Briefing Inteligente
 
-> Status: **rascunho para aprovação**. Vale para pessoas e agentes.
+Valem para pessoas e agentes. O detalhe de cada tema fica em `docs/guidelines/`. **Antes de cada tipo de tarefa, leia o arquivo correspondente.**
 
-## 1. Fontes de verdade
+## Regras que valem sempre
 
-| Documento | Define |
+- **Fontes de verdade:** `PRODUCT.md` > `docs/02-requisitos.md` > `docs/03-inspecao-e-arquitetura.md` > `docs/04-roadmap-melhorias.md`. Divergência entre código e documento é registrada e decidida, nunca resolvida em silêncio.
+- **Decisões pendentes (PD-xx) não são decididas por conveniência técnica:** parar e perguntar.
+- **Sem IA generativa no produto (V1).** Diagnóstico e recomendações são código determinístico.
+- **Planejar antes de codar; teste primeiro** para regra de domínio e correção de bug.
+- **Git:** branch a partir da `main` atualizada; PR sempre com base `main`; após o merge, voltar para a `main`; apagar branches que não são mais usadas.
+- **Pronto = gate verde:** `npm run lint && npm run typecheck && npm test && npm run test:db && npm run build`.
+- **Segurança em toda história:** entrada validada no servidor, autorização no servidor, logs sem PII.
+
+## Qual guideline ler
+
+| Antes de… | Leia |
 |---|---|
-| `PRODUCT.md` | Visão, princípios, limites (o "porquê") |
-| `docs/02-requisitos.md` | Comportamento esperado e critérios de aceite (o "quê") |
-| `docs/03-inspecao-e-arquitetura.md` | Organização técnica (o "como") |
-| `docs/04-roadmap-melhorias.md` | Sequência, fases e épicos (o "quando") |
+| Começar qualquer tarefa, ou quando código e documentos divergirem | [`fontes-de-verdade.md`](docs/guidelines/fontes-de-verdade.md) |
+| Planejar ou iniciar uma história; escrever commits | [`fluxo-de-trabalho.md`](docs/guidelines/fluxo-de-trabalho.md) |
+| Criar branch, abrir PR, fazer merge ou limpar branches | [`git.md`](docs/guidelines/git.md) |
+| Criar módulo, rota, caso de uso, autorização ou fluxo com várias escritas | [`arquitetura.md`](docs/guidelines/arquitetura.md) |
+| Alterar o schema, criar migração ou mudar exclusão/arquivamento | [`dados-e-migracoes.md`](docs/guidelines/dados-e-migracoes.md) |
+| Escrever testes ou dar uma entrega por pronta | [`qualidade.md`](docs/guidelines/qualidade.md) |
+| Mexer em auth, rotas, payload público, logs ou variáveis de ambiente | [`seguranca-e-privacidade.md`](docs/guidelines/seguranca-e-privacidade.md) |
+| Escrever componentes, telas ou textos de interface | [`codigo-e-interface.md`](docs/guidelines/codigo-e-interface.md) |
 
-- Em conflito, vale essa ordem. Se o código divergir dos documentos, **registrar a divergência e decidir explicitamente** se muda o código ou o documento. Nunca escolher em silêncio.
-- **Decisões pendentes (PD-01 a PD-14) não são resolvidas por conveniência técnica.** Se uma tarefa esbarra em uma delas, parar, registrar e perguntar. Isolar o ponto de decisão (ex.: uma função de policy) quando der para avançar sem ele.
-- Achados históricos (SEC-xx, DATA-xx...) **não são backlog** até serem confirmados no código e classificados como `confirmado`, `corrigido`, `não reproduzido`, `parcial` ou `substituído por decisão nova`.
-- Sem IA generativa no produto (V1). Diagnóstico e recomendações são código determinístico.
-
-## 2. Fluxo de trabalho
-
-1. **Planejar antes de codar.** Cada história passa pelo Definition of Ready (roadmap §12): requisito/ID vinculado, critério de aceite verificável, impacto em dados, permissão e estados de UI avaliados.
-2. **Teste primeiro** para regras de domínio e para correções de bug (um teste que reproduz o problema e falha antes da correção).
-3. **Implementar no menor escopo revisável.** Uma história = um conjunto de commits coeso.
-4. **Verificar** com o gate de qualidade (§5) antes de dar por pronto.
-5. **Atualizar a documentação na mesma entrega** (requisitos, arquitetura, roadmap, README) quando o comportamento ou a decisão mudar.
-
-- Commits em Conventional Commits, mensagem em pt-BR, citando o ID rastreável: `fix(briefing): torna envio atômico (DATA-01)`.
-- Não adicionar dependência nova sem justificar no commit/PR (o que resolve e por que não dá com o que já existe).
-- Não ampliar escopo: o que surgir fora da história vira anotação no backlog, não código.
-
-### Fluxo de git
-
-1. **Toda branch nasce da `main` atualizada:** `git switch main && git pull` antes de `git switch -c <tipo>/<descrição>` (ex.: `feat/ep-04-organizacao`, `fix/autosave-retry`, `docs/guideline-fluxo-git`).
-2. **Todo PR tem a `main` como base.** Nada de PRs empilhados (um PR com base em outra branch): o merge vai para a branch intermediária, não para a `main`, e o trabalho fica fora dela sem ninguém notar. Se uma entrega depende de outra, espere a primeira entrar na `main` e crie a próxima branch a partir dela.
-3. **Merge só com o CI verde**, usando *merge commit* (`gh pr merge <número> --merge --delete-branch`). Sempre informe o número do PR: sem ele, o `gh` age sobre o PR da branch atual.
-4. **Depois do merge, volte para a `main` e atualize:** `git switch main && git pull && git fetch --prune`.
-5. **Apague a branch assim que ela não for mais usada**, no GitHub (o `--delete-branch` do merge já faz isso) e localmente (`git branch -d <branch>`). Branch que não será mergeada também é apagada, depois de confirmar que nada nela precisa ser aproveitado.
-
-## 3. Arquitetura
-
-- **Monólito modular** (arquitetura §5). Introduzir `src/modules/<contexto>/{domain,application,infrastructure,presentation}` **somente quando um fluxo for implementado ou refatorado**. Nada de pastas vazias nem reescrita em massa.
-- `src/core` continua puro: sem Next, React, Prisma, Supabase ou rede.
-- **Rotas finas:** autenticar → validar formato (zod) → chamar caso de uso → converter em HTTP (helpers de `src/server/api.ts`). Regra de negócio não mora em route handler nem em componente.
-- **Autorização no servidor**, centralizada em funções de policy, nunca só na interface. A partir da Fase 1, toda consulta e mutação é limitada por `organizationId` por meio de helpers reutilizáveis (não por filtros lembrados um a um).
-- Fluxos com mais de uma escrita relacionada (envio, diagnóstico, aprovação, conversão) rodam em **transação** e são **idempotentes**.
-- Repositório só quando houver ganho real (transação, isolamento, teste). Nada de wrapper genérico do Prisma.
-- Next.js 16 tem breaking changes: **ler o guia em `node_modules/next/dist/docs/` antes** de usar API de roteamento, cache, proxy, server actions etc.
-
-## 4. Dados e migrações
-
-- Toda mudança de schema via `prisma migrate`, com migração versionada no repositório. Nunca editar migração já aplicada.
-- Avaliar em cada migração: dados existentes (backfill), compatibilidade e rollback. Documentar no PR quando não for trivial.
-- Migrações são aplicadas por etapa controlada de release, nunca na inicialização da aplicação.
-- Histórico é preservado: entidades estratégicas (diagnóstico, recomendação, objetivo, meta, medição) são versionadas ou arquivadas com motivo/autor, não sobrescritas nem apagadas fisicamente.
-
-## 5. Qualidade
-
-**Gate obrigatório antes de considerar pronto:**
-
-```bash
-npm run lint && npm run typecheck && npm test && npm run test:db && npm run build
-```
-
-- Teste de comportamento e invariante, não de cobertura percentual.
-- Toda regra de acesso tem **teste negativo** (sem sessão, sem permissão, outra organização, outro projeto).
-- Testes de integração rodam contra PostgreSQL real (`*.itest.ts`).
-- Relatar resultado com fidelidade: se algo falhou ou foi pulado, dizer.
-
-## 6. Segurança e privacidade (em toda história, não numa fase)
-
-- Validar toda entrada no servidor (tipo, opções, limites).
-- Payload público contém só o necessário para responder; nada de notas internas ou diagnóstico.
-- Logs sem tokens, respostas livres, e-mails, telefones ou outra PII desnecessária.
-- Variáveis de ambiente validadas na inicialização, com falha explícita.
-- Tokens de link são credenciais: opacos, expiráveis, revogáveis.
-
-## 7. Código e interface
-
-- Identificadores de código em inglês; comentários, textos de UI, mensagens de erro e documentação em **pt-BR**. Manter o padrão de nomes de arquivo já existente em cada pasta.
-- Comentários explicam o *porquê*, não o *quê*.
-- UI responsiva e acessível (WCAG 2.2 AA como referência): teclado, foco visível, rótulos, contraste, status nunca só por cor, respeito a movimento reduzido.
-- Toda tela prevê estados de **carregamento, vazio, erro, sucesso e permissão insuficiente**.
-- Tom: direto, humano, não julgador. Distinguir visualmente sugestão automática × decisão humana × resultado confirmado.
-
-## 8. Registro de decisões e auditoria
-
-- Resultado da auditoria da Fase 0: `docs/05-auditoria-fase-0.md`.
-- Decisões de produto/arquitetura tomadas durante o desenvolvimento: `docs/decisoes.md` (data, contexto, decisão, alternativas, impacto).
+Ao criar ou mudar uma guideline: um tema por arquivo, linha "Leia antes de:" no topo, e uma linha nesta tabela.
