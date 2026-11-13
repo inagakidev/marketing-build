@@ -1,3 +1,4 @@
+import { enforceRateLimit } from "@/server/security/rateLimit";
 import { fail, handle, ok, parseBody } from "@/server/api";
 import {
   loadBriefingByToken,
@@ -19,6 +20,7 @@ export async function PUT(
   { params }: { params: Promise<{ token: string }> },
 ) {
   return handle(async () => {
+    await enforceRateLimit(request, "publicAutosave");
     const { token } = await params;
     const { problem, briefing } = await loadBriefingByToken(token);
 

@@ -1,5 +1,7 @@
 import { ZodError } from "zod";
 import { UnauthorizedError } from "./auth";
+import { ForbiddenOriginError } from "./security/origin";
+import { RateLimitError } from "./security/rateLimit";
 
 /**
  * Helpers das rotas de API.
@@ -21,8 +23,9 @@ export function fail(
   status: number,
   message: string,
   extra?: Record<string, unknown>,
+  headers?: HeadersInit,
 ): Response {
-  return Response.json({ error: message, ...extra }, { status });
+  return Response.json({ error: message, ...extra }, { status, headers });
 }
 
 /**
@@ -37,6 +40,17 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return fail(401, "Não autenticado.");
+    }
+    if (error instanceof ForbiddenOriginError) {
+      return fail(403, "Origem da requisição não permitida.");
+    }
+    if (error instanceof RateLimitError) {
+      return fail(
+        429,
+        "Muitas tentativas em pouco tempo. Aguarde alguns instantes e tente de novo.",
+        { retryAfterSeconds: error.retryAfterSeconds },
+        { "Retry-After": String(error.retryAfterSeconds) },
+      );
     }
     if (error instanceof ZodError) {
       return fail(400, "Dados inválidos.", { issues: formatIssues(error) });

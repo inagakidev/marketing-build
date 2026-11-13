@@ -1,3 +1,4 @@
+import { enforceRateLimit } from "@/server/security/rateLimit";
 import { fail, handle, ok } from "@/server/api";
 import { loadBriefingByToken, loadEvalContext } from "@/server/briefing";
 import { buildPublicForm } from "@/server/publicForm";
@@ -10,10 +11,11 @@ import { buildPublicForm } from "@/server/publicForm";
  * cliente, e nunca o diagnóstico.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   return handle(async () => {
+    await enforceRateLimit(request, "publicRead");
     const { token } = await params;
     const { problem, briefing } = await loadBriefingByToken(token);
 

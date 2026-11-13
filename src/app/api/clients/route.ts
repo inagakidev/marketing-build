@@ -1,5 +1,6 @@
 import { created, handle, ok, parseBody } from "@/server/api";
 import { requireUser } from "@/server/auth";
+import { assertSameOrigin } from "@/server/security/origin";
 import { prisma } from "@/server/db";
 import { clientInputSchema } from "@/server/validation";
 
@@ -42,6 +43,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   return handle(async () => {
+    assertSameOrigin(request);
     const user = await requireUser();
     const input = await parseBody(request, clientInputSchema);
 

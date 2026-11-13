@@ -261,3 +261,18 @@ model Diagnosis {
   @@index([briefingId])
   @@map("diagnoses")
 }
+
+/// Contador de rate limiting por janela fixa (SEC-04, decisão D2).
+///
+/// No Postgres, e não em memória, porque em serverless cada instância teria o
+/// próprio contador. Uma linha por chave: a janela é sobrescrita quando vence,
+/// então a tabela cresce com o número de chaves distintas, não de requisições.
+/// A chave nunca contém IP em claro — só o hash (ver src/server/security/rateLimit.ts).
+model RateLimitBucket {
+  key         String   @id
+  windowStart DateTime @map("window_start")
+  count       Int
+
+  @@index([windowStart])
+  @@map("rate_limit_buckets")
+}

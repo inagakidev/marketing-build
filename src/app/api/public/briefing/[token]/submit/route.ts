@@ -1,3 +1,4 @@
+import { enforceRateLimit } from "@/server/security/rateLimit";
 import { fail, handle, ok } from "@/server/api";
 import { loadBriefingByToken, submitBriefing } from "@/server/briefing";
 
@@ -9,10 +10,11 @@ import { loadBriefingByToken, submitBriefing } from "@/server/briefing";
  * chaves pendentes para o front destacar os campos.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   return handle(async () => {
+    await enforceRateLimit(request, "publicSubmit");
     const { token } = await params;
     const { problem, briefing } = await loadBriefingByToken(token);
 

@@ -1,7 +1,9 @@
 import { fail, handle } from "@/server/api";
 import { requireUser } from "@/server/auth";
+import { assertSameOrigin } from "@/server/security/origin";
 import { prisma } from "@/server/db";
 import { renderBriefingPdf } from "@/server/pdf";
+import { enforceRateLimit } from "@/server/security/rateLimit";
 
 /**
  * Exporta o briefing em PDF.
@@ -18,7 +20,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   return handle(async () => {
+    assertSameOrigin(request);
     const user = await requireUser();
+    // Por usuário, não por IP: é uma rota autenticada e cara.
+    await enforceRateLimit(request, "pdf", user.id);
     const { id } = await params;
 
     const briefing = await prisma.briefing.findFirst({
