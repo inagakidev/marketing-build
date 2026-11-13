@@ -10,31 +10,33 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ---
 
-# Guidelines de desenvolvimento — Briefing Inteligente
+# Development guidelines — Briefing Inteligente
 
-Valem para pessoas e agentes. O detalhe de cada tema fica em `docs/guidelines/`. **Antes de cada tipo de tarefa, leia o arquivo correspondente.**
+These apply to people and agents. Each topic is detailed in `docs/guidelines/`. **Before each kind of task, read the matching file.**
 
-## Regras que valem sempre
+## Rules that always apply
 
-- **Fontes de verdade:** `PRODUCT.md` > `docs/02-requisitos.md` > `docs/03-inspecao-e-arquitetura.md` > `docs/04-roadmap-melhorias.md`. Divergência entre código e documento é registrada e decidida, nunca resolvida em silêncio.
-- **Decisões pendentes (PD-xx) não são decididas por conveniência técnica:** parar e perguntar.
-- **Sem IA generativa no produto (V1).** Diagnóstico e recomendações são código determinístico.
-- **Planejar antes de codar; teste primeiro** para regra de domínio e correção de bug.
-- **Git:** branch a partir da `main` atualizada; PR sempre com base `main`; após o merge, voltar para a `main`; apagar branches que não são mais usadas.
-- **Pronto = gate verde:** `npm run lint && npm run typecheck && npm test && npm run test:db && npm run build`.
-- **Segurança em toda história:** entrada validada no servidor, autorização no servidor, logs sem PII.
+- **Sources of truth:** `PRODUCT.md` > `docs/02-requisitos.md` > `docs/03-inspecao-e-arquitetura.md` > `docs/04-roadmap-melhorias.md`. A divergence between code and documents is recorded and decided, never resolved silently.
+- **Pending decisions (PD-xx) are never decided for technical convenience:** stop and ask.
+- **No generative AI in the product (V1).** Diagnosis and recommendations are deterministic code.
+- **Plan before coding; test first** for domain rules and bug fixes.
+- **Language:** everything in English (code, comments, docs, commits, PRs, branches), **except user-facing text, which stays in pt-BR**.
+- **Naming:** documentation files in English UPPERCASE (`ROADMAP.md`); variables, functions and code files in camelCase (`rateLimitRules.ts`). Exceptions in `CODE-AND-UI.md`.
+- **Git:** branch from an up-to-date `main`; every PR targets `main`; after merging, go back to `main`; delete branches that are no longer used.
+- **Done = green gate:** `npm run lint && npm run typecheck && npm test && npm run test:db && npm run build`.
+- **Security in every story:** server-side input validation, server-side authorization, no PII in logs.
 
-## Qual guideline ler
+## Which guideline to read
 
-| Antes de… | Leia |
+| Before… | Read |
 |---|---|
-| Começar qualquer tarefa, ou quando código e documentos divergirem | [`fontes-de-verdade.md`](docs/guidelines/fontes-de-verdade.md) |
-| Planejar ou iniciar uma história; escrever commits | [`fluxo-de-trabalho.md`](docs/guidelines/fluxo-de-trabalho.md) |
-| Criar branch, abrir PR, fazer merge ou limpar branches | [`git.md`](docs/guidelines/git.md) |
-| Criar módulo, rota, caso de uso, autorização ou fluxo com várias escritas | [`arquitetura.md`](docs/guidelines/arquitetura.md) |
-| Alterar o schema, criar migração ou mudar exclusão/arquivamento | [`dados-e-migracoes.md`](docs/guidelines/dados-e-migracoes.md) |
-| Escrever testes ou dar uma entrega por pronta | [`qualidade.md`](docs/guidelines/qualidade.md) |
-| Mexer em auth, rotas, payload público, logs ou variáveis de ambiente | [`seguranca-e-privacidade.md`](docs/guidelines/seguranca-e-privacidade.md) |
-| Escrever componentes, telas ou textos de interface | [`codigo-e-interface.md`](docs/guidelines/codigo-e-interface.md) |
+| Starting any task, or when code and documents diverge | [`SOURCES-OF-TRUTH.md`](docs/guidelines/SOURCES-OF-TRUTH.md) |
+| Planning or starting a story; writing commits | [`WORKFLOW.md`](docs/guidelines/WORKFLOW.md) |
+| Creating a branch, opening a PR, merging or cleaning up branches | [`GIT.md`](docs/guidelines/GIT.md) |
+| Creating a module, route, use case, authorization rule or multi-write flow | [`ARCHITECTURE.md`](docs/guidelines/ARCHITECTURE.md) |
+| Changing the schema, creating a migration or changing deletion/archiving | [`DATA-AND-MIGRATIONS.md`](docs/guidelines/DATA-AND-MIGRATIONS.md) |
+| Writing tests or calling a delivery done | [`QUALITY.md`](docs/guidelines/QUALITY.md) |
+| Touching auth, routes, public payloads, logs or environment variables | [`SECURITY-AND-PRIVACY.md`](docs/guidelines/SECURITY-AND-PRIVACY.md) |
+| Writing code, components, screens or UI copy; naming anything | [`CODE-AND-UI.md`](docs/guidelines/CODE-AND-UI.md) |
 
-Ao criar ou mudar uma guideline: um tema por arquivo, linha "Leia antes de:" no topo, e uma linha nesta tabela.
+When adding or changing a guideline: one topic per file, a "Read before:" line at the top, and one row in this table.
