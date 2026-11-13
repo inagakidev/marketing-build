@@ -39,72 +39,88 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Radius scale aligned with the design system */
-  --radius-sm: var(--radius-xs);
-  --radius-md: var(--radius-sm);
-  --radius-lg: var(--radius-sm);
-  --radius-xl: var(--radius-md);
+  /* DS v2 radii: sm 6 (tags), md 10 (buttons, fields), lg 16 (cards),
+     xl 24 (modals). Tailwind's rounded-lg/xl are remapped so the shadcn
+     components land on those values without editing every class. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
   --radius-2xl: 24px;
-  --radius-3xl: 32px;
-  --radius-4xl: var(--radius-full);
+  --radius-3xl: 24px;
+  --radius-4xl: 999px;
 }
 
 /* ==========================================================================
-   Design system — tokens de marca
+   Design System v2 — primitives (DESIGN.md)
+   Screens never use these directly: they go through the semantic tokens
+   below, so changing a primitive doesn't touch any screen.
    ========================================================================== */
 :root {
-  /* Marca */
-  --brand-orange: #ff6b35;
-  --brand-black: #0f0f0f;
-  --brand-off-white: #faf9f6;
-  --brand-gray: #e8e8e7;
+  /* One warm neutral family (replaces the cold slate and the three blacks) */
+  --neutral-0: #ffffff;
+  --neutral-50: #f8f8f4;
+  --neutral-100: #f2f1ec;
+  --neutral-200: #e6e4dd;
+  --neutral-300: #d3d0c7;
+  --neutral-400: #a8a499;
+  --neutral-500: #8a8578;
+  --neutral-600: #6b665b;
+  --neutral-700: #4f4b42;
+  --neutral-800: #33302a;
+  --neutral-900: #1f1d19;
+  --neutral-950: #0f0f0e;
 
-  /* Neutrals from Figma */
-  --neutral-50: #fafafa;
-  --neutral-100: #f5f5f5;
-  --neutral-200: #e5e7eb;
-  --neutral-300: #cbd5e1;
-  --neutral-500: #94a3b8;
-  --neutral-700: #475569;
+  /* Brand orange: 500 is the brand (large areas, the single accent);
+     700 is the action color for text, links and small icons. */
+  --brand-50: #fff5ef;
+  --brand-100: #fde9df;
+  --brand-200: #fccfb5;
+  --brand-300: #ffa67d;
+  --brand-500: #ff6b35;
+  --brand-600: #e5541f;
+  --brand-700: #c2410c;
+  --brand-800: #9a3412;
 
-  /* Tipografia */
+  /* Typography */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 
-  /* Size / line height */
-  --text-display: 2.25rem;  /* 36px */
-  --leading-display: 2.75rem;
-  --text-page: 1.5rem;     /* 24px */
+  --text-display: 2.5rem;   /* 40px */
+  --leading-display: 3rem;
+  --text-page: 1.5rem;      /* 24px · Heading 2 */
   --leading-page: 2rem;
-  --text-section: 1.125rem; /* 18px */
+  --text-section: 1rem;     /* 16px · Heading 4 */
   --leading-section: 1.5rem;
   --text-body: 0.875rem;    /* 14px */
   --leading-body: 1.25rem;
-  --text-label: 0.75rem;    /* 12px */
-  --leading-label: 1rem;
-  --text-helper: 0.6875rem; /* 11px */
-  --leading-helper: 0.875rem;
+  --text-label: 0.875rem;   /* 14px · Label */
+  --leading-label: 1.25rem;
+  --text-helper: 0.75rem;   /* 12px · never smaller */
+  --leading-helper: 1rem;
 
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
 
-  /* Spacing: 4/8px base */
+  /* Spacing: 4px base */
   --space-0: 0;
   --space-4: 0.25rem;
   --space-8: 0.5rem;
   --space-12: 0.75rem;
   --space-16: 1rem;
+  --space-20: 1.25rem;
   --space-24: 1.5rem;
   --space-32: 2rem;
   --space-48: 3rem;
   --space-64: 4rem;
 
-  /* Radius */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
+  /* Radius (same scale as @theme above) */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
   --radius-md: 16px;
-  --radius-full: 99px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
 
   /* Layout */
   --form-max-width: 480px;
@@ -116,59 +132,81 @@
   --icon-base: 20px;
   --icon-stroke: 1.5;
 
-  /* Elevation */
+  /* Elevation: flat UI, separation by border; shadow only for what floats */
   --shadow-none: none;
-  --shadow-subtle: 0 2px 8px rgb(15 15 15 / 4%);
+  --shadow-raised: 0 1px 2px rgb(31 29 25 / 6%), 0 4px 12px rgb(31 29 25 / 8%);
+  --shadow-overlay: 0 2px 6px rgb(31 29 25 / 8%), 0 16px 40px rgb(31 29 25 / 16%);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* ==========================================================================
-   Tema claro: padrão
+   Light theme (default) — DS v2 semantic tokens
    ========================================================================== */
 :root,
 [data-theme="light"] {
   color-scheme: light;
 
-  --bg: var(--brand-off-white);
-  --surface: #ffffff;
-  --surface-muted: var(--neutral-100);
+  --bg: var(--neutral-50);            /* bg.app */
+  --surface: var(--neutral-0);        /* bg.surface */
+  --surface-muted: var(--neutral-100); /* bg.sunken */
 
-  --text: var(--brand-black);
-  --text-muted: var(--neutral-700);
-  --text-placeholder: #64748b;
+  --text: var(--neutral-950);         /* text.primary */
+  --text-secondary: var(--neutral-700); /* descriptions */
+  --text-muted: var(--neutral-600);   /* metadata */
+  --text-placeholder: var(--neutral-600);
 
-  --border: var(--brand-gray);
-  --border-control: #64748b;
+  --border: var(--neutral-200);       /* border.subtle */
+  --border-strong: var(--neutral-300);
+  --border-control: var(--neutral-500); /* inputs, 3:1 */
 
-  --primary: var(--brand-orange);
-  --primary-hover: #f45d26;
-  --on-primary: var(--brand-black);
-  --primary-soft: #fff0e8;
-  --primary-text: #9a3412;
-  --focus-ring: #9a3412;
+  /* action.primary is black; orange is the rare accent, at most one per
+     screen, for the action that moves the journey forward. */
+  --primary: var(--neutral-950);
+  --primary-hover: var(--neutral-800);
+  --on-primary: var(--neutral-0);
 
-  --success-bg: #ecfdf5;
-  --success-text: #065f46;
-  --success-border: #047857;
+  --accent-brand: var(--brand-500);   /* action.accent */
+  --accent-brand-hover: var(--brand-600);
+  --on-accent-brand: var(--neutral-950);
 
-  --warning-bg: #fffbeb;
-  --warning-text: #92400e;
-  --warning-border: #b45309;
+  --link: var(--brand-700);           /* action.link */
+  --link-hover: var(--brand-800);
 
-  --danger-bg: #fef2f2;
-  --danger-text: #991b1b;
-  --danger-border: #b91c1c;
+  --focus-ring: var(--neutral-950);   /* 2px ring + 2px surface gap */
+  --focus-gap: var(--neutral-0);
 
-  --draft-bg: #f1f5f9;
-  --draft-text: #475569;
-  --draft-border: #64748b;
+  --success-bg: #e7f6ec;
+  --success-border: #b5e3c4;
+  --success-text: #1e7a44;
 
-  --disabled-bg: #e5e7eb;
-  --disabled-text: #475569;
+  --warning-bg: #fdf4dc;
+  --warning-border: #f2d98c;
+  --warning-text: #7a4e00;
 
-  --elevation-card: var(--shadow-subtle);
+  --danger-bg: #fdecec;
+  --danger-border: #f5c2bd;
+  --danger-text: #b42318;
 
-  /* Aliases consumidas pelos componentes shadcn/tailwind */
-  --radius: var(--radius-md);
+  --info-bg: #eaf2fb;
+  --info-border: #bcd5f0;
+  --info-text: #1d5fa8;
+
+  --draft-bg: var(--neutral-100);
+  --draft-border: var(--neutral-300);
+  --draft-text: var(--neutral-700);
+
+  --disabled-bg: var(--neutral-200);
+  --disabled-text: var(--neutral-600);
+
+  --elevation-card: var(--shadow-none);
+
+  /* Aliases consumed by the shadcn/tailwind components */
+  --radius: var(--radius-sm);
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--surface);
@@ -180,17 +218,17 @@
   --secondary-foreground: var(--text);
   --muted: var(--surface-muted);
   --muted-foreground: var(--text-muted);
-  --accent: var(--primary-soft);
-  --accent-foreground: var(--primary-text);
+  --accent: var(--surface-muted);
+  --accent-foreground: var(--text);
   --destructive: var(--danger-text);
-  --destructive-foreground: #ffffff;
+  --destructive-foreground: var(--neutral-0);
   --input: var(--border-control);
   --ring: var(--focus-ring);
-  --chart-1: var(--brand-orange);
-  --chart-2: var(--neutral-500);
-  --chart-3: var(--neutral-300);
-  --chart-4: var(--neutral-700);
-  --chart-5: var(--neutral-500);
+  --chart-1: var(--brand-500);
+  --chart-2: var(--neutral-700);
+  --chart-3: var(--neutral-400);
+  --chart-4: var(--brand-300);
+  --chart-5: var(--neutral-300);
   --sidebar: var(--surface);
   --sidebar-foreground: var(--text);
   --sidebar-primary: var(--primary);
@@ -202,51 +240,67 @@
 }
 
 /* ==========================================================================
-   Tema escuro
+   Dark theme — derived from the DS v2 warm family (proposal, see DESIGN.md)
+   The DS v2 canvas defines only the light palette. These values keep the
+   same roles and pass WCAG 2.2 AA (contrasts listed in DESIGN.md).
    ========================================================================== */
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0f0f0f;
-  --surface: #1a1a1a;
-  --surface-muted: #252525;
+  --bg: var(--neutral-950);
+  --surface: var(--neutral-900);
+  --surface-muted: #2a2823;
 
-  --text: #faf9f6;
-  --text-muted: #cbd5e1;
-  --text-placeholder: #94a3b8;
+  --text: var(--neutral-50);
+  --text-secondary: var(--neutral-300);
+  --text-muted: var(--neutral-400);
+  --text-placeholder: var(--neutral-400);
 
-  --border: #3f3f46;
-  --border-control: #94a3b8;
+  --border: var(--neutral-800);
+  --border-strong: #4a463e;
+  --border-control: var(--neutral-500);
 
-  --primary: var(--brand-orange);
-  --primary-hover: #ff8559;
-  --on-primary: var(--brand-black);
-  --primary-soft: #3b2016;
-  --primary-text: #fdba74;
-  --focus-ring: #fdba74;
+  /* Inverted: the primary button is the light one on dark. */
+  --primary: var(--neutral-50);
+  --primary-hover: var(--neutral-200);
+  --on-primary: var(--neutral-950);
 
-  --success-bg: #052e24;
-  --success-text: #a7f3d0;
-  --success-border: #34d399;
+  --accent-brand: var(--brand-500);
+  --accent-brand-hover: var(--brand-300);
+  --on-accent-brand: var(--neutral-950);
 
-  --warning-bg: #3b2606;
-  --warning-text: #fde68a;
-  --warning-border: #fbbf24;
+  --link: var(--brand-300);
+  --link-hover: var(--brand-200);
 
-  --danger-bg: #450a0a;
-  --danger-text: #fecaca;
-  --danger-border: #f87171;
+  --focus-ring: var(--neutral-50);
+  --focus-gap: var(--neutral-950);
 
-  --draft-bg: #252525;
-  --draft-text: #cbd5e1;
-  --draft-border: #94a3b8;
+  --success-bg: #0f2a1a;
+  --success-border: #1e7a44;
+  --success-text: #7bd49b;
 
-  --disabled-bg: #303030;
-  --disabled-text: #94a3b8;
+  --warning-bg: #2e2205;
+  --warning-border: #7a4e00;
+  --warning-text: #f2d98c;
 
-  --elevation-card: none;
+  --danger-bg: #3a1210;
+  --danger-border: #b42318;
+  --danger-text: #f5c2bd;
 
-  --radius: var(--radius-md);
+  --info-bg: #0f2238;
+  --info-border: #1d5fa8;
+  --info-text: #bcd5f0;
+
+  --draft-bg: #2a2823;
+  --draft-border: #4a463e;
+  --draft-text: var(--neutral-300);
+
+  --disabled-bg: var(--neutral-800);
+  --disabled-text: var(--neutral-400);
+
+  --elevation-card: var(--shadow-none);
+
+  --radius: var(--radius-sm);
   --background: var(--bg);
   --foreground: var(--text);
   --card: var(--surface);
@@ -258,17 +312,17 @@
   --secondary-foreground: var(--text);
   --muted: var(--surface-muted);
   --muted-foreground: var(--text-muted);
-  --accent: var(--primary-soft);
-  --accent-foreground: var(--primary-text);
+  --accent: var(--surface-muted);
+  --accent-foreground: var(--text);
   --destructive: var(--danger-text);
-  --destructive-foreground: var(--brand-black);
+  --destructive-foreground: var(--neutral-950);
   --input: var(--border-control);
   --ring: var(--focus-ring);
-  --chart-1: var(--brand-orange);
-  --chart-2: var(--neutral-500);
-  --chart-3: var(--neutral-300);
-  --chart-4: var(--neutral-700);
-  --chart-5: var(--neutral-500);
+  --chart-1: var(--brand-500);
+  --chart-2: var(--neutral-300);
+  --chart-3: var(--neutral-500);
+  --chart-4: var(--brand-300);
+  --chart-5: var(--neutral-700);
   --sidebar: var(--surface);
   --sidebar-foreground: var(--text);
   --sidebar-primary: var(--primary);
@@ -280,7 +334,7 @@
 }
 
 /* ==========================================================================
-   Densidade compartilhada
+   Shared density: 40px controls on desktop, 44–48px where touch dominates
    ========================================================================== */
 :root {
   --control-height: 40px;
@@ -289,9 +343,9 @@
 }
 
 [data-context="admin"] {
-  --control-height: 36px;
-  --control-radius: var(--radius-xs);
-  --component-padding: var(--space-16);
+  --control-height: 40px;
+  --control-radius: var(--radius-sm);
+  --component-padding: var(--space-20);
 }
 
 [data-context="public"] {
@@ -334,14 +388,35 @@ textarea {
   font: inherit;
 }
 
-a {
-  color: var(--primary-text);
-  text-underline-offset: 3px;
+/* In the base layer on purpose: unlayered rules beat every Tailwind utility,
+   so a global `a { color }` would repaint link-styled buttons (white text on
+   the black primary turned orange). Here, component classes win. */
+@layer base {
+  a {
+    color: var(--link);
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: var(--link-hover);
+  }
+
+  /* DS v2 focus: 2px ring with a 2px gap in the surface color, so it reads
+     on light, dark and orange. Keyboard only (:focus-visible); never removed. */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--focus-gap);
+  }
 }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 3px;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 @layer base {
@@ -411,6 +486,15 @@ a {
   background: var(--primary-hover);
 }
 
+.button--accent {
+  background: var(--accent-brand);
+  color: var(--on-accent-brand);
+}
+
+.button--accent:hover:not(:disabled) {
+  background: var(--accent-brand-hover);
+}
+
 .button--secondary {
   background: var(--surface);
   color: var(--text);
@@ -419,7 +503,7 @@ a {
 
 .button--ghost {
   background: transparent;
-  color: var(--primary-text);
+  color: var(--text);
 }
 
 .button--secondary:hover:not(:disabled),
@@ -488,7 +572,7 @@ textarea.input {
 
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: var(--primary-text);
+  accent-color: var(--primary);
 }
 
 /* ==========================================================================
@@ -521,6 +605,12 @@ input[type="radio"] {
   --status-bg: var(--danger-bg);
   --status-text: var(--danger-text);
   --status-border: var(--danger-border);
+}
+
+[data-status="info"] {
+  --status-bg: var(--info-bg);
+  --status-text: var(--info-text);
+  --status-border: var(--info-border);
 }
 
 [data-status="draft"] {

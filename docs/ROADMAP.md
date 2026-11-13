@@ -538,6 +538,7 @@ Tracked as **EP-21**, which runs in parallel with every phase (section 8).
 - Light, dark and system themes with a toggle in the admin area and on the login screen.
 - Shared empty-state component used on the client list, the status filter and the client page.
 - `brand` button variant built on the semantic `--primary` / `--primary-hover` tokens, used on the main call to action of each screen.
+- Design System v2 adopted (D14, D15): warm neutral tokens, black primary, single orange accent, semantic state colors, DS radii, focus and component sizes; dark theme derived. Spec in `DESIGN.md`.
 
 ### 9.2 Experience by surface
 

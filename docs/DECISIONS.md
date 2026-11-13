@@ -48,3 +48,10 @@ Context: planning EP-04 (organization and members). These choices aren't listed 
 | D12 | Invitations are delivered as a **link the administrator copies and sends**, like the briefing link (BRF-05). The token is opaque, stored only as a hash, single-use and valid for 7 days. Accepting it creates the Supabase account server-side and the membership in one transaction. Replaces the interim access rule D3. | Supabase `inviteUserByEmail` (needs custom SMTP in production) | No email provider or new dependency. Holding the link is the authorization, so the accept route is rate-limited and the link can be revoked. |
 | D13 | In V1 a person belongs to **one organization**. The schema supports many (ORG-02), but the session uses the single active membership and an invitation for someone already in another organization is refused. | Several organizations with a selector in the panel | No organization switcher in EP-04; it becomes a backlog item if a real case appears. |
 
+## 2026-11-13 — Design System v2 (EP-21)
+
+| ID | Decision | Alternatives considered | Impact |
+|---|---|---|---|
+| D14 | Adopt the **Design System v2** canvas as the visual source (`DESIGN.md`). Tokens are migrated in one delivery before new screens, so the whole app changes at once. Primary is black; orange is a single accent per screen. | Apply it only to new screens; migrate together with EP-04.5 | Every screen changes look in one PR; the members screen (EP-04.5) is built directly on v2. |
+| D15 | The DS v2 defines only a light palette, so the **dark theme is derived** from the same warm family with AA contrasts. It's a proposal to validate on the canvas. | Light only, removing the theme toggle; keep the old dark tokens | The theme toggle stays; dark values can change without touching screens. |
+

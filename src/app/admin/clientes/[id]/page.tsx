@@ -112,7 +112,7 @@ export default async function ClientePage({
                     <div className="flex items-center gap-2">
                       <Badge
                         variant={
-                          BRIEFING_STATUS_TONE[briefing.status] ?? "secondary"
+                          BRIEFING_STATUS_TONE[briefing.status] ?? "neutral"
                         }
                       >
                         {BRIEFING_STATUS_LABELS[briefing.status]}

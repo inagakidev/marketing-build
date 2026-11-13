@@ -3,13 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-lg border px-3.5 py-3 text-left text-sm leading-5 font-medium has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-[18px]",
   {
+    // DS v2 alerts: background, border and text from one semantic family,
+    // plus an icon and copy that says what to do next.
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default: "border-border bg-card text-card-foreground",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "border-(--danger-border) bg-(--danger-bg) text-(--danger-text) *:data-[slot=alert-description]:text-(--danger-text)",
+        warning:
+          "border-(--warning-border) bg-(--warning-bg) text-(--warning-text) *:data-[slot=alert-description]:text-(--warning-text)",
+        success:
+          "border-(--success-border) bg-(--success-bg) text-(--success-text) *:data-[slot=alert-description]:text-(--success-text)",
+        info:
+          "border-(--info-border) bg-(--info-bg) text-(--info-text) *:data-[slot=alert-description]:text-(--info-text)",
       },
     },
     defaultVariants: {

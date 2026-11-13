@@ -15,17 +15,21 @@ export const BRIEFING_STATUS_LABELS: Record<string, string> = {
   approved: "Aprovado",
 };
 
-/** Status badge color. */
+/**
+ * Status pill tone (DS v2 semantic colors): neutral while nothing happened,
+ * info while the client is answering, warning when it asks for the team's
+ * review, success once approved.
+ */
 export const BRIEFING_STATUS_TONE: Record<
   string,
-  "default" | "secondary" | "outline" | "destructive"
+  "neutral" | "info" | "warning" | "success"
 > = {
-  draft: "outline",
-  awaiting_response: "secondary",
-  in_progress: "secondary",
-  submitted: "default",
-  ready_for_review: "default",
-  approved: "default",
+  draft: "neutral",
+  awaiting_response: "info",
+  in_progress: "info",
+  submitted: "warning",
+  ready_for_review: "warning",
+  approved: "success",
 };
 
 export const BUSINESS_TYPE_LABELS: Record<string, string> = {
@@ -51,13 +55,12 @@ export const SEVERITY_LABELS: Record<string, string> = {
 };
 
 /** Traffic-light classes. Contrast checked in light and dark themes. */
+/** DS v2 semantic families; the label always goes with the color. */
 export const DIAGNOSIS_STATUS_CLASSES: Record<string, string> = {
-  green:
-    "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800",
-  yellow:
-    "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800",
-  red: "bg-red-100 text-red-900 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800",
-  gray: "bg-muted text-muted-foreground border-border",
+  green: "bg-(--success-bg) text-(--success-text) border-(--success-border)",
+  yellow: "bg-(--warning-bg) text-(--warning-text) border-(--warning-border)",
+  red: "bg-(--danger-bg) text-(--danger-text) border-(--danger-border)",
+  gray: "bg-(--draft-bg) text-(--draft-text) border-(--draft-border)",
 };
 
 export function formatDate(value: Date | string | null): string {

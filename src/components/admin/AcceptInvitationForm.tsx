@@ -86,7 +86,7 @@ export function AcceptInvitationForm({
     return (
       <div className="w-full space-y-6" role="status">
         <header className="space-y-1.5">
-          <CircleCheck className="size-8 text-(--primary-text)" aria-hidden />
+          <CircleCheck className="size-8 text-(--success-text)" aria-hidden />
           <h1 className="text-xl font-semibold tracking-tight">Conta criada</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Você já faz parte de {organizationName}. Entre com o e-mail {email} e a senha que acabou
