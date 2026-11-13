@@ -100,6 +100,15 @@ Só achados confirmados/parciais. Ordem por risco (roadmap §3.1).
 | SEC-05 | **corrigido**: `robots.txt`, `X-Robots-Tag: noindex` nas superfícies privadas, `Referrer-Policy: no-referrer` nas que carregam token | `src/app/robots.ts`, `next.config.ts` |
 | SEC-06 | **parcial**: headers de segurança e CSP sem `script-src`. Restringir scripts exige nonce por requisição e renderização dinâmica de todas as páginas; fica como evolução P2 | `next.config.ts` |
 | PERF-01 | **corrigido**: o proxy roda só nas superfícies autenticadas | `src/proxy.ts` |
+| DATA-01 | **corrigido**: autosave, envio e reprocessamento travam a linha do briefing (`SELECT … FOR UPDATE`); o envio valida, calcula, grava o diagnóstico e fecha numa única transação; autosave após o envio → 410; envios concorrentes são idempotentes | `src/server/briefing.ts`, `briefingIntegrity.itest.ts` |
+| DATA-03 | **corrigido**: respostas validadas contra o catálogo (tipo, opções, repetição, tamanho); o lote inteiro é recusado com 400 e `issues` por pergunta | `src/core/answerValidation.ts` |
+| NEW-01 | **corrigido**: JSON malformado → 400 | `src/server/api.ts` |
+| NEW-02 | **corrigido**: payload público sem o id interno | `api/public/briefing/[token]/route.ts` |
+| DATA-06 | **corrigido**: sinais e diagnósticos lidos com ordem explícita | `src/server/briefingDetail.ts` |
+
+Observações:
+- "Já enviado" passa a ter precedência sobre "expirado" na mensagem ao respondente.
+- A renderização da página `/briefing/[token]` (SSR) não passa pelo rate limit, só a API. Avaliar junto com observabilidade.
 
 **Fica para fases posteriores** (conforme roadmap): DATA-02/DATA-04 → Fase 2 (EP-07/08); DATA-05 → Fase 2 (EP-09); QUAL-06 → contínuo; LGPD-01 e NEW-04 → dependem de PD-12.
 
