@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { safeRedirectPath } from "@/lib/safeRedirect";
 
 interface FieldErrors {
   email?: string;
@@ -75,7 +76,8 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
         return;
       }
 
-      router.push(redirectTo);
+      // Revalida aqui também: o componente não deve confiar em quem o renderiza.
+      router.push(safeRedirectPath(redirectTo));
       router.refresh();
     } catch {
       setFormError(

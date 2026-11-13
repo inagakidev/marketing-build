@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/server/auth";
+import { getAuthState } from "@/server/auth";
+import { safeRedirectPath } from "@/lib/safeRedirect";
 import { supabaseConfigured } from "@/server/supabase";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { LoginShell } from "@/components/admin/LoginShell";
+import { NoAccessNotice } from "@/components/admin/NoAccessNotice";
 
 const CODE_CLASSES =
   "rounded bg-muted px-1 py-0.5 font-mono text-[0.8em] text-foreground";
@@ -10,14 +12,21 @@ const CODE_CLASSES =
 export default async function LoginPage({
   searchParams,
 }: PageProps<"/login">) {
-  const user = await getSessionUser();
+  const auth = await getAuthState();
   const { redirect: redirectTo } = await searchParams;
 
-  if (user) {
-    redirect(typeof redirectTo === "string" ? redirectTo : "/admin");
-  }
+  // O destino vem do query string: só caminhos internos (SEC-02).
+  const target = safeRedirectPath(redirectTo);
 
-  const target = typeof redirectTo === "string" ? redirectTo : "/admin";
+  if (auth.status === "authenticated") redirect(target);
+
+  if (auth.status === "unprovisioned") {
+    return (
+      <LoginShell>
+        <NoAccessNotice />
+      </LoginShell>
+    );
+  }
 
   if (!supabaseConfigured()) {
     return (
