@@ -72,5 +72,6 @@ export const config = {
     "/api/clients/:path*",
     "/api/briefings/:path*",
     "/api/invitations/:path*",
+    "/api/members/:path*",
   ],
 };

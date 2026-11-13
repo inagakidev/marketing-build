@@ -40,6 +40,7 @@ const submitRoute = await import("@/app/api/public/briefing/[token]/submit/route
 const invitationsRoute = await import("@/app/api/invitations/route");
 const invitationRoute = await import("@/app/api/invitations/[id]/route");
 const acceptRoute = await import("@/app/api/public/invitations/[token]/accept/route");
+const memberRoute = await import("@/app/api/members/[id]/route");
 
 const ORIGIN = "http://localhost:3000";
 const SUFFIX = `api-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -129,6 +130,7 @@ describe("authenticated routes without a session → 401", () => {
     ["GET pdf", () => pdfRoute.GET(req("GET", "/x", { origin: null }), params({ id: "x" }))],
     ["POST /api/invitations", () => invitationsRoute.POST(req("POST", "/api/invitations", { body: {} }))],
     ["DELETE /api/invitations/[id]", () => invitationRoute.DELETE(req("DELETE", "/x"), params({ id: "x" }))],
+    ["PATCH /api/members/[id]", () => memberRoute.PATCH(req("PATCH", "/x", { body: {} }), params({ id: "x" }))],
   ])("%s", async (_label, call) => {
     expect((await call()).status).toBe(401);
   });
@@ -298,6 +300,58 @@ describe("invitations (EP-04.4, D11, D12)", () => {
       params({ token: "nao-existe" }),
     );
     expect(foreign.status).toBe(403);
+  });
+});
+
+describe("members (EP-04.5, D11)", () => {
+  const membershipOf = async (user: SessionUser) =>
+    (await prisma.membership.findUniqueOrThrow({
+      where: { organizationId_userId: { organizationId: user.organizationId, userId: user.id } },
+    })).id;
+
+  it("leaders and members can't change members → 403", async () => {
+    const target = await membershipOf(member);
+    for (const who of [leader, member]) {
+      session.current = who;
+      const res = await memberRoute.PATCH(req("PATCH", "/x", { body: { role: "admin" } }), params({ id: target }));
+      expect(res.status).toBe(403);
+    }
+  });
+
+  it("an admin changes a role and back; another organization's member → 404", async () => {
+    session.current = alice;
+    const target = await membershipOf(member);
+    const promote = await memberRoute.PATCH(req("PATCH", "/x", { body: { role: "leader" } }), params({ id: target }));
+    expect(promote.status).toBe(200);
+    const demote = await memberRoute.PATCH(req("PATCH", "/x", { body: { role: "member" } }), params({ id: target }));
+    expect(demote.status).toBe(200);
+
+    const foreign = await memberRoute.PATCH(
+      req("PATCH", "/x", { body: { role: "member" } }),
+      params({ id: await membershipOf(bob) }),
+    );
+    expect(foreign.status).toBe(404);
+  });
+
+  it("refuses self-deactivation and the last admin's demotion → 409", async () => {
+    session.current = alice;
+    const own = await membershipOf(alice);
+    const self = await memberRoute.PATCH(req("PATCH", "/x", { body: { status: "deactivated" } }), params({ id: own }));
+    expect(self.status).toBe(409);
+    expect((await self.json()).problem).toBe("self");
+
+    const last = await memberRoute.PATCH(req("PATCH", "/x", { body: { role: "member" } }), params({ id: own }));
+    expect(last.status).toBe(409);
+    expect((await last.json()).problem).toBe("last_admin");
+  });
+
+  it("rejects a body with both or neither field → 400", async () => {
+    session.current = alice;
+    const target = await membershipOf(member);
+    for (const body of [{}, { role: "admin", status: "active" }, { status: "banned" }]) {
+      const res = await memberRoute.PATCH(req("PATCH", "/x", { body }), params({ id: target }));
+      expect(res.status).toBe(400);
+    }
   });
 });
 

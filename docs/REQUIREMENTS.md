@@ -125,6 +125,8 @@ Rules:
 - A deactivated member loses every permission immediately; authorship stays in history (AUTH-11, AUTH-12).
 - Denied access to a record outside the member's scope returns not-found, so its existence isn't revealed (AUTH-06).
 - Every cell above has a negative test (`docs/guidelines/QUALITY.md`).
+- The organization always keeps at least one active administrator: demoting or deactivating the last one is refused (EP-04.5).
+- No one deactivates their own access; another administrator does it (EP-04.5).
 
 ---
 

@@ -116,3 +116,6 @@ Rules:
 ## Not yet covered
 
 The **screens** in the canvas (F1–F6 public form, P1–P6 project, D1–D4 dashboards) are adopted story by story, as each flow is built. They aren't redrawn ahead of their epic.
+
+Adopted so far:
+- `/admin/membros` follows the "Membros e acessos" block of D1: avatar, role, status pill, "Convidar membro" as the primary button, destructive actions behind a confirmation (EP-04.5). The D1 sidebar layout isn't adopted yet; the panel keeps its top bar with section links.
