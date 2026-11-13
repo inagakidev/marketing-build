@@ -1,0 +1,263 @@
+// Briefing Inteligente — schema do banco
+//
+// Convenções:
+// - Enums em snake_case para bater com os valores usados no motor de regras
+//   (src/core), que é agnóstico de banco e trabalha com strings simples.
+// - `Question` é um catálogo GLOBAL: não é duplicado por briefing. A ligação
+//   com um briefing acontece via `Answer`.
+// - Regras de visibilidade e opções vivem em colunas Json, não em código, para
+//   permitir adicionar/editar perguntas sem deploy.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// A connection string vive em prisma.config.ts (exigência do Prisma 7): o
+// schema declara só o provider.
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum BriefingStatus {
+  draft
+  awaiting_response
+  in_progress
+  submitted
+  ready_for_review
+  approved
+}
+
+enum BusinessType {
+  local_business
+  ecommerce
+  info_product
+  freelancer
+  b2b_service
+  other
+}
+
+/// Categoria de uma pergunta. Define o agrupamento em blocos no formulário
+/// público. Mapeia para DiagnosisCategory em src/core/diagnosis/categoryMap.ts.
+enum QuestionCategory {
+  business
+  goals
+  audience
+  brand
+  competition
+  digital_presence
+  offer
+  closing
+}
+
+enum AnswerType {
+  short_text
+  long_text
+  single_choice
+  multi_choice
+}
+
+enum SignalSeverity {
+  light
+  moderate
+  strong
+}
+
+/// Categoria avaliada no diagnóstico. Conjunto distinto de QuestionCategory:
+/// várias categorias de pergunta alimentam uma só categoria de diagnóstico.
+enum DiagnosisCategory {
+  positioning
+  audience
+  offer
+  digital_presence
+  current_marketing
+}
+
+enum DiagnosisStatus {
+  green
+  yellow
+  red
+  gray
+}
+
+// ---------------------------------------------------------------------------
+// Modelos
+// ---------------------------------------------------------------------------
+
+/// A administradora. Registro único no MVP, mas modelado como tabela própria
+/// para não travar a evolução para multiusuário.
+/// A senha vive no Supabase Auth; aqui guardamos só o vínculo.
+model User {
+  id             String   @id @default(cuid())
+  supabaseAuthId String   @unique
+  name           String
+  email          String   @unique
+  createdAt      DateTime @default(now())
+
+  clients Client[]
+
+  @@map("users")
+}
+
+/// Cliente da administradora.
+model Client {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  contactEmail  String
+  phone         String?
+  projectType   String?
+  internalNotes String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  briefings Briefing[]
+
+  @@index([userId])
+  @@map("clients")
+}
+
+/// Uma instância de coleta para um Client. Um cliente pode ter vários.
+model Briefing {
+  id     String         @id @default(cuid())
+  status BriefingStatus @default(draft)
+
+  clientId String
+
+  /// Token do link público. Opaco e imprevisível — é a única credencial do
+  /// respondente, então nunca derive de id/nome.
+  token String @unique
+
+  /// Espelha a resposta da pergunta de ramificação (`business_type`). É
+  /// desnormalizado de propósito: o motor de visibilidade precisa dele a cada
+  /// avaliação, e o painel filtra por ele.
+  businessType BusinessType?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expiresAt   DateTime?
+  submittedAt DateTime?
+
+  client    Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  answers   Answer[]
+  signals   Signal[]
+  diagnoses Diagnosis[]
+
+  @@index([clientId])
+  @@index([status])
+  @@map("briefings")
+}
+
+/// Catálogo global de perguntas.
+model Question {
+  id String @id @default(cuid())
+
+  /// Identificador estável e legível (ex.: "business_type", "ideal_client").
+  /// É por ele que as regras de visibilidade e o motor de sinais referenciam
+  /// perguntas — nunca por `id`, que muda a cada re-seed.
+  key String @unique
+
+  text       String
+  category   QuestionCategory
+  answerType AnswerType
+
+  /// Opções de single_choice/multi_choice: [{ value, label }]. Null nos tipos
+  /// de texto.
+  options Json?
+
+  required Boolean @default(false)
+
+  /// Ordem dentro da categoria.
+  order Int
+
+  /// Regra de exibição condicional avaliada por src/core/visibility.ts.
+  /// Null = sempre visível.
+  visibilityRule Json?
+
+  /// Texto auxiliar exibido abaixo do enunciado no formulário.
+  helpText String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers Answer[]
+
+  @@index([category, order])
+  @@map("questions")
+}
+
+/// Resposta de um Briefing a uma Question.
+model Answer {
+  id         String   @id @default(cuid())
+  briefingId String
+  questionId String
+
+  /// String para os tipos de texto e single_choice; array de strings para
+  /// multi_choice. Json unifica os dois casos sem coluna extra.
+  value Json
+
+  answeredAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  briefing Briefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  /// Permite o upsert do autosave e garante uma resposta por pergunta.
+  @@unique([briefingId, questionId])
+  @@index([briefingId])
+  @@map("answers")
+}
+
+/// Sinal de alerta detectado a partir das respostas de um Briefing.
+/// Recriado do zero a cada reprocessamento.
+model Signal {
+  id         String            @id @default(cuid())
+  briefingId String
+  category   DiagnosisCategory
+  severity   SignalSeverity
+
+  /// Identificador do tipo de sinal (ex.: "vague_goal"). Corresponde ao `code`
+  /// da regra em src/core/signals/rules/.
+  code String
+
+  description String
+
+  /// Ids das Answer que dispararam o sinal — rastreabilidade no painel.
+  sourceAnswerIds String[]
+
+  createdAt DateTime @default(now())
+
+  briefing Briefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
+
+  @@unique([briefingId, code])
+  @@index([briefingId])
+  @@map("signals")
+}
+
+/// Resultado agregado por categoria de um Briefing.
+/// Recriado do zero a cada reprocessamento.
+model Diagnosis {
+  id         String            @id @default(cuid())
+  briefingId String
+  category   DiagnosisCategory
+
+  /// 0–100. Null quando status = gray: a categoria não é pontuada por falta de
+  /// dados obrigatórios, e 0 seria indistinguível de `red`.
+  score Int?
+
+  status  DiagnosisStatus
+  signalIds String[]
+
+  createdAt DateTime @default(now())
+
+  briefing Briefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
+
+  @@unique([briefingId, category])
+  @@index([briefingId])
+  @@map("diagnoses")
+}
