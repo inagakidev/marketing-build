@@ -1,20 +1,20 @@
-// Briefing Inteligente — schema do banco
+// Briefing Inteligente — database schema
 //
-// Convenções:
-// - Enums em snake_case para bater com os valores usados no motor de regras
-//   (src/core), que é agnóstico de banco e trabalha com strings simples.
-// - `Question` é um catálogo GLOBAL: não é duplicado por briefing. A ligação
-//   com um briefing acontece via `Answer`.
-// - Regras de visibilidade e opções vivem em colunas Json, não em código, para
-//   permitir adicionar/editar perguntas sem deploy.
+// Conventions:
+// - Enums in snake_case to match the values used by the rules engine
+//   (src/core), which is database-agnostic and works with plain strings.
+// - `Question` is a GLOBAL catalog: it isn't duplicated per briefing. The
+//   link to a briefing goes through `Answer`.
+// - Visibility rules and options live in Json columns, not in code, so
+//   questions can be added/edited without a deploy.
 
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
-// A connection string vive em prisma.config.ts (exigência do Prisma 7): o
-// schema declara só o provider.
+// The connection string lives in prisma.config.ts (a Prisma 7 requirement):
+// the schema only declares the provider.
 datasource db {
   provider = "postgresql"
 }
@@ -41,8 +41,8 @@ enum BusinessType {
   other
 }
 
-/// Categoria de uma pergunta. Define o agrupamento em blocos no formulário
-/// público. Mapeia para DiagnosisCategory em src/core/diagnosis/categoryMap.ts.
+/// A question's category. Defines the grouping into blocks in the public
+/// form. Maps to DiagnosisCategory in src/core/diagnosis/categoryMap.ts.
 enum QuestionCategory {
   business
   goals
@@ -67,8 +67,8 @@ enum SignalSeverity {
   strong
 }
 
-/// Categoria avaliada no diagnóstico. Conjunto distinto de QuestionCategory:
-/// várias categorias de pergunta alimentam uma só categoria de diagnóstico.
+/// Category evaluated in the diagnosis. A set distinct from QuestionCategory:
+/// several question categories feed a single diagnosis category.
 enum DiagnosisCategory {
   positioning
   audience
@@ -88,9 +88,9 @@ enum DiagnosisStatus {
 // Modelos
 // ---------------------------------------------------------------------------
 
-/// A administradora. Registro único no MVP, mas modelado como tabela própria
-/// para não travar a evolução para multiusuário.
-/// A senha vive no Supabase Auth; aqui guardamos só o vínculo.
+/// A panel user. A single record in the MVP, but modeled as its own table so
+/// as not to block the move to multi-user.
+/// The password lives in Supabase Auth; only the link is stored here.
 model User {
   id             String   @id @default(cuid())
   supabaseAuthId String   @unique
@@ -103,7 +103,7 @@ model User {
   @@map("users")
 }
 
-/// Cliente da administradora.
+/// The admin's client.
 model Client {
   id            String   @id @default(cuid())
   userId        String
@@ -122,20 +122,20 @@ model Client {
   @@map("clients")
 }
 
-/// Uma instância de coleta para um Client. Um cliente pode ter vários.
+/// A collection instance for a Client. A client can have several.
 model Briefing {
   id     String         @id @default(cuid())
   status BriefingStatus @default(draft)
 
   clientId String
 
-  /// Token do link público. Opaco e imprevisível — é a única credencial do
-  /// respondente, então nunca derive de id/nome.
+  /// Public link token. Opaque and unpredictable — it's the respondent's only
+  /// credential, so never derive it from an id/name.
   token String @unique
 
-  /// Espelha a resposta da pergunta de ramificação (`business_type`). É
-  /// desnormalizado de propósito: o motor de visibilidade precisa dele a cada
-  /// avaliação, e o painel filtra por ele.
+  /// Mirrors the answer to the branching question (`business_type`).
+  /// Denormalized on purpose: the visibility engine needs it on every
+  /// evaluation, and the panel filters by it.
   businessType BusinessType?
 
   createdAt   DateTime  @default(now())
@@ -153,33 +153,34 @@ model Briefing {
   @@map("briefings")
 }
 
-/// Catálogo global de perguntas.
+/// Global question catalog.
 model Question {
   id String @id @default(cuid())
 
-  /// Identificador estável e legível (ex.: "business_type", "ideal_client").
-  /// É por ele que as regras de visibilidade e o motor de sinais referenciam
-  /// perguntas — nunca por `id`, que muda a cada re-seed.
+  /// Stable, readable identifier (e.g. "business_type", "ideal_client").
+  /// Visibility rules and the signal engine reference questions by it —
+  /// never by `id`, which changes on every re-seed.
   key String @unique
 
   text       String
   category   QuestionCategory
   answerType AnswerType
 
-  /// Opções de single_choice/multi_choice: [{ value, label }]. Null nos tipos
-  /// de texto.
+  /// single_choice/multi_choice options: [{ value, label }]. Null for text
+  /// types.
   options Json?
 
   required Boolean @default(false)
 
-  /// Ordem dentro da categoria.
+  /// Display order. Global across the catalog (the seed assigns it in steps of
+  /// 10), which is what makes visibility resolution deterministic.
   order Int
 
-  /// Regra de exibição condicional avaliada por src/core/visibility.ts.
-  /// Null = sempre visível.
+  /// Conditional display rule evaluated by src/core/visibility.ts.
+  /// Null = always visible.
   visibilityRule Json?
 
-  /// Texto auxiliar exibido abaixo do enunciado no formulário.
+  /// Helper text shown below the question in the form (pt-BR).
   helpText String?
 
   createdAt DateTime @default(now())
@@ -191,14 +192,14 @@ model Question {
   @@map("questions")
 }
 
-/// Resposta de um Briefing a uma Question.
+/// A Briefing's answer to a Question.
 model Answer {
   id         String   @id @default(cuid())
   briefingId String
   questionId String
 
-  /// String para os tipos de texto e single_choice; array de strings para
-  /// multi_choice. Json unifica os dois casos sem coluna extra.
+  /// String for text types and single_choice; array of strings for
+  /// multi_choice. Json unifies both cases without an extra column.
   value Json
 
   answeredAt DateTime @default(now())
@@ -207,27 +208,27 @@ model Answer {
   briefing Briefing @relation(fields: [briefingId], references: [id], onDelete: Cascade)
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  /// Permite o upsert do autosave e garante uma resposta por pergunta.
+  /// Enables the autosave upsert and guarantees one answer per question.
   @@unique([briefingId, questionId])
   @@index([briefingId])
   @@map("answers")
 }
 
-/// Sinal de alerta detectado a partir das respostas de um Briefing.
-/// Recriado do zero a cada reprocessamento.
+/// Warning signal detected from a Briefing's answers.
+/// Recreated from scratch on every reprocessing.
 model Signal {
   id         String            @id @default(cuid())
   briefingId String
   category   DiagnosisCategory
   severity   SignalSeverity
 
-  /// Identificador do tipo de sinal (ex.: "vague_goal"). Corresponde ao `code`
-  /// da regra em src/core/signals/rules/.
+  /// Signal type identifier (e.g. "vague_goal"). Matches the rule's `code` in
+  /// src/core/signals/rules/.
   code String
 
   description String
 
-  /// Ids das Answer que dispararam o sinal — rastreabilidade no painel.
+  /// Ids of the Answers that fired the signal — traceability in the panel.
   sourceAnswerIds String[]
 
   createdAt DateTime @default(now())
@@ -239,15 +240,15 @@ model Signal {
   @@map("signals")
 }
 
-/// Resultado agregado por categoria de um Briefing.
-/// Recriado do zero a cada reprocessamento.
+/// A Briefing's aggregated result per category.
+/// Recreated from scratch on every reprocessing.
 model Diagnosis {
   id         String            @id @default(cuid())
   briefingId String
   category   DiagnosisCategory
 
-  /// 0–100. Null quando status = gray: a categoria não é pontuada por falta de
-  /// dados obrigatórios, e 0 seria indistinguível de `red`.
+  /// 0–100. Null when status = gray: the category isn't scored for lack of
+  /// required data, and 0 would be indistinguishable from `red`.
   score Int?
 
   status  DiagnosisStatus
@@ -262,12 +263,13 @@ model Diagnosis {
   @@map("diagnoses")
 }
 
-/// Contador de rate limiting por janela fixa (SEC-04, decisão D2).
+/// Fixed-window rate-limit counter (SEC-04, decision D2).
 ///
-/// No Postgres, e não em memória, porque em serverless cada instância teria o
-/// próprio contador. Uma linha por chave: a janela é sobrescrita quando vence,
-/// então a tabela cresce com o número de chaves distintas, não de requisições.
-/// A chave nunca contém IP em claro — só o hash (ver src/server/security/rateLimit.ts).
+/// In Postgres, not in memory, because on serverless each instance would have
+/// its own counter. One row per key: the window is overwritten when it
+/// expires, so the table grows with the number of distinct keys, not requests.
+/// The key never holds a clear-text IP — only its hash (see
+/// src/server/security/rateLimitRules.ts).
 model RateLimitBucket {
   key         String   @id
   windowStart DateTime @map("window_start")

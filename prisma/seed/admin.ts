@@ -5,24 +5,24 @@ import { PrismaClient } from "../../src/generated/prisma/client";
 import { PENDING_AUTH_PREFIX } from "../../src/server/security/provisioning";
 
 /**
- * Cria a administradora — o único usuário do MVP.
+ * Creates the administrator — the MVP's panel user.
  *
- * Não existe cadastro público de admin de propósito (seção 2 da
- * especificação): a conta nasce aqui, rodando `npm run db:seed:admin`.
+ * There's no public admin sign-up on purpose (AUTH-02, decision D3): the
+ * account is born here, by running `npm run db:seed:admin`.
  *
- * Funciona em dois modos:
+ * Works in two modes:
  *
- * - **Com Supabase configurado:** cria o usuário no Supabase Auth e o registro
- *   local vinculado. É o caminho de produção.
- * - **Sem Supabase:** cria só o registro local, com um `supabaseAuthId`
- *   marcado como pendente. Serve para desenvolver o painel e os dados antes de
- *   as credenciais existirem; o login por senha só passa a funcionar depois de
- *   rodar este script de novo com o Supabase configurado.
+ * - **With Supabase configured:** creates the user in Supabase Auth and the
+ *   linked local record. This is the production path.
+ * - **Without Supabase:** creates only the local record, with a
+ *   `supabaseAuthId` marked as pending. Useful for developing the panel and
+ *   data before credentials exist; password login only works after running
+ *   this script again with Supabase configured.
  */
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL não definida.");
+  throw new Error("DATABASE_URL is not set.");
 }
 
 const prisma = new PrismaClient({
@@ -30,28 +30,28 @@ const prisma = new PrismaClient({
 });
 
 const NAME = process.env.ADMIN_NAME?.trim() || "Administradora";
-// Minúsculo: o login compara e-mails normalizados (src/server/auth.ts).
+// Lowercase: login compares normalized emails (src/server/auth.ts).
 const EMAIL = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 const PASSWORD = process.env.ADMIN_PASSWORD;
 
-/** Marca um registro local ainda sem contrapartida no Supabase Auth. */
+/** Marks a local record that has no Supabase Auth counterpart yet. */
 const PENDING_PREFIX = PENDING_AUTH_PREFIX;
 
 async function main(): Promise<void> {
   if (!EMAIL) {
-    throw new Error("ADMIN_EMAIL não definida no .env.");
+    throw new Error("ADMIN_EMAIL is not set in .env.");
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const temSupabase = Boolean(supabaseUrl && serviceKey);
+  const hasSupabase = Boolean(supabaseUrl && serviceKey);
 
   let supabaseAuthId = `${PENDING_PREFIX}${EMAIL}`;
 
-  if (temSupabase) {
+  if (hasSupabase) {
     if (!PASSWORD || PASSWORD.length < 8) {
       throw new Error(
-        "ADMIN_PASSWORD não definida ou com menos de 8 caracteres.",
+        "ADMIN_PASSWORD is not set or is shorter than 8 characters.",
       );
     }
 
@@ -62,15 +62,15 @@ async function main(): Promise<void> {
     const existing = await findAuthUserByEmail(supabase.auth.admin, EMAIL);
 
     if (existing) {
-      // Já existe: atualiza a senha para o valor do .env, para que o script
-      // continue sendo a forma de recuperar o acesso.
+      // Already exists: reset the password to the .env value, so the script
+      // remains the way to recover access.
       const { error } = await supabase.auth.admin.updateUserById(existing.id, {
         password: PASSWORD,
       });
       if (error) throw error;
 
       supabaseAuthId = existing.id;
-      console.log(`  Usuário já existia no Supabase Auth; senha atualizada.`);
+      console.log(`  User already existed in Supabase Auth; password updated.`);
     } else {
       const { data, error } = await supabase.auth.admin.createUser({
         email: EMAIL,
@@ -81,19 +81,19 @@ async function main(): Promise<void> {
       if (error) throw error;
 
       supabaseAuthId = data.user.id;
-      console.log("  Usuário criado no Supabase Auth.");
+      console.log("  User created in Supabase Auth.");
     }
   } else {
     console.warn(
-      "  ! Supabase não configurado. Criando apenas o registro local.\n" +
-        "    O login só funcionará depois de preencher NEXT_PUBLIC_SUPABASE_URL\n" +
-        "    e SUPABASE_SERVICE_ROLE_KEY no .env e rodar este script de novo.",
+      "  ! Supabase not configured. Creating only the local record.\n" +
+        "    Login will only work after filling in NEXT_PUBLIC_SUPABASE_URL\n" +
+        "    and SUPABASE_SERVICE_ROLE_KEY in .env and running this script again.",
     );
   }
 
-  // O e-mail é a identidade estável entre os dois modos: assim rodar o script
-  // depois de configurar o Supabase promove o registro pendente em vez de
-  // criar um usuário duplicado.
+  // The email is the stable identity across both modes: running the script
+  // after configuring Supabase promotes the pending record instead of
+  // creating a duplicate user.
   const existingLocal = await prisma.user.findUnique({
     where: { email: EMAIL },
     select: { id: true },
@@ -108,18 +108,19 @@ async function main(): Promise<void> {
         data: { name: NAME, email: EMAIL, supabaseAuthId },
       });
 
-  console.log(`Administradora pronta: ${user.name} <${user.email}>`);
+  console.log(`Administrator ready: ${user.name} <${user.email}>`);
   if (supabaseAuthId.startsWith(PENDING_PREFIX)) {
-    console.log("  (vínculo com o Supabase Auth ainda pendente)");
+    console.log("  (link to Supabase Auth still pending)");
   }
 }
 
 /**
- * O Supabase não expõe busca por e-mail na Admin API; paginamos até achar.
+ * Supabase doesn't expose search by email in the Admin API; we paginate until
+ * we find it.
  *
- * Recebe só o `auth.admin` em vez do client inteiro: os genéricos de
- * `SupabaseClient` dependem do schema do banco e não se deixam anotar à mão
- * sem uma tipagem gerada que não temos aqui.
+ * Takes only `auth.admin` instead of the whole client: `SupabaseClient`'s
+ * generics depend on the database schema and can't be annotated by hand
+ * without generated types we don't have here.
  */
 async function findAuthUserByEmail(
   admin: ReturnType<typeof createClient>["auth"]["admin"],
@@ -143,7 +144,7 @@ async function findAuthUserByEmail(
 
 main()
   .catch((error) => {
-    console.error("Falha ao criar a administradora:", error);
+    console.error("Failed to create the administrator:", error);
     process.exitCode = 1;
   })
   .finally(async () => {

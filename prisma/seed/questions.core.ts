@@ -2,15 +2,17 @@ import { GOAL, POSTING, Q } from "../../src/core/questionKeys";
 import { options, type QuestionSeed } from "./types";
 
 /**
- * Núcleo fixo: as 30 perguntas que TODO respondente enxerga, independente do
- * tipo de negócio.
+ * Fixed core: the 30 questions EVERY respondent sees, regardless of business
+ * type.
  *
- * A ordem desta lista é a ordem em que as perguntas aparecem dentro de cada
- * bloco do formulário — reordenar é mover linhas.
+ * The order of this list is the order in which questions appear within each
+ * form block — reordering means moving lines.
+ *
+ * Question texts and option labels are user-facing (pt-BR).
  */
 export const CORE_QUESTIONS: QuestionSeed[] = [
   // -------------------------------------------------------------------------
-  // O negócio
+  // The business
   // -------------------------------------------------------------------------
   {
     key: Q.BUSINESS_NAME,
@@ -75,7 +77,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Objetivos
+  // Goals
   // -------------------------------------------------------------------------
   {
     key: Q.MARKETING_REASON,
@@ -117,7 +119,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Público
+  // Audience
   // -------------------------------------------------------------------------
   {
     key: Q.IDEAL_CLIENT,
@@ -167,7 +169,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Marca
+  // Brand
   // -------------------------------------------------------------------------
   {
     key: Q.BRAND_AS_PERSON,
@@ -192,7 +194,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Concorrência
+  // Competition
   // -------------------------------------------------------------------------
   {
     key: Q.DIRECT_COMPETITORS,
@@ -209,7 +211,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Presença digital
+  // Digital presence
   // -------------------------------------------------------------------------
   {
     key: Q.ACTIVE_CHANNELS,
@@ -236,7 +238,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
     text: "Com que frequência você publica nesses canais?",
     category: "digital_presence",
     answerType: "single_choice",
-    // Só faz sentido perguntar a cadência de quem declarou algum canal.
+    // Asking about cadence only makes sense for someone who declared a channel.
     visibilityRule: { field: `answer:${Q.ACTIVE_CHANNELS}`, operator: "not_empty" },
     options: options(
       [POSTING.DAILY, "Praticamente todo dia"],
@@ -268,7 +270,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Oferta
+  // Offer
   // -------------------------------------------------------------------------
   {
     key: Q.MAIN_OFFER,
@@ -300,7 +302,7 @@ export const CORE_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Para finalizar
+  // Wrap-up
   // -------------------------------------------------------------------------
   {
     key: Q.ANYTHING_ELSE,

@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   test: {
-    // O motor de regras (src/core) é puro: não precisa de DOM nem de Next.
+    // Unit tests are pure: they need neither a DOM nor Next.
     environment: "node",
     include: ["src/**/*.test.ts"],
   },

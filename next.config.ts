@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
 
 /**
- * Cabeçalhos de segurança (SEC-05, SEC-06).
+ * Security headers (SEC-05, SEC-06).
  *
- * A CSP aqui cobre só as diretivas que não dependem de nonce (framing, base,
- * form, plugins). Restringir `script-src` exige nonce por requisição no proxy
- * e renderização dinâmica de todas as páginas — fica registrado como evolução
- * em docs/PHASE-0-AUDIT.md.
+ * The CSP here covers only the directives that don't need a nonce (framing,
+ * base, form, plugins). Restricting `script-src` requires a per-request nonce
+ * in the proxy and dynamic rendering of every page — recorded as a future
+ * improvement in docs/PHASE-0-AUDIT.md.
  */
 const baseSecurityHeaders = [
   {
@@ -20,7 +20,7 @@ const baseSecurityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=()",
   },
-  // Ignorado pelos navegadores em HTTP; em produção (HTTPS) evita downgrade.
+  // Ignored by browsers over HTTP; in production (HTTPS) it prevents downgrades.
   {
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains",
@@ -30,8 +30,8 @@ const baseSecurityHeaders = [
 const noIndex = { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" };
 
 /**
- * Superfícies que carregam o token do link na URL: nada de Referer para
- * terceiros. O token é a credencial do respondente.
+ * Surfaces that carry the link token in the URL: no Referer to third parties.
+ * The token is the respondent's credential.
  */
 const tokenSurfaceHeaders = [
   noIndex,
@@ -43,17 +43,17 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
   poweredByHeader: false,
-  // `@sparticuz/chromium` é externo por padrão no Next, mas o rastreamento de
-  // arquivos não enxerga os binários compactados que ele carrega em runtime.
-  // Sem isso, a função do PDF sobe na Vercel sem o Chromium (DEPLOY-01).
+  // `@sparticuz/chromium` is external by default in Next, but file tracing
+  // doesn't see the compressed binaries it loads at runtime. Without this, the
+  // PDF function ships to Vercel without Chromium (DEPLOY-01).
   outputFileTracingIncludes: {
     "/api/briefings/*/pdf": ["./node_modules/@sparticuz/chromium/bin/**/*"],
   },
   async headers() {
     return [
       { source: "/:path*", headers: baseSecurityHeaders },
-      // Cada rota privada é declarada explicitamente: a regra mais específica,
-      // por vir depois, sobrescreve a de cima (docs do Next: Header Overriding).
+      // Each private route is declared explicitly: the more specific rule, coming
+      // later, overrides the one above (Next docs: Header Overriding).
       { source: "/admin/:path*", headers: [noIndex] },
       { source: "/login", headers: [noIndex] },
       { source: "/print/:path*", headers: [noIndex] },

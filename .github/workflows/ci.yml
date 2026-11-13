@@ -1,6 +1,6 @@
-# CI mínimo da Fase 0 (QUAL-05): bloqueia regressões básicas antes do merge.
-# Ordem segue docs/ARCHITECTURE.md §14.3. E2E em preview e etapa
-# de release com migrações ficam para quando o deploy estiver configurado.
+# Phase 0 minimum CI (QUAL-05): blocks basic regressions before merging.
+# The order follows docs/ARCHITECTURE.md §14.3. E2E on preview and a release
+# step with migrations come once the deploy is configured.
 name: CI
 
 on:
@@ -38,8 +38,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://briefing:briefing@localhost:5432/briefing?schema=public
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      # Sem Supabase no CI: as rotas autenticadas respondem 401, que é o que
-      # os testes negativos esperam; a sessão é simulada onde precisa existir.
+      # No Supabase in CI: authenticated routes answer 401, which is what the
+      # negative tests expect; the session is simulated where it must exist.
 
     steps:
       - uses: actions/checkout@v4

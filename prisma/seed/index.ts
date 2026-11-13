@@ -6,17 +6,17 @@ import { BRANCH_QUESTIONS } from "./questions.branch";
 import type { QuestionSeed } from "./types";
 
 /**
- * Seed do catálogo de perguntas.
+ * Question catalog seed.
  *
- * IDEMPOTENTE: pode rodar quantas vezes for preciso. Perguntas são
- * identificadas por `key` e sofrem upsert; perguntas que saíram do catálogo são
- * removidas — mas só quando não têm nenhuma resposta associada, para nunca
- * apagar dados de briefing já preenchido.
+ * IDEMPOTENT: can run as many times as needed. Questions are identified by
+ * `key` and upserted; questions removed from the catalog are deleted — but only
+ * when they have no associated answer, so filled-in briefing data is never
+ * erased.
  */
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL não definida. Copie .env.example para .env.");
+  throw new Error("DATABASE_URL is not set. Copy .env.example to .env.");
 }
 
 const prisma = new PrismaClient({
@@ -24,12 +24,12 @@ const prisma = new PrismaClient({
 });
 
 /**
- * A ordem é atribuída pela posição na lista. As ramificadas vêm depois de
- * todas as fixas, então dentro de cada bloco do formulário elas aparecem no
- * fim — logo após as perguntas do núcleo daquela categoria.
+ * Order is assigned by position in the list. Branch questions come after all
+ * fixed ones, so within each form block they appear at the end — right after
+ * that category's core questions.
  *
- * O passo de 10 deixa espaço para encaixar uma pergunta entre duas outras num
- * ajuste manual sem renumerar a tabela inteira.
+ * The step of 10 leaves room to slot a question between two others in a manual
+ * adjustment without renumbering the whole table.
  */
 const ALL_QUESTIONS: QuestionSeed[] = [...CORE_QUESTIONS, ...BRANCH_QUESTIONS];
 
@@ -37,7 +37,7 @@ async function seedQuestions(): Promise<void> {
   const keys = ALL_QUESTIONS.map((q) => q.key);
   const duplicates = keys.filter((key, i) => keys.indexOf(key) !== i);
   if (duplicates.length > 0) {
-    throw new Error(`Chaves de pergunta duplicadas: ${duplicates.join(", ")}`);
+    throw new Error(`Duplicate question keys: ${duplicates.join(", ")}`);
   }
 
   for (const [index, question] of ALL_QUESTIONS.entries()) {
@@ -48,9 +48,9 @@ async function seedQuestions(): Promise<void> {
       required: question.required ?? false,
       order: (index + 1) * 10,
       helpText: question.helpText ?? null,
-      // `Prisma.DbNull` grava NULL de verdade na coluna. Passar `null` direto
-      // gravaria o valor JSON `null`, que não é a mesma coisa: a coluna
-      // deixaria de ser nula e todo filtro por `IS NULL` erraria.
+      // `Prisma.DbNull` stores a real NULL in the column. Passing `null`
+      // directly would store the JSON value `null`, which isn't the same: the
+      // column would no longer be null and every `IS NULL` filter would miss.
       options: question.options
         ? (question.options as unknown as Prisma.InputJsonValue)
         : Prisma.DbNull,
@@ -67,11 +67,11 @@ async function seedQuestions(): Promise<void> {
   }
 
   console.log(
-    `  ${CORE_QUESTIONS.length} fixas + ${BRANCH_QUESTIONS.length} ramificadas = ${ALL_QUESTIONS.length} perguntas`,
+    `  ${CORE_QUESTIONS.length} fixed + ${BRANCH_QUESTIONS.length} branch = ${ALL_QUESTIONS.length} questions`,
   );
 
-  // Remove perguntas que saíram do catálogo, preservando as que já foram
-  // respondidas por algum briefing.
+  // Removes questions that left the catalog, keeping those already answered
+  // by some briefing.
   const obsolete = await prisma.question.findMany({
     where: { key: { notIn: keys } },
     select: { id: true, key: true, _count: { select: { answers: true } } },
@@ -84,11 +84,11 @@ async function seedQuestions(): Promise<void> {
     await prisma.question.deleteMany({
       where: { id: { in: removable.map((q) => q.id) } },
     });
-    console.log(`  removidas ${removable.length} pergunta(s) obsoleta(s)`);
+    console.log(`  removed ${removable.length} obsolete question(s)`);
   }
   if (kept.length > 0) {
     console.warn(
-      `  ! ${kept.length} pergunta(s) fora do catálogo mantidas por terem respostas: ${kept
+      `  ! ${kept.length} question(s) no longer in the catalog kept because they have answers: ${kept
         .map((q) => q.key)
         .join(", ")}`,
     );
@@ -96,16 +96,16 @@ async function seedQuestions(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log("Semeando catálogo de perguntas...");
+  console.log("Seeding the question catalog...");
   await seedQuestions();
 
   const total = await prisma.question.count();
-  console.log(`Pronto. ${total} perguntas no catálogo.`);
+  console.log(`Done. ${total} questions in the catalog.`);
 }
 
 main()
   .catch((error) => {
-    console.error("Falha no seed:", error);
+    console.error("Seed failed:", error);
     process.exitCode = 1;
   })
   .finally(async () => {

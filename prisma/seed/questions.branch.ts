@@ -2,22 +2,24 @@ import { Q } from "../../src/core/questionKeys";
 import { onlyFor, options, type QuestionSeed } from "./types";
 
 /**
- * Perguntas ramificadas: aparecem conforme a resposta de `business_type`.
+ * Branch questions: appear depending on the `business_type` answer.
  *
- * Todas carregam `visibilityRule` — a condição vive no DADO, não no código.
- * Não existe nenhum `if (businessType === ...)` no sistema.
+ * All of them carry a `visibilityRule` — the condition lives in DATA, not in
+ * code. There's no `if (businessType === ...)` anywhere in the system.
  *
- * Cada pergunta recebe a categoria em que faz mais sentido para quem responde,
- * e não uma categoria "ramificação": assim ela aparece dentro do bloco certo
- * do formulário, junto das perguntas do núcleo com que se relaciona.
+ * Each question gets the category that makes most sense to the respondent,
+ * not a "branch" category: that way it appears in the right form block, next
+ * to the core questions it relates to.
  *
- * Todas são opcionais. Torná-las obrigatórias faria qualquer briefing
- * incompleto derrubar a categoria inteira para cinza — punição alta demais
- * para uma pergunta de aprofundamento.
+ * All are optional. Making them required would let any incomplete briefing
+ * drop the whole category to gray — too harsh a penalty for a follow-up
+ * question.
+ *
+ * Question texts and option labels are user-facing (pt-BR).
  */
 export const BRANCH_QUESTIONS: QuestionSeed[] = [
   // -------------------------------------------------------------------------
-  // Negócio local
+  // Local business
   // -------------------------------------------------------------------------
   {
     key: Q.LOCAL_CITY_REGION,
@@ -129,7 +131,7 @@ export const BRANCH_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Produto digital / infoproduto
+  // Digital product / info product
   // -------------------------------------------------------------------------
   {
     key: Q.INFO_AUDIENCE_STATUS,
@@ -177,7 +179,7 @@ export const BRANCH_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Profissional autônomo
+  // Freelancer
   // -------------------------------------------------------------------------
   {
     key: Q.FREE_TEAM_SETUP,
@@ -233,7 +235,7 @@ export const BRANCH_QUESTIONS: QuestionSeed[] = [
   },
 
   // -------------------------------------------------------------------------
-  // Serviço B2B
+  // B2B service
   // -------------------------------------------------------------------------
   {
     key: Q.B2B_DECISION_CYCLE,
