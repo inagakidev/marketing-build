@@ -5,12 +5,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ClientsTable } from "@/components/admin/ClientsTable";
 
-/** Lista de clientes com o status do briefing mais recente de cada. */
+/** Client list with the status of each one's most recent briefing. */
 export default async function AdminHomePage({
   searchParams,
 }: PageProps<"/admin">) {
   const user = await getSessionUser();
-  if (!user) return null; // o layout já redirecionou
+  if (!user) return null; // the layout already redirected
 
   const { status } = await searchParams;
   const statusFilter = typeof status === "string" ? status : null;
@@ -42,9 +42,9 @@ export default async function AdminHomePage({
     latestBriefing: briefings[0] ?? null,
   }));
 
-  // O filtro é aplicado aqui, e não na consulta: o volume é de dezenas de
-  // clientes, e filtrar por "status do briefing mais recente" no SQL exigiria
-  // uma subconsulta lateral que não se paga nesta escala.
+  // The filter is applied here, not in the query: volume is dozens of
+  // clients, and filtering by "latest briefing status" in SQL would need a
+  // lateral subquery that doesn't pay off at this scale.
   const filtered = statusFilter
     ? rows.filter((row) => row.latestBriefing?.status === statusFilter)
     : rows;

@@ -5,9 +5,9 @@ import { prisma } from "@/server/db";
 import { clientUpdateSchema } from "@/server/validation";
 
 /**
- * Todas as rotas filtram por `userId` além do id do recurso. Sem isso, saber o
- * id de um cliente de outra conta bastaria para lê-lo — e o MVP já é modelado
- * para multiusuário, então o hábito precisa valer desde agora.
+ * Every route filters by `userId` besides the resource id. Without it, knowing
+ * the id of another account's client would be enough to read it — and the
+ * model is already multi-user, so the habit must hold from now on.
  */
 
 export async function GET(
@@ -84,9 +84,9 @@ export async function DELETE(
     const user = await requireUser();
     const { id } = await params;
 
-    // Apagar um cliente leva junto briefings, respostas, sinais e diagnósticos
-    // (onDelete: Cascade no schema). É destrutivo e sem volta — a confirmação
-    // fica na interface.
+    // Deleting a client takes its briefings, answers, signals and diagnoses
+    // with it (onDelete: Cascade in the schema). It's destructive and
+    // irreversible — the confirmation lives in the UI (decision D4).
     const { count } = await prisma.client.deleteMany({
       where: { id, userId: user.id },
     });

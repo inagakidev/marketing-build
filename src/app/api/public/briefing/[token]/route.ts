@@ -4,11 +4,11 @@ import { loadBriefingByToken, loadEvalContext } from "@/server/briefing";
 import { buildPublicForm } from "@/server/publicForm";
 
 /**
- * Estado do link e formulário a exibir.
+ * Link state and the form to display.
  *
- * Rota PÚBLICA: a única credencial é o token. Devolve apenas o necessário para
- * renderizar o formulário — nunca e-mail, telefone ou notas internas do
- * cliente, e nunca o diagnóstico.
+ * PUBLIC route: the only credential is the token. Returns only what's needed
+ * to render the form — never the client's email, phone or internal notes, and
+ * never the diagnosis.
  */
 export async function GET(
   request: Request,
@@ -23,16 +23,17 @@ export async function GET(
       return fail(404, "Link inválido.", { problem: "not_found" });
     }
     if (problem) {
-      // 410 Gone: o link existiu e não vale mais. Diferente de 404, permite ao
-      // front distinguir "nunca existiu" de "expirou/já enviado".
+      // 410 Gone: the link existed and is no longer valid. Unlike 404, it lets
+      // the frontend tell "never existed" from "expired/already submitted".
       return fail(410, mensagem(problem), { problem });
     }
 
     const ctx = await loadEvalContext(briefing.id);
 
     return ok({
-      // Sem o id interno: o token já identifica o briefing para o respondente
-      // e o payload público leva só o necessário (FORM-14, NEW-02).
+      // No internal id: the token already identifies the briefing for the
+      // respondent and the public payload carries only what's needed
+      // (FORM-14, NEW-02).
       briefing: {
         status: briefing.status,
         businessType: briefing.businessType,

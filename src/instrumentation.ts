@@ -1,11 +1,11 @@
 import type { Instrumentation } from "next";
 
 /**
- * Roda uma vez quando a instância do servidor sobe.
+ * Runs once when the server instance starts.
  *
- * Valida o ambiente aqui para que configuração errada impeça o servidor de
- * subir, com a lista do que falta, em vez de aparecer como erro no meio do
- * uso (NEW-03).
+ * Validates the environment here so a wrong configuration stops the server
+ * from starting, listing what's missing, instead of surfacing as an error
+ * mid-use (NEW-03).
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
@@ -14,8 +14,8 @@ export async function register() {
 }
 
 /**
- * Erros não tratados de renderização e de rotas. O caminho pode conter o
- * token do link, então tudo passa pela redação do logger.
+ * Unhandled rendering and route errors. The path may contain the link token,
+ * so everything goes through the logger's redaction.
  */
 export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;

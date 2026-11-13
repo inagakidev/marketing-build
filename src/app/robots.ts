@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Nada do produto deve ser indexado: o painel é interno e o formulário público
- * só faz sentido com o token, que é uma credencial (SEC-05).
+ * Nothing in the product should be indexed: the panel is internal and the
+ * public form only makes sense with the token, which is a credential (SEC-05).
  *
- * `robots.txt` é um pedido, não uma proteção — as rotas privadas também
- * enviam `X-Robots-Tag: noindex` (next.config.ts) e exigem sessão ou token.
+ * `robots.txt` is a request, not a protection — private routes also send
+ * `X-Robots-Tag: noindex` (next.config.ts) and require a session or token.
  */
 export default function robots(): MetadataRoute.Robots {
   return {

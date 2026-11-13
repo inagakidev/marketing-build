@@ -11,14 +11,14 @@ import {
 } from "@/lib/labels";
 
 /**
- * Página de impressão: a fonte do PDF.
+ * Print page: the PDF's source.
  *
- * Autenticada como qualquer tela do painel — o Playwright chega aqui com os
- * cookies da administradora (ver `src/server/pdf.ts`).
+ * Authenticated like any panel screen — Playwright gets here with the admin's
+ * cookies (see `src/server/pdf.ts`).
  *
- * O estilo é intencionalmente diferente do painel: fundo branco, sem
- * interatividade, sem cor de tema, e com `break-inside` para as seções não
- * partirem no meio entre páginas.
+ * The styling is intentionally different from the panel: white background, no
+ * interactivity, no theme color, and `break-inside` so sections don't split
+ * across pages.
  */
 export default async function PrintBriefingPage({
   params,
@@ -150,12 +150,12 @@ function formatValue(value: string | string[] | null): string {
 }
 
 /**
- * CSS embutido na página em vez de vir do Tailwind.
+ * CSS embedded in the page instead of coming from Tailwind.
  *
- * A folha do Tailwind é construída para tela: cores de tema, modo escuro,
- * unidades relativas ao viewport. Para impressão, um punhado de regras
- * explícitas em milímetros e pontos dá um resultado muito mais previsível — e
- * evita que uma mudança de tema no painel altere o PDF sem querer.
+ * Tailwind's stylesheet is built for screens: theme colors, dark mode,
+ * viewport-relative units. For print, a handful of explicit rules in
+ * millimeters and points gives a much more predictable result — and keeps a
+ * theme change in the panel from accidentally altering the PDF.
  */
 const PRINT_CSS = `
   .print-root {
@@ -196,7 +196,7 @@ const PRINT_CSS = `
   .meta { text-align: right; font-size: 9pt; color: #555; }
 
   .secao { margin-bottom: 7mm; }
-  /* Não deixa um título órfão no fim da página. */
+  /* Don't leave an orphan heading at the bottom of a page. */
   .secao h2 { break-after: avoid; }
   .bloco { margin-bottom: 4mm; break-inside: avoid; }
 

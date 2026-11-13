@@ -6,11 +6,11 @@ import { renderBriefingPdf } from "@/server/pdf";
 import { enforceRateLimit } from "@/server/security/rateLimit";
 
 /**
- * Exporta o briefing em PDF.
+ * Exports the briefing as a PDF.
  *
- * Abrir um navegador é caro (~1–2s), então esta rota é sempre dinâmica e nunca
- * cacheada — e a checagem de permissão acontece ANTES de lançar o Chromium,
- * para que um id inválido não custe um processo.
+ * Opening a browser is expensive (~1–2s), so this route is always dynamic and
+ * never cached — and the permission check happens BEFORE launching Chromium,
+ * so an invalid id doesn't cost a process.
  */
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,7 +22,7 @@ export async function GET(
   return handle(async () => {
     assertSameOrigin(request);
     const user = await requireUser();
-    // Por usuário, não por IP: é uma rota autenticada e cara.
+    // Per user, not per IP: it's an authenticated, expensive route.
     await enforceRateLimit(request, "pdf", user.id);
     const { id } = await params;
 
@@ -47,7 +47,7 @@ export async function GET(
   });
 }
 
-/** Nome de arquivo seguro: sem acento, espaço nem caractere de caminho. */
+/** Safe file name: no accents, spaces or path characters. */
 function fileName(clientName: string): string {
   const slug =
     clientName

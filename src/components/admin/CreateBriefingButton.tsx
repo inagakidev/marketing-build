@@ -20,8 +20,8 @@ export function CreateBriefingButton({ clientId }: { clientId: string }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Falha ao criar.");
 
-      // Tenta já deixar o link na área de transferência: criar o briefing e
-      // enviar o link são, na prática, a mesma ação.
+      // Try to put the link on the clipboard right away: creating the briefing
+      // and sending the link are, in practice, the same action.
       try {
         await navigator.clipboard.writeText(data.url);
         toast.success("Briefing criado e link copiado.");

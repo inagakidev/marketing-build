@@ -5,12 +5,12 @@ import type { DiagnosisCategory, DiagnosisStatus } from "@/core/types";
 import { BrandGlyph } from "./BrandMark";
 
 /**
- * Painel de apresentação da tela de login.
+ * Login screen showcase panel.
  *
- * Em vez de uma ilustração genérica, mostra a própria saída do produto: um
- * diagnóstico por categoria com o semáforo real (verde/amarelo/vermelho). Os
- * rótulos vêm das mesmas fontes que o painel usa, então nunca saem de sincronia
- * com o sistema.
+ * Instead of a generic illustration, it shows the product's own output: a
+ * per-category diagnosis with the real traffic light (green/yellow/red).
+ * Labels come from the same sources the panel uses, so they never drift from
+ * the system.
  */
 
 const PREVIEW: ReadonlyArray<{ category: DiagnosisCategory; status: DiagnosisStatus }> = [

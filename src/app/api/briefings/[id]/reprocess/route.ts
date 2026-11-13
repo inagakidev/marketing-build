@@ -5,11 +5,11 @@ import { processAndPersist } from "@/server/briefing";
 import { prisma } from "@/server/db";
 
 /**
- * Recalcula sinais e diagnóstico de um briefing já enviado.
+ * Recomputes signals and diagnosis for an already submitted briefing.
  *
- * Necessário porque o diagnóstico é gravado no envio: quando as regras mudam
- * (uma palavra-chave nova, um limite ajustado), briefings antigos continuam
- * mostrando o resultado antigo até que a administradora peça o recálculo.
+ * Needed because the diagnosis is stored on submission: when the rules change
+ * (a new keyword, an adjusted threshold), old briefings keep showing the old
+ * result until the admin asks for a recompute.
  */
 export async function POST(
   request: Request,

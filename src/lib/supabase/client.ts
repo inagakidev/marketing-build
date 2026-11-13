@@ -3,8 +3,8 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 /**
- * Cliente Supabase do browser. Usa apenas a anon key — a service role key
- * nunca pode sair do servidor.
+ * Browser Supabase client. Uses only the anon key — the service role key must
+ * never leave the server.
  */
 export function createSupabaseBrowserClient() {
   return createBrowserClient(

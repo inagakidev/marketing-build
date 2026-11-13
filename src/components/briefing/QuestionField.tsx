@@ -9,12 +9,12 @@ import type { PublicQuestion } from "@/server/publicForm";
 import type { AnswerValue } from "@/core";
 
 /**
- * Um campo do formulário, escolhido pelo `answerType` da pergunta.
+ * A form field, picked by the question's `answerType`.
  *
- * Escolhas ficam como rádio e checkbox visíveis em vez de `select`: no celular
- * um menu suspenso esconde as opções atrás de um toque, e ver as alternativas
- * lado a lado ajuda a responder — é justamente onde o respondente decide o que
- * o formulário vai perguntar em seguida.
+ * Choices are visible radios and checkboxes instead of a `select`: on mobile a
+ * dropdown hides the options behind a tap, and seeing the alternatives side by
+ * side helps answering — this is exactly where the respondent decides what the
+ * form will ask next.
  */
 export function QuestionField({
   question,

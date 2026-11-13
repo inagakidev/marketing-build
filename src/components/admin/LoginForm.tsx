@@ -18,10 +18,10 @@ interface FieldErrors {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Formulário de acesso da administradora.
+ * Panel sign-in form.
  *
- * Mantém a autenticação existente (Supabase Auth) e apenas envolve o fluxo com
- * validação de campo, estados de carregamento e mensagens de erro.
+ * Keeps the existing authentication (Supabase Auth) and only wraps the flow
+ * with field validation, loading states and error messages.
  */
 export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const router = useRouter();
@@ -69,14 +69,14 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       });
 
       if (error) {
-        // Mensagem genérica de propósito: dizer "e-mail não existe" confirmaria
-        // contas válidas para quem estivesse tentando adivinhar.
+        // Generic message on purpose: saying "email doesn't exist" would
+        // confirm valid accounts to anyone trying to guess.
         setFormError("E-mail ou senha incorretos.");
         setLoading(false);
         return;
       }
 
-      // Revalida aqui também: o componente não deve confiar em quem o renderiza.
+      // Revalidate here too: the component shouldn't trust whoever renders it.
       router.push(safeRedirectPath(redirectTo));
       router.refresh();
     } catch {

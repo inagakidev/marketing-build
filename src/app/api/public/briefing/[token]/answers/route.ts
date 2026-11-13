@@ -11,11 +11,11 @@ import { buildPublicForm } from "@/server/publicForm";
 import { saveAnswersSchema } from "@/server/validation";
 
 /**
- * Autosave das respostas.
+ * Answer autosave.
  *
- * Devolve o formulário recalculado porque responder a pergunta de ramificação
- * muda o conjunto de perguntas visíveis — e o front precisa do novo total de
- * etapas sem uma segunda ida ao servidor.
+ * Returns the recomputed form because answering the branching question
+ * changes the set of visible questions — and the frontend needs the new number
+ * of steps without a second round trip.
  */
 export async function PUT(
   request: Request,
@@ -44,12 +44,12 @@ export async function PUT(
     try {
       await saveAnswers(briefing.id, body.answers);
     } catch (error) {
-      // Resposta incompatível com o catálogo é erro do cliente (payload
-      // adulterado ou catálogo mudou no meio do preenchimento).
+      // An answer incompatible with the catalog is a client error (tampered
+      // payload or the catalog changed mid-way).
       if (error instanceof InvalidAnswersError) {
         return fail(400, "Algumas respostas não são válidas.", { issues: error.issues });
       }
-      // O briefing foi enviado ou expirou entre a checagem acima e a gravação.
+      // The briefing was submitted or expired between the check above and the write.
       if (error instanceof BriefingClosedError) {
         return fail(
           410,

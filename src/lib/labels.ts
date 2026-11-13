@@ -1,8 +1,9 @@
 /**
- * Rótulos em português dos enums do banco, para o painel e o PDF.
+ * Portuguese (user-facing) labels for the database enums, for the panel and
+ * the PDF.
  *
- * Ficam fora de `src/core` porque são apresentação, não regra de negócio — o
- * motor trabalha com os códigos.
+ * They live outside `src/core` because they're presentation, not business
+ * rules — the engine works with the codes.
  */
 
 export const BRIEFING_STATUS_LABELS: Record<string, string> = {
@@ -14,7 +15,7 @@ export const BRIEFING_STATUS_LABELS: Record<string, string> = {
   approved: "Aprovado",
 };
 
-/** Cor do badge de status. */
+/** Status badge color. */
 export const BRIEFING_STATUS_TONE: Record<
   string,
   "default" | "secondary" | "outline" | "destructive"
@@ -49,7 +50,7 @@ export const SEVERITY_LABELS: Record<string, string> = {
   strong: "Forte",
 };
 
-/** Classes do semáforo. Contraste conferido em tema claro e escuro. */
+/** Traffic-light classes. Contrast checked in light and dark themes. */
 export const DIAGNOSIS_STATUS_CLASSES: Record<string, string> = {
   green:
     "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800",

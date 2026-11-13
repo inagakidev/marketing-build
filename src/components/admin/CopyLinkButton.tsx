@@ -5,10 +5,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 /**
- * Copia o link do briefing para a área de transferência.
+ * Copies the briefing link to the clipboard.
  *
- * O envio ao cliente é manual nesta versão (não há e-mail automático), então
- * este botão é o passo real do fluxo — vale o cuidado com o caso de falha.
+ * Sending it to the client is manual in this version (no automatic email), so
+ * this button is the real step of the flow — the failure case deserves care.
  */
 export function CopyLinkButton({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
@@ -20,9 +20,9 @@ export function CopyLinkButton({ url }: { url: string }) {
       toast.success("Link copiado.");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // `navigator.clipboard` exige contexto seguro (HTTPS ou localhost) e
-      // permissão. Falhando, mostramos o link para copiar à mão em vez de
-      // deixar o clique sem resposta.
+      // `navigator.clipboard` requires a secure context (HTTPS or localhost)
+      // and permission. On failure, we show the link to copy by hand instead
+      // of leaving the click unanswered.
       toast.error("Não foi possível copiar. O link é: " + url, {
         duration: 15000,
       });

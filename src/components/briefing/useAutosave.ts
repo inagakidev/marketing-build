@@ -10,39 +10,39 @@ const DEBOUNCE_MS = 600;
 const MAX_ATTEMPTS = 4;
 
 /**
- * Autosave das respostas.
+ * Answer autosave.
  *
- * Regras que guiaram o desenho:
+ * Rules that guided the design:
  *
- * - **Sem botão de salvar.** Cada alteração agenda uma gravação; o respondente
- *   nunca precisa se lembrar de nada.
- * - **As alterações são acumuladas por pergunta.** Digitar num campo de texto
- *   dispara um evento por tecla; enviar uma requisição por tecla derrubaria o
- *   servidor sem necessidade. O debounce agrupa a rajada num único PUT.
- * - **O estado local é a fonte da verdade dos campos.** A resposta do servidor
- *   atualiza a estrutura do formulário (as etapas mudam quando o modelo de
- *   negócio é escolhido), mas NUNCA sobrescreve o que a pessoa está digitando.
- * - **Falha de rede não perde dado.** As alterações pendentes continuam na
- *   fila e são reenviadas com espera crescente; o aviso só some quando grava.
+ * - **No save button.** Every change schedules a write; the respondent never
+ *   has to remember anything.
+ * - **Changes are accumulated per question.** Typing in a text field fires an
+ *   event per keystroke; sending a request per keystroke would hammer the
+ *   server for nothing. The debounce groups the burst into a single PUT.
+ * - **Local state is the source of truth for fields.** The server response
+ *   updates the form's structure (steps change when the business model is
+ *   chosen), but NEVER overwrites what the person is typing.
+ * - **A network failure loses no data.** Pending changes stay queued and are
+ *   resent with increasing backoff; the warning only goes away once saved.
  */
 export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => void) {
   const [state, setState] = useState<SaveState>("idle");
 
-  /** Alterações ainda não confirmadas pelo servidor, por chave de pergunta. */
+  /** Changes not yet confirmed by the server, by question key. */
   const pending = useRef(new Map<string, AnswerValue>());
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlight = useRef(false);
   const attempt = useRef(0);
 
-  // `onFormUpdate` costuma ser recriada a cada render; guardá-la numa ref
-  // evita reagendar o autosave a cada renderização do formulário.
+  // `onFormUpdate` is usually recreated on every render; keeping it in a ref
+  // avoids rescheduling the autosave on every form render.
   const onFormUpdateRef = useRef(onFormUpdate);
   useEffect(() => {
     onFormUpdateRef.current = onFormUpdate;
   }, [onFormUpdate]);
 
-  // Referência estável para o retry se chamar de volta sem se referenciar
-  // antes de declarada (o próprio `flush` reagenda a si mesmo em caso de erro).
+  // Stable reference so the retry can call back without referencing itself
+  // before being declared (`flush` reschedules itself on error).
   const flushRef = useRef<() => Promise<void>>(async () => {});
 
   const flush = useCallback(async () => {
@@ -64,8 +64,8 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
       });
 
       if (response.status === 429) {
-        // Limite de requisições (SEC-04): espera o tempo indicado pelo
-        // servidor, sem gastar uma das tentativas de falha de rede.
+        // Rate limit (SEC-04): wait for the time the server indicates,
+        // without spending one of the network-failure attempts.
         const seconds = Number(response.headers.get("Retry-After")) || 5;
         setState("error");
         timer.current = setTimeout(() => void flushRef.current(), seconds * 1000);
@@ -75,8 +75,8 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
 
       const data = (await response.json()) as { form: PublicForm };
 
-      // Só remove da fila o que foi de fato enviado: alterações feitas durante
-      // a requisição continuam pendentes e entram no próximo lote.
+      // Only remove from the queue what was actually sent: changes made during
+      // the request stay pending and go into the next batch.
       for (const { questionKey, value } of batch) {
         if (pending.current.get(questionKey) === value) {
           pending.current.delete(questionKey);
@@ -91,8 +91,8 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
       setState("error");
 
       if (attempt.current < MAX_ATTEMPTS) {
-        // Espera crescente: 1s, 2s, 4s. Uma queda breve de conexão se resolve
-        // sozinha sem o respondente precisar fazer nada.
+        // Increasing backoff: 1s, 2s, 4s. A brief connection drop resolves
+        // itself without the respondent having to do anything.
         const delay = 1000 * 2 ** (attempt.current - 1);
         timer.current = setTimeout(() => void flushRef.current(), delay);
       }
@@ -105,7 +105,7 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
     flushRef.current = flush;
   }, [flush]);
 
-  /** Registra a alteração de uma resposta e agenda a gravação. */
+  /** Records an answer change and schedules the write. */
   const save = useCallback(
     (questionKey: string, value: AnswerValue) => {
       pending.current.set(questionKey, value);
@@ -117,7 +117,7 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
     [flush],
   );
 
-  /** Grava imediatamente o que estiver pendente. Use ao trocar de etapa. */
+  /** Writes whatever is pending right away. Use when changing steps. */
   const flushNow = useCallback(async () => {
     if (timer.current) clearTimeout(timer.current);
     await flush();
@@ -129,7 +129,7 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
     };
   }, []);
 
-  // Avisa antes de fechar a aba com alteração ainda não gravada.
+  // Warns before closing the tab with unsaved changes.
   useEffect(() => {
     function handler(event: BeforeUnloadEvent) {
       if (pending.current.size > 0) event.preventDefault();

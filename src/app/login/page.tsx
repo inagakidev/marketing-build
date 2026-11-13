@@ -15,7 +15,7 @@ export default async function LoginPage({
   const auth = await getAuthState();
   const { redirect: redirectTo } = await searchParams;
 
-  // O destino vem do query string: só caminhos internos (SEC-02).
+  // The destination comes from the query string: internal paths only (SEC-02).
   const target = safeRedirectPath(redirectTo);
 
   if (auth.status === "authenticated") redirect(target);
@@ -44,10 +44,10 @@ export default async function LoginPage({
 }
 
 /**
- * Estado de desenvolvimento: o Supabase Auth ainda não foi configurado.
+ * Development state: Supabase Auth hasn't been configured yet.
  *
- * Ocorre antes de `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`
- * existirem no `.env`; o formulário de senha só passa a funcionar depois disso.
+ * Happens before `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`
+ * exist in `.env`; the password form only works after that.
  */
 function AuthSetupNotice() {
   return (
