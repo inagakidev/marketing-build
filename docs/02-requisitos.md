@@ -1,514 +1,804 @@
 # Briefing Inteligente — Documento de Requisitos
 
-> **Versão:** 1.0  
-> **Status:** Requisitos do MVP + requisitos necessários para produção  
-> **Data:** 12/11/2026  
-> **Produto:** Briefing Inteligente — coleta adaptativa de briefing de marketing com diagnóstico determinístico
+> **Versão:** 2.0  
+> **Data:** 13/11/2026  
+> **Status:** Requisitos-alvo da V1; decisões pendentes identificadas  
+> **Produto de referência:** `PRODUCT.md`  
+> **Documento complementar:** `03-inspecao-e-arquitetura.md` e `04-roadmap-melhorias.md`
 
-Este documento define **o que o produto precisa fazer**, **quais regras precisa respeitar** e **quais critérios de qualidade precisa cumprir**. Ele serve como contrato entre produto, desenvolvimento, operação e segurança.
+Este documento traduz a visão de `PRODUCT.md` em requisitos funcionais, regras de negócio, requisitos não funcionais e critérios de aceite.
 
-Prioridades usadas: **Must** (obrigatório no MVP), **Should** (importante, pode entrar no próximo ciclo), **Could** (desejável), **Won’t** (fora de escopo agora).
+## Como interpretar este documento
+
+A plataforma está evoluindo de um MVP de briefing e diagnóstico para uma plataforma de gestão estratégica de marketing. Por isso, este documento diferencia:
+
+- **Estado atual conhecido:** capacidades descritas na documentação anterior do MVP. Não significa que tenham sido revalidadas no código nesta revisão.
+- **Alvo da V1:** capacidades necessárias para cumprir a jornada estratégica completa.
+- **Prioridade:** importância para a entrega da V1, não uma afirmação de que o requisito já foi implementado.
+
+Prioridades:
+- **Must:** necessário para a jornada principal da V1.
+- **Should:** importante para operação consistente; pode ser entregue em incremento posterior da V1.
+- **Could:** melhoria desejável, condicionada a validação e capacidade.
+- **Won't:** fora do escopo atual.
+
+Critérios de aceite devem ser verificáveis. Quando uma decisão ainda não foi tomada, o requisito indica **Pendente de decisão**, sem inventar comportamento.
 
 ---
 
 ## 1. Objetivo e escopo
 
 ### 1.1 Objetivo
-Permitir que uma administradora de marketing cadastre clientes, envie um briefing adaptativo por link público, receba respostas completas e obtenha um diagnóstico determinístico por categoria, com exportação em PDF.
 
-### 1.2 Escopo funcional
-- Autenticação e autorização da administradora.
-- Gestão de clientes.
-- Criação e ciclo de vida de briefings e links.
-- Formulário público adaptativo com autosave.
-- Motor de sinais e diagnóstico.
-- Painel de leitura e PDF.
-- Operação, segurança, privacidade e qualidade.
+Permitir que equipes de marketing gerenciem a jornada estratégica de clientes e projetos em um único ambiente: coleta de briefing, diagnóstico, análise humana, recomendações, priorização, planejamento, execução, acompanhamento de indicadores e avaliação de resultados.
 
-### 1.3 Fora de escopo
-IA generativa, envio automático de e-mail, multiusuário com papéis, billing, integrações com CRM, aplicativo nativo, white-label e gestão visual do catálogo de perguntas.
+### 1.2 Escopo funcional da V1
 
----
+1. Organização, autenticação, membros, funções e permissões.
+2. Cadastro e histórico contextual de clientes.
+3. Projetos/campanhas, responsáveis e colaboradores.
+4. Criação e ciclo de vida de briefings e links públicos.
+5. Formulário adaptativo, autosave e retomada.
+6. Diagnóstico determinístico, versionado e explicável.
+7. Análise humana, recomendações e priorização.
+8. Aprovação e conversão assistida de recomendações em objetivos, ações e tarefas.
+9. Planos estratégicos, execução e revisão.
+10. Indicadores, medições, evidências e resultados.
+11. Documentos e comunicação interna contextual.
+12. Dashboards, relatórios e compartilhamento externo controlado.
+13. Modelos, duplicação e recorrência configurável.
+14. Segurança, privacidade, auditoria, backup e observabilidade.
 
-## 2. Atores e permissões
+### 1.3 Fora do escopo da V1
 
-| Ator | Autenticação | Pode fazer | Não pode fazer |
-|---|---|---|---|
-| **Administradora** | Supabase Auth + registro local `User` | Gerenciar clientes, criar briefings, ler diagnósticos, reprocessar, exportar PDF | Acessar dados de outra conta; criar contas públicas |
-| **Respondente** | Token opaco na URL | Abrir o formulário, salvar respostas, enviar o briefing | Ver diagnóstico, dados internos, outros briefings; editar após o envio |
-| **Sistema** | Interno | Avaliar visibilidade, executar regras, calcular diagnóstico, gerar PDF | Expor segredos ou dados internos ao browser |
-| **Visitante** | Nenhuma | Ver tela de link inválido/expirado | Acessar qualquer dado |
+- CRM completo e automação comercial.
+- Automação de campanhas, anúncios ou publicação em redes sociais.
+- Portal completo de autoatendimento para clientes.
+- IA generativa como autoridade autônoma de diagnóstico, priorização ou decisão.
+- Integrações externas em larga escala.
+- Aplicativo mobile nativo.
+- White-label por cliente, billing e marketplace.
+- Microserviços, GraphQL ou event sourcing sem justificativa arquitetural.
+- Construtor irrestrito de regras de negócio.
+- Benchmarking externo sem dados confiáveis e comparáveis.
 
-**Premissa de segurança:** apenas uma conta administrativa deve operar o produto no MVP. O modelo de dados é multiusuário, mas o cadastro de administradoras é feito por seed/operação, nunca por tela pública.
+### 1.4 Diretriz de entrega
 
----
-
-## 3. Requisitos funcionais
-
-### 3.1 Autenticação e acesso
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-01** | A administradora entra com e-mail e senha via Supabase Auth. | Must | Credenciais válidas criam sessão e redirecionam para `/admin`; inválidas exibem mensagem genérica. |
-| **RF-02** | O acesso ao painel exige sessão válida no servidor, não apenas no proxy. | Must | Acessar `/admin` sem sessão redireciona para `/login`; chamadas de API administrativas retornam 401. |
-| **RF-03** | Não existe cadastro público de administradora. | Must | Nenhuma rota pública cria `User`. O seed é a única forma de provisionar acesso. |
-| **RF-04** | Apenas e-mails autorizados podem virar administradores. | Must | Uma conta Supabase não autorizada recebe 401/403 e não cria registro local nem acessa dados. |
-| **RF-05** | O destino pós-login é interno e seguro. | Must | `redirect` só aceita caminhos iniciados por `/`; URLs externas ou `//` caem em `/admin`. |
-| **RF-06** | A administradora consegue encerrar a sessão. | Should | Ação de logout limpa a sessão e volta para `/login`. |
-
-### 3.2 Gestão de clientes
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-07** | Cadastrar cliente com nome, e-mail, telefone, tipo de projeto e notas internas. | Must | Nome e e-mail válidos são obrigatórios; cliente aparece na lista. |
-| **RF-08** | Editar cliente. | Must | Alterações persistem e refletem na listagem e no detalhe. |
-| **RF-09** | Excluir cliente com confirmação. | Must | Exclusão remove o cliente e, em cascata, briefings, respostas, sinais e diagnósticos. |
-| **RF-10** | Listar clientes com o briefing mais recente e status. | Must | A lista mostra nome, e-mail, tipo de negócio, status e data. |
-| **RF-11** | Filtrar clientes por status. | Should | Filtro considera o briefing mais recente e não esconde clientes com briefings relevantes. |
-| **RF-12** | Buscar e paginar clientes. | Should | Busca por nome/e-mail; paginação estável com volume crescente. |
-
-### 3.3 Briefing e link público
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-13** | Criar um briefing para um cliente. | Must | O briefing nasce como `awaiting_response`, com token único e prazo. |
-| **RF-14** | Gerar link público a partir do token. | Must | Link completo é exibido/copiado; token não é derivado de id, nome ou e-mail. |
-| **RF-15** | Aplicar prazo de validade configurável. | Must | Link expirado retorna tela específica e não aceita respostas. |
-| **RF-16** | Distinguir link inválido, expirado e já enviado. | Must | Cada caso tem status e mensagem próprios (404, 410, tela de já enviado). |
-| **RF-17** | Revogar um link antes do envio. | Should | Link revogado passa a retornar estado de inválido/expirado e não aceita autosave. |
-| **RF-18** | Regenerar o token de um briefing aberto. | Should | Token antigo deixa de funcionar; novo link é exibido. |
-| **RF-19** | Reenviar o link ao cliente. | Should | Ação registra data/hora do reenvio e permite copiar o link novamente. |
-| **RF-20** | Impedir edição após o envio. | Must | Qualquer autosave/submit após `ready_for_review` é rejeitado sem alterar dados. |
-| **RF-21** | Permitir múltiplos briefings por cliente. | Must | Cada briefing tem seu próprio token, status e diagnóstico. |
-
-### 3.4 Formulário público
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-22** | Exibir boas-vindas com número de etapas e tempo estimado. | Must | Tela inicial mostra cliente, remetente, quantidade de etapas e avisos de autosave. |
-| **RF-23** | Organizar perguntas em etapas por categoria. | Must | Cada etapa tem no máximo 6 perguntas; categorias maiores são divididas. |
-| **RF-24** | Ramificar perguntas pelo tipo de negócio. | Must | Escolher `local_business`, `ecommerce`, `info_product`, `freelancer` ou `b2b_service` libera apenas o bloco correspondente. |
-| **RF-25** | Respeitar visibilidade condicional por respostas anteriores. | Must | Uma pergunta só aparece se sua regra for verdadeira no momento da renderização. |
-| **RF-26** | Ignorar respostas de perguntas invisíveis no motor. | Must | Trocar o tipo de negócio não faz sinais dispararem por respostas órfãs. |
-| **RF-27** | Renderizar tipos de resposta suportados. | Must | Texto curto, texto longo, escolha única e múltipla escolha funcionam em mobile e desktop. |
-| **RF-28** | Salvar automaticamente cada alteração. | Must | Após 600 ms de inatividade, um lote é enviado; falha de rede tenta novamente com espera crescente. |
-| **RF-29** | Retomar respostas salvas. | Must | Fechar e reabrir o link restaura as respostas já gravadas. |
-| **RF-30** | Impedir avanço com obrigatórias em branco na etapa. | Must | Campos pendentes são destacados e a etapa não avança. |
-| **RF-31** | Revisar antes de enviar. | Must | Tela de revisão mostra quantas perguntas foram respondidas e permite voltar. |
-| **RF-32** | Enviar o briefing. | Must | Envio válido fecha o briefing, gera diagnóstico e mostra confirmação. |
-| **RF-33** | Tratar envio duplicado como sucesso idempotente. | Must | Duplo clique ou retorno pelo histórico não gera erro nem duplica diagnóstico. |
-| **RF-34** | Informar crescimento do formulário após a ramificação. | Must | Um aviso explica que o número de etapas aumentou por causa do tipo de negócio. |
-| **RF-35** | Funcionar sem login para o respondente. | Must | O token é a única credencial; nenhuma conta é criada. |
-
-### 3.5 Motor de diagnóstico
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-36** | Executar regras de sinal determinísticas. | Must | As 9 regras registradas produzem sinais previsíveis e testáveis. |
-| **RF-37** | Classificar sinais por severidade. | Must | Cada sinal é `light`, `moderate` ou `strong`, com penalidade de 15, 25 ou 40 pontos. |
-| **RF-38** | Calcular diagnóstico nas 5 categorias. | Must | Posicionamento, Público, Oferta, Presença digital e Marketing atual recebem score e status. |
-| **RF-39** | Marcar categoria como cinza quando faltar obrigatória visível. | Must | Categoria sem dado obrigatório tem score nulo e status `gray`. |
-| **RF-40** | Rastrear sinal até as respostas de origem. | Must | `sourceAnswerIds` contém IDs de respostas existentes. |
-| **RF-41** | Montar lista de problemas e oportunidades. | Must | Problemas vêm de categorias vermelhas; oportunidades, de verdes e do que já funcionou. |
-| **RF-42** | Gravar diagnóstico no envio. | Must | Sinais e diagnósticos persistem e são lidos no painel e no PDF. |
-| **RF-43** | Reprocessar diagnóstico por ação explícita. | Must | Recalcular apaga e recria sinais/diagnósticos de forma idempotente. |
-| **RF-44** | Informar por que uma categoria ficou cinza. | Must | Painel e PDF mostram as perguntas obrigatórias faltantes. |
-| **RF-45** | Versionar regras e catálogo por diagnóstico. | Should | É possível saber com qual versão de regras/catálogo um diagnóstico foi gerado. |
-
-### 3.6 Painel administrativo
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-46** | Abrir detalhe de um briefing. | Must | Exibe cliente, status, tipo de negócio, contagem de respostas e datas. |
-| **RF-47** | Exibir respostas por categoria. | Must | Perguntas e respostas aparecem na ordem do catálogo, com valores legíveis. |
-| **RF-48** | Exibir respostas brutas. | Must | Aba mostra chave técnica, valor cru e data de resposta. |
-| **RF-49** | Exibir semáforo, problemas e oportunidades. | Must | Painel mostra as 5 categorias, problemas ordenados por gravidade e oportunidades. |
-| **RF-50** | Reprocessar pelo painel. | Must | Botão dispara recálculo, atualiza a tela e informa a quantidade de sinais. |
-| **RF-51** | Aprovar um briefing revisado. | Should | Ação muda status para `approved` e registra quem/quando. |
-| **RF-52** | Rejeitar/devolver um briefing para ajuste. | Could | Administradora pode solicitar correção e liberar novo preenchimento. |
-| **RF-53** | Ver histórico de ações. | Should | Criação, envio, reprocessamento, aprovação e exclusão ficam registrados. |
-
-### 3.7 PDF e saída
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-54** | Exportar briefing em PDF. | Must | PDF contém cabeçalho, diagnóstico, problemas, oportunidades e respostas. |
-| **RF-55** | Usar a mesma fonte de dados do painel. | Must | PDF não mantém template duplicado; renderiza a página de impressão. |
-| **RF-56** | Nomear o arquivo de forma segura. | Must | Nome sem acento, espaço ou caractere de caminho. |
-| **RF-57** | Proteger o PDF por sessão. | Must | A rota exige administradora autenticada e valida a propriedade do briefing. |
-| **RF-58** | Limitar tempo/custo de geração. | Should | Geração tem timeout e limite de execução; falhas são registradas. |
-
-### 3.8 Privacidade e ciclo de vida dos dados
-
-| ID | Requisito | Prioridade | Critério de aceite |
-|---|---|---|---|
-| **RF-59** | Não expor PII em rota pública. | Must | Payload público contém apenas nome do cliente, nome do remetente, perguntas e respostas. |
-| **RF-60** | Exportar dados de um titular/cliente. | Must | É possível gerar arquivo com dados do cliente e respostas. |
-| **RF-61** | Excluir dados de um titular/cliente. | Must | Exclusão remove dados pessoais e respectivas respostas/diagnósticos. |
-| **RF-62** | Aplicar retenção configurável. | Should | Briefings e respostas expiram ou são anonimizados após prazo definido. |
-| **RF-63** | Registrar consentimento do respondente. | Should | Antes de responder, o titular aceita o aviso de privacidade. |
-| **RF-64** | Evitar indexação de links privados. | Must | Páginas `/briefing/*`, `/admin/*` e `/print/*` têm `noindex` e `Referrer-Policy` adequada. |
+A V1 deve cobrir a jornada estratégica de ponta a ponta, mas pode entregar cada módulo com profundidade inicial controlada. A simplificação não pode quebrar a conexão entre briefing, diagnóstico, recomendações, plano, execução e resultados.
 
 ---
 
-## 4. Regras de negócio
+## 2. Atores, funções e autorização
 
-| ID | Regra | Detalhe |
+### 2.1 Atores
+
+| Ator | Autenticação | Escopo |
 |---|---|---|
-| **RN-01** | Visibilidade é dado | A condição de exibição vive em `Question.visibilityRule`; não há `if` por tipo de negócio no código. |
-| **RN-02** | Regra só olha o passado | Uma pergunta só pode depender de respostas de perguntas anteriores na ordem do catálogo. |
-| **RN-03** | Invisível não conta | O motor filtra respostas de perguntas invisíveis antes de avaliar sinais e diagnóstico. |
-| **RN-04** | Obrigatória só vale se visível | Perguntas de outras ramificações não bloqueiam o envio. |
-| **RN-05** | Branco apaga | Resposta vazia remove o registro em vez de gravar string vazia. |
-| **RN-06** | Upsert por par | Existe no máximo uma resposta por `(briefingId, questionId)`. |
-| **RN-07** | Tipo de negócio é espelhado | `Briefing.businessType` acompanha a resposta de `business_type`. |
-| **RN-08** | Ramificadas são opcionais | Aprofundamentos não derrubam categoria para cinza por falta de resposta. |
-| **RN-09** | Token é credencial | Token único, opaco, com entropia alta e sem relação com dados do cliente. |
-| **RN-10** | Expiração bloqueia escrita | Link expirado não aceita autosave nem envio. |
-| **RN-11** | Envio é definitivo | Após `ready_for_review`, o briefing não aceita novas respostas. |
-| **RN-12** | Transição de status é explícita | `awaiting_response → in_progress → ready_for_review`; `approved` só por ação da administradora. |
-| **RN-13** | Diagnóstico nasce no envio | Não é recalculado automaticamente a cada leitura. |
-| **RN-14** | Reprocessamento é idempotente | Apaga e recria sinais/diagnósticos de um briefing em transação. |
-| **RN-15** | Score por penalidade | 100 − (15 por leve + 25 por moderado + 40 por forte), limitado a 0–100. |
-| **RN-16** | Faixas de status | Verde ≥ 80; amarelo 50–79; vermelho < 50; cinza quando falta obrigatória visível. |
-| **RN-17** | Cinza vence sinal | Se falta obrigatória, a categoria é cinza mesmo que existam sinais. |
-| **RN-18** | Rastreabilidade | Todo sinal referencia respostas existentes do próprio briefing. |
-| **RN-19** | Isolamento por dono | Toda consulta administrativa filtra por `userId`; id de outra conta não confirma existência. |
-| **RN-20** | Dados internos são privados | Notas internas, e-mail, telefone e diagnóstico nunca vão para o formulário público. |
-| **RN-21** | Catálogo é global | Perguntas não são duplicadas por briefing; mudanças no catálogo afetam todos. |
-| **RN-22** | Seed é idempotente | Perguntas são upsert por `key`; perguntas obsoletas só são removidas se não tiverem respostas. |
-| **RN-23** | Status inicial | Briefing criado nasce como `awaiting_response`; `draft` existe no enum, mas não é usado no fluxo atual. |
-| **RN-24** | Uma conta por administradora | O produto não permite cadastro público nem múltiplos administradores no MVP. |
+| Administrador da organização | Conta autenticada | Configura organização, membros, funções, permissões e parâmetros |
+| Líder | Conta autenticada | Acompanha equipe e projetos, distribui responsabilidades e executa aprovações permitidas |
+| Integrante | Conta autenticada | Trabalha em projetos e atividades aos quais recebeu acesso |
+| Cliente/respondente | Token de link | Responde briefing sem criar conta |
+| Cliente destinatário de relatório | Link compartilhado | Visualiza somente o relatório autorizado |
+| Sistema | Contexto interno | Executa regras, cálculos, notificações e rotinas autorizadas |
 
-### 4.1 Máquina de estados do briefing
+### 2.2 Requisitos de autorização
 
-```
-                 criar
-                   │
-                   ▼
-          awaiting_response ──────────────┐
-                   │                      │
-        primeira resposta                 │
-                   ▼                      │
-             in_progress ────────┐        │
-                   │             │        │
-                enviar       expirar/revogar
-                   │             │        │
-                   ▼             ▼        ▼
-          ready_for_review    (link bloqueado)
-                   │
-                aprovar
-                   ▼
-               approved
-```
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| AUTH-01 | Autenticar membros por provedor de autenticação confiável. | Must | Rotas privadas exigem sessão válida no servidor. |
+| AUTH-02 | Não oferecer cadastro público irrestrito de membros ou organizações na V1. | Must | Provisionamento ocorre por convite ou ação administrativa autorizada. |
+| AUTH-03 | Cada membro pertence a uma organização por associação explícita. | Must | O contexto organizacional é validado em toda operação. |
+| AUTH-04 | Suportar funções conceituais de administrador, líder e integrante. | Must | Cada função possui permissões definidas e testadas. |
+| AUTH-05 | Permitir que o administrador configure quais funções podem executar ações sensíveis. | Must | Aprovações e alterações protegidas respeitam a configuração. |
+| AUTH-06 | Aplicar autorização no servidor e na camada de dados, não apenas na interface. | Must | Requisições diretas sem permissão retornam 403 ou resposta de não existência conforme política. |
+| AUTH-07 | Permitir responsável principal e colaboradores por projeto. | Must | Atribuições são persistidas e exibidas no projeto. |
+| AUTH-08 | Restringir ações por escopo de projeto quando aplicável. | Must | Integrante sem acesso não lê nem altera o projeto. |
+| AUTH-09 | Registrar autor, data e contexto das ações relevantes. | Must | Eventos auditáveis possuem identidade do ator e entidade afetada. |
+| AUTH-10 | Suportar múltiplas funções por membro, se permitido pela configuração. | Should | Combinação de permissões segue regra documentada e testada. |
+| AUTH-11 | Permitir convite, revogação de acesso e desativação de membro. | Must | Membro desativado perde acesso sem apagar histórico de autoria. |
+| AUTH-12 | Evitar que a remoção de um membro apague autoria ou histórico. | Must | Registros preservam referência histórica, mesmo após desativação. |
 
-Regras adicionais recomendadas:
-- O envio só é válido a partir de `awaiting_response` ou `in_progress`.
-- `expiresAt` não pode ser alterado retroativamente sem ação explícita.
-- `submittedAt` é gravado uma única vez.
-- `approvedAt` e `approvedBy` devem existir quando o status for `approved`.
+**Pendente de decisão:** matriz detalhada de permissões por função e ação; regra de combinação quando um membro possui mais de uma função; se líderes podem convidar membros; se haverá acesso por projeto, equipe ou ambos.
 
 ---
 
-## 5. Requisitos não funcionais
+## 3. Organização, clientes e projetos
 
-### 5.1 Segurança
+### 3.1 Organização e isolamento
 
-| ID | Requisito | Meta / critério |
-|---|---|---|
-| **RNF-01** | Toda rota administrativa valida sessão no servidor. | Nenhuma rota depende só do proxy. |
-| **RNF-02** | Apenas e-mails autorizados podem ser administradores. | Allowlist ou desativação de signup no Supabase; teste cobrindo conta não autorizada. |
-| **RNF-03** | Tokens públicos têm entropia suficiente. | ≥ 120 bits; 24 caracteres em alfabeto sem ambíguos. |
-| **RNF-04** | Rotas públicas têm rate limiting. | Limite por IP + token para leitura, autosave e envio; retorno 429 com `Retry-After`. |
-| **RNF-05** | Mutações administrativas têm proteção CSRF/origem. | Validar `Origin`/`Referer` ou usar token CSRF; cookies `HttpOnly`, `Secure`, `SameSite` adequados. |
-| **RNF-06** | Cabeçalhos de segurança estão presentes. | CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors`. |
-| **RNF-07** | Entradas são validadas na borda. | Zod para forma; validação semântica contra catálogo para respostas. |
-| **RNF-08** | Segredos nunca chegam ao cliente. | `SUPABASE_SERVICE_ROLE_KEY` só no servidor; nenhuma chave em bundle. |
-| **RNF-09** | Erros internos não vazam detalhes. | 500 com mensagem genérica; detalhe apenas em log. |
-| **RNF-10** | Páginas privadas não são indexáveis. | `noindex, nofollow` e `Referrer-Policy: no-referrer`. |
-| **RNF-11** | Dependências são verificadas. | `npm audit` no CI; atualização periódica. |
-| **RNF-12** | Acesso administrativo é auditável. | Log de login, criação, envio, reprocessamento, aprovação e exclusão. |
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| ORG-01 | Toda entidade de negócio pertence a uma organização. | Must | Registros centrais possuem vínculo organizacional obrigatório. |
+| ORG-02 | A V1 pode iniciar com uma organização, mas o modelo deve suportar múltiplas organizações independentes. | Must | O isolamento não depende de filtros exclusivamente na interface. |
+| ORG-03 | Consultas e mutações validam a organização ativa e a autorização do membro. | Must | Testes comprovam que uma organização não acessa dados de outra. |
+| ORG-04 | Configurações e modelos pertencem à organização, salvo catálogo explicitamente global. | Must | Configurações não vazam entre organizações. |
 
-### 5.2 Privacidade e LGPD
+### 3.2 Clientes
 
-| ID | Requisito | Meta / critério |
-|---|---|---|
-| **RNF-13** | Base legal e transparência. | Aviso de privacidade no formulário; finalidade e retenção informadas. |
-| **RNF-14** | Minimização. | Coletar só o necessário; telefone e notas internas são opcionais. |
-| **RNF-15** | Direito de acesso/exportação. | Exportar dados do cliente e respostas em formato legível. |
-| **RNF-16** | Direito de exclusão. | Excluir/anonimizar dados pessoais mediante solicitação. |
-| **RNF-17** | Retenção definida. | Prazo configurável; expiração/anonimização automática. |
-| **RNF-18** | Segregação por tenant. | Toda consulta filtra pelo `userId`; testes de isolamento. |
-| **RNF-19** | Criptografia em trânsito e repouso. | TLS obrigatório; Postgres gerenciado com criptografia. |
-| **RNF-20** | Suboperadores documentados. | Supabase, Vercel e provedor de e-mail registrados. |
-| **RNF-21** | Dados sensíveis fora de logs. | Não logar respostas livres, e-mail, telefone ou notas. |
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| CLI-01 | Criar cliente com dados essenciais e campos opcionais. | Must | Campos obrigatórios são validados; cliente é associado à organização. |
+| CLI-02 | Editar dados do cliente conforme permissão. | Must | Alterações persistem e entram no histórico quando relevantes. |
+| CLI-03 | Arquivar cliente sem destruir seu histórico estratégico. | Must | Cliente arquivado deixa de aparecer nas listas ativas, mas seus projetos permanecem consultáveis por usuários autorizados. |
+| CLI-04 | Listar, buscar, filtrar e paginar clientes. | Should | Busca e filtros são estáveis e respeitam organização/permissões. |
+| CLI-05 | Associar múltiplos projetos ao mesmo cliente. | Must | Detalhe do cliente lista seus projetos e respectivos estados. |
+| CLI-06 | Exibir visão consolidada do relacionamento. | Must | Histórico apresenta reuniões, observações, decisões, documentos, projetos e resultados autorizados. |
+| CLI-07 | Registrar reunião, observação, interação ou decisão. | Must | Registro contém tipo, conteúdo, autor e data; pode ser associado a cliente e projeto. |
+| CLI-08 | Não exigir equipe fixa no cadastro do cliente. | Must | Responsáveis e colaboradores são definidos no projeto. |
 
-### 5.3 Desempenho
+### 3.3 Projetos e campanhas
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| PROJ-01 | Criar projeto/campanha vinculado a um cliente. | Must | Projeto possui organização, cliente, nome e status. |
+| PROJ-02 | Definir responsável principal e colaboradores. | Must | Responsável e colaboradores são membros ativos da organização. |
+| PROJ-03 | Registrar descrição, contexto, período e status do projeto. | Must | Campos são consultáveis e aparecem no detalhe. |
+| PROJ-04 | Associar briefings, diagnósticos, recomendações, planos, documentos e relatórios ao projeto. | Must | Elementos relacionados são acessíveis a partir do projeto, respeitando permissão. |
+| PROJ-05 | Permitir mais de um briefing por projeto. | Must | Cada briefing mantém ciclo de vida e versão próprios. |
+| PROJ-06 | Distinguir status operacional do projeto e situação dos objetivos. | Must | O projeto não é considerado concluído apenas porque tarefas foram fechadas. |
+| PROJ-07 | Encerrar projeto por fluxo de revisão e aprovação. | Must | Encerramento exige revisão dos objetivos, resultados e relatório final. |
+| PROJ-08 | Reabrir projeto encerrado mediante permissão e justificativa. | Should | Reabertura registra autor, data e motivo. |
+| PROJ-09 | Permitir projetos complementares vinculados ao cliente. | Must | Projetos coexistem sem sobrescrever histórico de outros projetos. |
+
+---
+
+## 4. Briefings e experiência pública
+
+### 4.1 Criação e ciclo de vida
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| BRF-01 | Criar briefing associado a cliente e projeto. | Must | Briefing não pode existir sem organização, cliente e projeto válidos. |
+| BRF-02 | Gerar link público com token opaco e único. | Must | Token não deriva de ID, nome, e-mail ou dado previsível. |
+| BRF-03 | Configurar validade do link. | Must | Link expirado bloqueia leitura de formulário e escrita. |
+| BRF-04 | Revogar e regenerar link. | Must | Token antigo deixa de funcionar imediatamente após revogação/regeneração. |
+| BRF-05 | Permitir copiar e compartilhar link manualmente. | Must | Link completo é exibido apenas a membros autorizados. |
+| BRF-06 | Distinguir link inválido, expirado, revogado e briefing enviado. | Must | Cada estado apresenta resposta e mensagem apropriadas. |
+| BRF-07 | Permitir vários briefings por cliente e por projeto. | Must | Cada instância tem respostas, status, diagnóstico e versão independentes. |
+| BRF-08 | Impedir edição pública após envio. | Must | Autosave e novo envio não alteram dados após fechamento. |
+| BRF-09 | Manter histórico de criação, envio, expiração, revogação e regeneração. | Must | Eventos são consultáveis por usuário autorizado. |
+| BRF-10 | Versionar o catálogo aplicado a cada briefing. | Must | Alterações futuras no catálogo não mudam perguntas de briefings já iniciados. |
+
+### 4.2 Formulário adaptativo
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| FORM-01 | Exibir boas-vindas, etapas, tempo estimado e aviso de salvamento. | Must | Respondente entende finalidade, progresso e funcionamento. |
+| FORM-02 | Organizar perguntas em seções e etapas. | Must | Navegação é clara em mobile e desktop. |
+| FORM-03 | Exibir perguntas condicionais por regras orientadas a dados. | Must | Perguntas aparecem apenas quando as condições são verdadeiras. |
+| FORM-04 | Permitir tipos de resposta definidos pelo catálogo. | Must | Texto curto, texto longo, escolha única e múltipla escolha funcionam. |
+| FORM-05 | Validar respostas conforme tipo, opções e limites definidos. | Must | Respostas incompatíveis são rejeitadas no servidor. |
+| FORM-06 | Salvar automaticamente as respostas. | Must | Alterações persistem e falhas de rede são comunicadas ao respondente. |
+| FORM-07 | Retomar preenchimento usando o mesmo link válido. | Must | Respostas previamente salvas são restauradas. |
+| FORM-08 | Exigir obrigatórias apenas quando visíveis. | Must | Perguntas de ramificações não exibidas não bloqueiam o envio. |
+| FORM-09 | Ignorar respostas de perguntas que se tornaram invisíveis. | Must | Respostas ocultas não alimentam diagnóstico ou validação final. |
+| FORM-10 | Permitir revisão antes do envio. | Must | Respondente pode voltar e corrigir respostas antes da confirmação. |
+| FORM-11 | Exibir confirmação após envio concluído. | Must | A confirmação só aparece após persistência bem-sucedida. |
+| FORM-12 | Impedir envio incompleto. | Must | Servidor valida todas as obrigatórias visíveis antes de fechar o briefing. |
+| FORM-13 | Tornar o formulário acessível por teclado e leitor de tela. | Must | Fluxo principal pode ser completado sem mouse. |
+| FORM-14 | Evitar exposição de notas, dados internos e diagnóstico no payload público. | Must | Inspeção de respostas da API não revela dados internos. |
+
+### 4.3 Regras de formulário preservadas do MVP
+
+- A visibilidade é definida por dados, não por condicionais dispersas na interface.
+- Uma pergunta só depende de respostas anteriores na ordem do catálogo.
+- Respostas invisíveis não participam do diagnóstico.
+- Perguntas obrigatórias só são exigidas quando visíveis.
+- Limpar resposta remove o valor vigente.
+- Deve existir uma resposta vigente por pergunta e briefing.
+- O envio é uma transição atômica.
+- Reenvio idempotente não duplica diagnóstico.
+- Token é credencial: forte, opaco, expirável e revogável.
+- O payload público contém somente os dados necessários à resposta.
+
+---
+
+## 5. Diagnóstico determinístico
+
+### 5.1 Requisitos
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| DIA-01 | Executar diagnóstico a partir das respostas válidas e visíveis. | Must | Mesmas respostas e mesma versão de regras produzem o mesmo resultado. |
+| DIA-02 | Manter motor determinístico na V1, sem dependência de IA generativa. | Must | Diagnóstico pode ser reproduzido em teste automatizado. |
+| DIA-03 | Avaliar as categorias Posicionamento, Público, Oferta, Presença digital e Marketing atual. | Must | Cada categoria retorna estado e dados de avaliação. |
+| DIA-04 | Executar as regras de sinais cadastradas e versionadas. | Must | Cada regra possui teste e documentação de condição. |
+| DIA-05 | Classificar sinais por severidade. | Must | Severidade e penalidade aplicadas são persistidas. |
+| DIA-06 | Rastrear sinais às respostas que os originaram. | Must | Cada sinal contém referências válidas às respostas do briefing. |
+| DIA-07 | Diferenciar ausência de dados de resultado negativo. | Must | Categoria sem dados obrigatórios fica como insuficiente, não vermelha. |
+| DIA-08 | Exibir explicação para categoria sem dados suficientes. | Must | Painel informa quais respostas obrigatórias estão faltando. |
+| DIA-09 | Preservar diagnóstico gerado no envio. | Must | Resultado histórico não muda por leitura ou atualização de tela. |
+| DIA-10 | Permitir reprocessamento explícito e autorizado. | Must | Reprocessamento registra versão de regras, ator, data e resultado. |
+| DIA-11 | Preservar versões anteriores ou histórico de reprocessamento. | Must | É possível identificar qual resultado foi gerado por cada execução. |
+| DIA-12 | Permitir análise humana e observações sobre o diagnóstico. | Must | Observações são associadas ao projeto/diagnóstico e possuem autoria. |
+| DIA-13 | Permitir revisão e aprovação do diagnóstico/briefing conforme permissão. | Must | Apenas funções autorizadas podem aprovar; ação é auditada. |
+
+### 5.2 Parâmetros atuais do motor
+
+A documentação do MVP registra os seguintes parâmetros. Eles devem ser tratados como configuração versionada, não como valores imutáveis:
+
+- Pontuação inicial por categoria: 100.
+- Penalidade leve: 15.
+- Penalidade moderada: 25.
+- Penalidade forte: 40.
+- Verde: 80–100.
+- Amarelo: 50–79.
+- Vermelho: 0–49.
+- Cinza: dados obrigatórios insuficientes.
+
+O cálculo e a regra de combinação de sinais devem ser preservados ou alterados somente por decisão documentada e testes de regressão.
+
+---
+
+## 6. Recomendações e priorização
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| REC-01 | Gerar recomendações por regras determinísticas e contexto. | Must | Recomendações consideram sinais, respostas e categorias relevantes. |
+| REC-02 | Registrar a origem de cada recomendação. | Must | Recomendação aponta para regras, sinais e evidências que a motivaram. |
+| REC-03 | Agrupar recomendações por categoria diagnóstica. | Must | Usuário consegue consultar recomendações por categoria. |
+| REC-04 | Agrupar recomendações em objetivos estratégicos. | Must | Cada recomendação pode ser relacionada a um objetivo. |
+| REC-05 | Permitir edição e personalização humana. | Must | Alterações preservam sugestão original e histórico. |
+| REC-06 | Calcular prioridade combinando severidade, impacto, urgência e esforço. | Must | Sistema apresenta critérios considerados e resultado calculado. |
+| REC-07 | Permitir sugestão de mudança de prioridade por integrante autorizado. | Must | Solicitação registra valor sugerido e justificativa. |
+| REC-08 | Exigir confirmação por pessoa com permissão. | Must | Prioridade efetiva só muda após aprovação. |
+| REC-09 | Preservar prioridade calculada originalmente. | Must | Histórico permite comparar prioridade original e atual. |
+| REC-10 | Evitar recomendações duplicadas ou conflitantes no mesmo contexto. | Should | Regras de deduplicação são aplicadas e testadas. |
+| REC-11 | Versionar regras de recomendação. | Must | É possível saber qual versão gerou cada recomendação. |
+
+**Pendente de decisão:** fórmula e pesos da prioridade; escala de impacto/urgência/esforço; critérios de desempate; política de deduplicação; comportamento quando regras novas substituem recomendações antigas.
+
+---
+
+## 7. Planejamento, objetivos e execução
+
+### 7.1 Planos
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| PLAN-01 | Criar um plano estratégico principal por projeto. | Must | Projeto possui no máximo um plano principal ativo, conforme regra definida. |
+| PLAN-02 | Permitir planos complementares vinculados ao projeto. | Must | Plano complementar mantém vínculo com projeto e objetivos relacionados. |
+| PLAN-03 | Organizar plano em objetivos estratégicos. | Must | Objetivos possuem posição, status e contexto no plano. |
+| PLAN-04 | Converter recomendações aprovadas em propostas de objetivos e ações. | Must | Sistema apresenta sugestões antes de criar registros de execução. |
+| PLAN-05 | Sugerir tarefas, responsáveis, prioridades e prazos quando houver dados suficientes. | Should | Sugestões são editáveis e não são confirmadas automaticamente. |
+| PLAN-06 | Exigir revisão humana antes de criar compromissos. | Must | Nenhuma tarefa sugerida entra em execução sem confirmação. |
+| PLAN-07 | Permitir duplicar planos/modelos. | Should | Duplicação informa quais dados serão copiados e quais serão reiniciados. |
+
+### 7.2 Objetivos
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| OBJ-01 | Criar objetivo com nome, descrição, responsável e status. | Must | Objetivo pertence a um plano e projeto. |
+| OBJ-02 | Relacionar objetivo a recomendações e diagnóstico. | Must | Usuário consegue rastrear a origem estratégica do objetivo. |
+| OBJ-03 | Definir meta e indicadores associados. | Must | Meta possui valor, unidade e contexto definidos. |
+| OBJ-04 | Acompanhar status e progresso das ações relacionadas. | Must | Progresso operacional é exibido separadamente do resultado. |
+| OBJ-05 | Manter histórico de alterações. | Must | Alterações relevantes registram autor, data e valores anteriores/novos. |
+| OBJ-06 | Revisar objetivo que não atingiu a meta. | Must | Equipe pode revisar objetivo e ações, registrando justificativa. |
+| OBJ-07 | Apresentar sugestões automáticas de ajuste por regras. | Should | Sugestão é explicável e exige aprovação humana. |
+| OBJ-08 | Arquivar objetivo cancelado ou substituído. | Must | Registro preserva motivo, responsável, data e impacto. |
+| OBJ-09 | Distinguir objetivo concluído de objetivo atingido. | Must | Status operacional não implica automaticamente meta alcançada. |
+
+### 7.3 Ações e tarefas
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| TASK-01 | Criar ações vinculadas a objetivos. | Must | Ação possui objetivo e projeto relacionados. |
+| TASK-02 | Dividir ações em tarefas. | Must | Tarefa pertence a uma ação e mantém contexto estratégico. |
+| TASK-03 | Atribuir responsável e colaboradores. | Must | Atribuições só aceitam membros autorizados. |
+| TASK-04 | Definir prioridade, prazo, descrição e status. | Must | Campos são exibidos no detalhe e nas listas. |
+| TASK-05 | Registrar atualizações e histórico de status. | Must | Mudanças relevantes possuem autor e data. |
+| TASK-06 | Permitir comentários e menções em tarefas. | Should | Comentários respeitam acesso ao projeto e notificam mencionados. |
+| TASK-07 | Filtrar tarefas por responsável, projeto, status, prioridade e prazo. | Should | Filtros não expõem tarefas fora do escopo do usuário. |
+| TASK-08 | Não calcular sucesso estratégico apenas por tarefas concluídas. | Must | Dashboard e relatórios apresentam métricas operacionais e estratégicas separadas. |
+
+### 7.4 Encerramento de projeto
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| CLOSE-01 | Iniciar fluxo de encerramento com revisão dos objetivos. | Must | Sistema apresenta situação dos objetivos e indicadores. |
+| CLOSE-02 | Registrar resultados, evidências e aprendizados. | Must | Encerramento contém resumo de resultados e observações. |
+| CLOSE-03 | Exigir aprovação por função autorizada. | Must | Projeto só muda para encerrado após aprovação válida. |
+| CLOSE-04 | Gerar relatório final do projeto. | Must | Relatório reúne objetivos, ações, indicadores, resultados e decisões. |
+| CLOSE-05 | Preservar histórico após encerramento. | Must | Dados permanecem consultáveis conforme política de retenção. |
+
+---
+
+## 8. Indicadores, medições e evidências
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| MET-01 | Associar indicadores a objetivos. | Must | Indicador não fica sem contexto estratégico. |
+| MET-02 | Definir nome, descrição, unidade, valor inicial e meta. | Must | Campos essenciais são validados. |
+| MET-03 | Configurar método de atualização por indicador. | Must | Método selecionado é exibido e respeitado pelo fluxo. |
+| MET-04 | Permitir atualização manual na V1. | Must | Integrante autorizado registra nova medição. |
+| MET-05 | Não impor frequência obrigatória global de atualização. | Must | Indicador pode ser atualizado quando a equipe decidir. |
+| MET-06 | Permitir que integrante autorizado registre resultado. | Must | Registro identifica autor e data. |
+| MET-07 | Exigir validação por responsável autorizado. | Must | Medição pode ficar pendente até validação. |
+| MET-08 | Manter histórico de medições. | Must | Valores anteriores não são sobrescritos sem histórico. |
+| MET-09 | Anexar evidências e observações. | Must | Evidência fica associada à medição e respeita permissões. |
+| MET-10 | Comparar situação inicial, meta e resultado observado. | Must | Visualização mostra os três valores quando disponíveis. |
+| MET-11 | Registrar avaliação qualitativa da equipe. | Must | Avaliação possui autor e data. |
+| MET-12 | Evitar inferência automática de causalidade. | Must | Relatórios distinguem correlação temporal de impacto comprovado. |
+| MET-13 | Permitir integração futura para atualização automática. | Could | Arquitetura não acopla o domínio a um provedor específico. |
+
+**Pendente de decisão:** catálogo de tipos de indicadores, formatos numéricos/textuais, tratamento de metas alteradas, unidades, validação e permissões de aprovação.
+
+---
+
+## 9. Histórico, documentos e comunicação
+
+### 9.1 Histórico do cliente
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| HIST-01 | Registrar reuniões, observações, interações e decisões. | Must | Cada registro possui tipo, conteúdo, autor, data e associação. |
+| HIST-02 | Exibir projetos e resultados no histórico do cliente. | Must | Usuário autorizado consulta a linha do tempo contextual. |
+| HIST-03 | Permitir relacionar um registro a cliente e projeto. | Must | Registro aparece nos contextos relacionados. |
+| HIST-04 | Preservar histórico quando responsável ou equipe mudar. | Must | Autoria original permanece identificável. |
+
+### 9.2 Documentos
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| DOC-01 | Anexar documento a cliente ou projeto. | Must | Arquivo possui associação e metadados. |
+| DOC-02 | Registrar categoria, descrição, autor e data. | Must | Metadados são consultáveis. |
+| DOC-03 | Restringir visualização e download por permissão. | Must | Usuário sem acesso não obtém arquivo por URL direta. |
+| DOC-04 | Validar tipo e tamanho de arquivo. | Must | Upload rejeita formato ou tamanho não permitido. |
+| DOC-05 | Registrar remoção/substituição de documento. | Should | Histórico mantém evento e responsável. |
+
+### 9.3 Comunicação interna
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| COM-01 | Permitir comentários em projetos, objetivos e tarefas. | Must | Comentário mantém contexto e autoria. |
+| COM-02 | Permitir menções a membros. | Should | Menção gera notificação para destinatário autorizado. |
+| COM-03 | Notificar eventos relevantes. | Should | Notificação respeita preferências e permissões. |
+| COM-04 | Exibir central de atividades. | Should | Usuário consulta eventos relevantes do seu escopo. |
+| COM-05 | Não enviar conteúdo privado a destinatário sem acesso ao contexto. | Must | Verificação de autorização ocorre antes de notificar ou abrir link. |
+
+---
+
+## 10. Dashboards e relatórios
+
+### 10.1 Dashboards por função
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| DASH-01 | Exibir visão geral para administrador. | Must | Mostra clientes, projetos, equipe, aprovações e indicadores da organização. |
+| DASH-02 | Exibir visão de equipe/projetos para líder. | Must | Líder vê somente equipes e projetos autorizados. |
+| DASH-03 | Exibir visão de trabalho para integrante. | Must | Integrante vê projetos, tarefas, objetivos e pendências acessíveis. |
+| DASH-04 | Diferenciar atividades, entregas, resultados e impacto. | Must | Métricas não são agregadas como se fossem equivalentes. |
+| DASH-05 | Permitir filtros por período, cliente, projeto e integrante. | Should | Filtros atualizam todos os componentes relacionados. |
+
+### 10.2 Relatórios
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| REP-01 | Gerar relatório operacional. | Must | Apresenta situação de projetos, tarefas, responsáveis e prazos. |
+| REP-02 | Gerar relatório estratégico. | Must | Apresenta diagnóstico, recomendações, objetivos e resultados. |
+| REP-03 | Gerar relatório de desempenho. | Must | Apresenta indicadores, metas, medições e evidências. |
+| REP-04 | Filtrar relatórios por período, cliente, projeto e integrante. | Should | Filtros respeitam autorização. |
+| REP-05 | Oferecer tabelas, gráficos, comparações e exportação. | Should | Dados exibidos correspondem ao filtro e período selecionados. |
+| REP-06 | Compartilhar relatório específico com cliente. | Must | Compartilhamento expõe somente o conteúdo selecionado e autorizado. |
+| REP-07 | Permitir expirar e revogar compartilhamento. | Must | Link revogado/expirado deixa de exibir relatório. |
+| REP-08 | Auditar criação e acesso ao compartilhamento, quando tecnicamente possível. | Should | Eventos de compartilhamento ficam registrados. |
+
+**Pendente de decisão:** mecanismo de compartilhamento (PDF, link protegido ou ambos), autenticação do destinatário, validade padrão, revogação, escopo de conteúdo e registro de visualizações.
+
+---
+
+## 11. Modelos, personalização e recorrência
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| TMP-01 | Criar e reutilizar modelos de projeto/campanha. | Should | Modelo pode iniciar um novo projeto sem copiar dados pessoais indevidos. |
+| TMP-02 | Duplicar projeto com seleção de conteúdo a copiar. | Should | Usuário revisa dados herdados antes de confirmar. |
+| TMP-03 | Configurar recorrência de projetos. | Should | Regra de recorrência é visível e pode ser pausada/cancelada. |
+| TMP-04 | Personalizar campos, status e categorias. | Must | Alterações respeitam permissões e validações do domínio. |
+| TMP-05 | Personalizar modelos de briefing, diagnóstico e relatório. | Should | Modelo possui versão e não altera instâncias já iniciadas. |
+| TMP-06 | Preservar integridade de projetos existentes após mudança de modelo. | Must | Mudança não modifica silenciosamente projetos em andamento. |
+| TMP-07 | Definir comportamento de herança e reinicialização na duplicação. | Must | Sistema informa o que será copiado, reiniciado ou solicitado novamente. |
+
+**Pendente de decisão:** recorrência cria projetos automaticamente ou sugere a criação; como mudanças em modelos afetam instâncias existentes; quais campos são obrigatórios e quais são personalizáveis.
+
+---
+
+## 12. Segurança, privacidade e auditoria
+
+### 12.1 Segurança
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| SEC-01 | Validar sessão em todas as rotas privadas no servidor. | Must | Testes de acesso sem sessão retornam 401. |
+| SEC-02 | Aplicar autorização por organização, função e escopo. | Must | Testes cobrem acesso permitido e negado. |
+| SEC-03 | Isolar dados entre organizações na camada de dados. | Must | Testes negativos comprovam isolamento. |
+| SEC-04 | Proteger links públicos com tokens de alta entropia. | Must | Token não é enumerável nem derivado de dados pessoais. |
+| SEC-05 | Implementar expiração e revogação de links. | Must | Token bloqueado não lê nem altera dados. |
+| SEC-06 | Aplicar rate limiting em rotas públicas e sensíveis. | Must | Excesso retorna 429 com política de retry. |
+| SEC-07 | Validar entradas no servidor. | Must | Payloads inválidos são rejeitados antes de persistir. |
+| SEC-08 | Proteger mutações contra CSRF e abuso de origem. | Must | Origem não autorizada é bloqueada. |
+| SEC-09 | Manter segredos exclusivamente no servidor. | Must | Nenhum segredo aparece em bundle, logs ou payload público. |
+| SEC-10 | Aplicar cabeçalhos de segurança e políticas de conteúdo. | Must | CSP, HSTS, Referrer-Policy e demais cabeçalhos são testados. |
+| SEC-11 | Proteger arquivos e relatórios compartilhados. | Must | URLs não autorizadas não permitem acesso ao conteúdo. |
+| SEC-12 | Registrar eventos de segurança relevantes. | Must | Falhas de autenticação, alterações de permissão e compartilhamentos são rastreáveis. |
+
+### 12.2 Privacidade e LGPD
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| PRIV-01 | Exibir aviso de privacidade no formulário. | Must | Respondente recebe informação clara sobre finalidade e canal de contato. |
+| PRIV-02 | Definir base legal por finalidade de tratamento. | Must | Não tratar consentimento como base universal. |
+| PRIV-03 | Coletar apenas dados necessários. | Must | Campos opcionais e finalidade são documentados. |
+| PRIV-04 | Definir retenção por categoria de dado. | Must | Política e rotina de descarte/anonimização são verificáveis. |
+| PRIV-05 | Permitir atendimento de solicitações de acesso e exportação. | Must | Dados relacionados podem ser exportados em formato legível. |
+| PRIV-06 | Permitir correção, exclusão ou anonimização conforme obrigação aplicável. | Must | Operação é autorizada, auditada e respeita retenções legais. |
+| PRIV-07 | Proteger dados pessoais em logs e monitoramento. | Must | Logs não armazenam respostas livres, telefone, e-mail ou notas privadas sem necessidade. |
+| PRIV-08 | Documentar fornecedores e suboperadores. | Must | Serviços que tratam dados estão identificados. |
+| PRIV-09 | Registrar consentimento quando essa for a base legal aplicável. | Should | Registro guarda versão do aviso, finalidade, data e evidência. |
+
+### 12.3 Auditoria
+
+| ID | Requisito | Prioridade | Critério de aceite |
+|---|---|---|---|
+| AUD-01 | Auditar alterações em permissões, clientes, projetos e briefings. | Must | Evento registra ator, data, entidade e ação. |
+| AUD-02 | Auditar aprovações, mudanças de prioridade e alterações de objetivos. | Must | Evento registra valores anteriores/novos e justificativa. |
+| AUD-03 | Auditar medições e validações de resultados. | Must | Autor do registro e validador são identificáveis. |
+| AUD-04 | Preservar histórico após arquivamento. | Must | Arquivar não apaga trilha de auditoria. |
+| AUD-05 | Restringir leitura e alteração de logs de auditoria. | Must | Somente funções autorizadas acessam logs. |
+
+---
+
+## 13. Requisitos não funcionais
+
+### 13.1 Segurança e isolamento
 
 | ID | Requisito | Meta |
 |---|---|---|
-| **RNF-22** | Primeira tela pública útil no mobile. | LCP < 2,5 s em 4G; HTML renderizado no servidor. |
-| **RNF-23** | Autosave responsivo. | p95 < 500 ms no servidor; debounce de 600 ms no cliente. |
-| **RNF-24** | Envio do briefing. | < 2 s para briefings típicos. |
-| **RNF-25** | Painel de briefing. | < 1 s para até 51 respostas. |
-| **RNF-26** | Geração de PDF. | < 30 s; timeout explícito; sem bloquear o servidor. |
-| **RNF-27** | Consultas indexadas. | Índices por dono, briefing, status e par resposta/pergunta. |
+| RNF-01 | Autorização no servidor e na camada de dados. | 100% das operações privadas cobertas. |
+| RNF-02 | Isolamento organizacional. | Zero acesso cruzado em testes automatizados. |
+| RNF-03 | Token público. | Entropia mínima de 120 bits. |
+| RNF-04 | Segredos. | Nenhum segredo em código cliente ou logs. |
+| RNF-05 | Proteção de rotas públicas. | Rate limit, validação e política de origem. |
+| RNF-06 | Dependências. | Auditoria periódica e correção de vulnerabilidades críticas/altas antes de produção. |
 
-### 5.4 Disponibilidade e operação
-
-| ID | Requisito | Meta |
-|---|---|---|
-| **RNF-28** | Disponibilidade do MVP. | 99,5% mensal. |
-| **RNF-29** | Backup do banco. | RPO ≤ 24 h; RTO ≤ 4 h. |
-| **RNF-30** | Health check. | Endpoint interno verifica aplicação e banco. |
-| **RNF-31** | Migrações controladas. | `prisma migrate deploy` no pipeline; nunca automático em runtime. |
-| **RNF-32** | Deploy reproduzível. | Build gera Prisma Client; variáveis validadas no start. |
-| **RNF-33** | Recuperação de falha de PDF. | Falha retorna erro claro e registra log; não derruba o briefing. |
-
-### 5.5 Escalabilidade
+### 13.2 Privacidade
 
 | ID | Requisito | Meta |
 |---|---|---|
-| **RNF-34** | Volume inicial. | Suportar 1.000 clientes, 10.000 briefings e 100 formulários simultâneos. |
-| **RNF-35** | Crescimento sem mudança de schema. | Índices e paginação permitem crescer 10×. |
-| **RNF-36** | Isolamento de carga. | PDF não compartilha recurso crítico com o formulário público. |
+| RNF-07 | Minimização de dados. | Coletar apenas dados justificados por finalidade. |
+| RNF-08 | Criptografia em trânsito. | TLS obrigatório. |
+| RNF-09 | Criptografia em repouso. | Utilizar recursos do provedor de banco/armazenamento. |
+| RNF-10 | Dados pessoais em logs. | Zero PII desnecessária. |
+| RNF-11 | Retenção e descarte. | Política documentada e rotina testada. |
 
-### 5.6 Acessibilidade e compatibilidade
+### 13.3 Desempenho
+
+| ID | Requisito | Meta inicial |
+|---|---|---|
+| RNF-12 | Formulário público. | LCP inferior a 2,5 s em cenário de referência 4G. |
+| RNF-13 | Autosave. | p95 de resposta do servidor inferior a 500 ms em carga esperada. |
+| RNF-14 | Carregamento de projeto. | p95 inferior a 1,5 s para volume inicial acordado. |
+| RNF-15 | Diagnóstico e recomendações. | Execução inferior a 2 s para briefing típico, sem bloquear a interface além do necessário. |
+| RNF-16 | Listagens. | Paginação e filtros sem carregar coleções completas. |
+| RNF-17 | Relatórios/PDF. | Processamento isolado e com timeout; falha não corrompe dados. |
+
+As metas devem ser confirmadas com testes de carga e ambiente de implantação antes de se tornarem SLA.
+
+### 13.4 Disponibilidade e continuidade
 
 | ID | Requisito | Meta |
 |---|---|---|
-| **RNF-37** | Acessibilidade. | WCAG 2.1 AA: teclado, foco, contraste, rótulos, mensagens de erro e leitores de tela. |
-| **RNF-38** | Mobile-first. | Funciona em telas de 320 px; alvos de toque ≥ 44 px. |
-| **RNF-39** | Navegadores. | Últimas 2 versões de Chrome, Safari, Firefox e Edge; iOS e Android atuais. |
-| **RNF-40** | Movimento reduzido. | Respeitar `prefers-reduced-motion`. |
-| **RNF-41** | Idioma. | pt-BR no MVP; textos centralizados para futura internacionalização. |
+| RNF-18 | Health check. | Aplicação e banco verificáveis. |
+| RNF-19 | Backup automático. | Frequência e retenção documentadas. |
+| RNF-20 | Recuperação. | RPO/RTO definidos com base na infraestrutura e criticidade. |
+| RNF-21 | Teste de restauração. | Executado periodicamente e registrado. |
+| RNF-22 | Observabilidade. | Logs estruturados, métricas e rastreamento de erros sem PII. |
+| RNF-23 | Migrações. | Versionadas, revisadas e aplicadas no deploy. |
 
-### 5.7 Qualidade e manutenção
+Não assumir RPO/RTO definitivos sem validar o plano do provedor e o custo operacional.
+
+### 13.5 Acessibilidade e compatibilidade
 
 | ID | Requisito | Meta |
 |---|---|---|
-| **RNF-42** | Núcleo puro. | `src/core` não importa Next, Prisma ou Supabase. |
-| **RNF-43** | Cobertura do núcleo. | ≥ 80% de linhas/branches em `src/core`. |
-| **RNF-44** | Pipeline obrigatório. | lint + typecheck + testes unitários + integração em banco efêmero. |
-| **RNF-45** | Testes de API. | Rotas administrativas e públicas cobertas, incluindo 401, 404, 410, 422 e 429. |
-| **RNF-46** | Testes E2E. | Fluxo completo: criar cliente → criar briefing → responder → enviar → ver diagnóstico → PDF. |
-| **RNF-47** | Observabilidade. | Logs estruturados com request id; métricas de erro, latência e funil. |
-| **RNF-48** | Erros rastreáveis. | Ferramenta de error tracking com contexto, sem PII. |
-| **RNF-49** | Documentação viva. | README, docs de produto, requisitos e inspeção atualizados a cada ciclo. |
-| **RNF-50** | Configuração validada. | Schema de env no start; falha rápida e mensagem clara. |
+| RNF-24 | Acessibilidade. | WCAG 2.2 AA como referência-alvo. |
+| RNF-25 | Navegação por teclado. | Todos os fluxos essenciais operáveis sem mouse. |
+| RNF-26 | Contraste e status. | Cor nunca é o único meio de transmitir informação. |
+| RNF-27 | Responsividade. | Suporte a telas a partir de 320 px. |
+| RNF-28 | Movimento reduzido. | Respeitar `prefers-reduced-motion`. |
+| RNF-29 | Navegadores. | Versões atuais dos principais navegadores desktop e mobile. |
+| RNF-30 | Idioma. | pt-BR na V1; textos preparados para futura internacionalização. |
 
----
+### 13.6 Qualidade e manutenção
 
-## 6. Requisitos de dados
-
-### 6.1 Entidades e propriedade
-
-| Entidade | Dono | Dados pessoais | Retenção sugerida |
-|---|---|---|---|
-| `User` | Sistema | Nome, e-mail | Enquanto a conta existir |
-| `Client` | `User` | Nome, e-mail, telefone, notas | Enquanto o contrato/relação existir |
-| `Briefing` | `Client` | Token, datas, status | 12–24 meses após o envio |
-| `Answer` | `Briefing` | Respostas livres (podem conter PII) | Junto do briefing ou anonimização |
-| `Signal` | `Briefing` | Descrição derivada | Junto do briefing |
-| `Diagnosis` | `Briefing` | Score e status | Junto do briefing |
-| `Question` | Sistema | Nenhum | Enquanto o catálogo existir |
-
-### 6.2 Restrições e índices mínimos
-
-- `users.email` único; `users.supabaseAuthId` único.
-- `briefings.token` único.
-- `answers (briefingId, questionId)` único.
-- `signals (briefingId, code)` único.
-- `diagnoses (briefingId, category)` único.
-- Índices por `clients.userId`, `briefings.clientId`, `briefings.status`, `answers.briefingId`, `signals.briefingId`, `diagnoses.briefingId`.
-- Recomendados: `briefings (clientId, createdAt)`, `briefings (status, createdAt)`, `clients (userId, createdAt)`, `questions (category, order)` com unicidade ou ordenação determinística.
-
-### 6.3 Integridade
-
-- Envio, fechamento e gravação do diagnóstico devem ser atômicos.
-- Autosave não pode sobrescrever briefing fechado.
-- `businessType` deve ser sempre consistente com a resposta de `business_type`.
-- Diagnósticos devem guardar as perguntas faltantes que causaram cinza.
-- Sinais e diagnósticos devem guardar a versão de regras/catálogo usada.
-- Exclusão de cliente deve ser transacional e auditável.
-
-### 6.4 Migrações e seeds
-
-- Migrações versionadas e aplicadas por `prisma migrate deploy`.
-- Seed do catálogo idempotente por `key`.
-- Seed da administradora idempotente por e-mail.
-- Nenhum seed destrutivo em produção sem confirmação explícita.
-
----
-
-## 7. Integrações e contratos externos
-
-### 7.1 Dependências de infraestrutura
-
-| Integração | Uso | Requisito |
+| ID | Requisito | Meta |
 |---|---|---|
-| **PostgreSQL** | Dados da aplicação | Conexão por `DATABASE_URL`; migrações controladas; backup. |
-| **Supabase Auth** | Login da administradora | URL, anon key e service role key; signup público desativado ou restrito. |
-| **Playwright/Chromium** | Geração de PDF | Chromium disponível no ambiente; fallback para runtime compatível. |
-| **Vercel** (alvo) | Hospedagem | Funções compatíveis; limite de duração; segredos configurados. |
+| RNF-31 | Núcleo de domínio isolado. | Regras de negócio não dependem diretamente de Next.js, Prisma ou Supabase. |
+| RNF-32 | Testes unitários. | Cobertura forte das regras determinísticas e invariantes. |
+| RNF-33 | Testes de integração. | Cobrir transações, autorização, persistência e isolamento. |
+| RNF-34 | Testes E2E. | Cobrir jornada principal por perfil e fluxo público. |
+| RNF-35 | CI. | Lint, typecheck, testes e build obrigatórios. |
+| RNF-36 | Documentação. | Produto, requisitos, arquitetura e roadmap atualizados junto das mudanças. |
+| RNF-37 | Definition of Done. | Critérios de aceite, segurança, acessibilidade e operação verificados antes do deploy. |
 
-### 7.2 Contratos de API
+---
 
-#### Rotas administrativas (cookie de sessão)
+## 14. Requisitos de dados e integridade
 
-| Método | Rota | Função | Erros esperados |
+### 14.1 Entidades conceituais da V1
+
+| Entidade | Responsabilidade |
+|---|---|
+| `Organization` | Fronteira de isolamento e configuração |
+| `User` / `Membership` | Identidade, associação à organização e estado de acesso |
+| `Role` / `Permission` | Funções e autorização |
+| `Client` | Cadastro e contexto do cliente |
+| `ClientActivity` | Reuniões, observações, interações e decisões |
+| `Project` | Projeto/campanha e atribuições |
+| `Briefing` | Instância de coleta vinculada a projeto |
+| `Question` / `QuestionVersion` | Catálogo e versão de perguntas |
+| `Answer` | Respostas do briefing |
+| `Diagnosis` / `DiagnosisRun` | Resultado e execução versionada |
+| `Signal` | Evidência determinística do diagnóstico |
+| `Recommendation` | Sugestão estratégica e origem |
+| `PriorityChange` | Solicitação e aprovação de mudança de prioridade |
+| `Plan` | Plano principal ou complementar |
+| `Objective` | Objetivo estratégico |
+| `Action` | Ação vinculada ao objetivo |
+| `Task` | Unidade operacional de execução |
+| `Indicator` | Definição de indicador e meta |
+| `Measurement` | Medição histórica de indicador |
+| `Evidence` | Evidência de resultado |
+| `Document` | Arquivo contextual de cliente/projeto |
+| `Comment` / `Mention` / `Notification` | Comunicação contextual |
+| `Report` / `ShareLink` | Relatório e acesso externo controlado |
+| `Template` | Modelo reutilizável versionado |
+| `AuditEvent` | Trilha de auditoria |
+
+Este é um mapa conceitual, não um schema físico obrigatório. Relações, cardinalidades, constraints e estratégia de migração devem ser definidos em `03-inspecao-e-arquitetura.md` e nas migrações.
+
+### 14.2 Regras de integridade
+
+- Todas as entidades de negócio pertencem a uma organização.
+- Uma resposta pertence a um briefing e a uma pergunta válida na versão do catálogo.
+- Um diagnóstico guarda versão do catálogo e das regras utilizadas.
+- Sinais apontam para respostas do próprio briefing.
+- Recomendações preservam suas fontes e versão das regras.
+- Objetivos, ações e tarefas preservam vínculos hierárquicos.
+- Medições são históricas; atualização não apaga valores anteriores.
+- Aprovações e alterações de prioridade registram ator, data e justificativa.
+- Exclusão/arquivamento deve respeitar integridade referencial, retenção e auditoria.
+- Operações compostas que alteram status e dados relacionados devem ser transacionais.
+
+---
+
+## 15. Integrações e contratos
+
+### 15.1 Estratégia
+
+A V1 começa standalone. A arquitetura deve permitir conectores futuros, mas não deve antecipar uma plataforma genérica de integrações sem casos de uso validados.
+
+Possíveis integrações futuras:
+- armazenamento de arquivos;
+- calendário;
+- comunicação;
+- CRM;
+- ferramentas de gestão de projetos;
+- plataformas de marketing e analytics.
+
+Credenciais devem ser protegidas, eventos e falhas registrados e a lógica de domínio não deve depender diretamente de APIs de terceiros.
+
+### 15.2 Contratos de API
+
+Os contratos detalhados devem ser definidos conforme os módulos forem implementados. Toda rota deve declarar:
+- método e finalidade;
+- autenticação exigida;
+- organização e escopo de autorização;
+- formato de entrada e validação;
+- formato de saída;
+- erros esperados;
+- efeitos colaterais e eventos de auditoria;
+- limites de paginação e rate limit.
+
+Não manter neste documento uma lista de rotas que represente apenas o MVP antigo como se fosse o contrato definitivo da plataforma expandida.
+
+---
+
+## 16. Critérios de aceite da jornada V1
+
+### 16.1 Organização e equipe
+
+- [ ] Administrador autorizado consegue configurar a organização.
+- [ ] Administrador consegue provisionar, convidar e desativar membros.
+- [ ] Funções e permissões são aplicadas no servidor.
+- [ ] Um usuário não acessa dados de outra organização.
+- [ ] Líder e integrante veem somente projetos de seu escopo.
+
+### 16.2 Cliente e projeto
+
+- [ ] Usuário autorizado cria cliente.
+- [ ] Usuário autorizado cria projeto associado ao cliente.
+- [ ] Projeto tem responsável principal e colaboradores.
+- [ ] Histórico do cliente apresenta atividades, documentos, projetos e resultados permitidos.
+
+### 16.3 Briefing e diagnóstico
+
+- [ ] Usuário cria briefing associado ao projeto.
+- [ ] Cliente responde sem criar conta.
+- [ ] Formulário adapta perguntas, salva e retoma respostas.
+- [ ] Envio valida respostas, fecha o link e gera diagnóstico.
+- [ ] Diagnóstico explica sinais, categorias e dados insuficientes.
+- [ ] Diagnóstico preserva versão de regras e catálogo.
+- [ ] Equipe revisa e aprova conforme permissão.
+
+### 16.4 Recomendações e planejamento
+
+- [ ] Sistema gera recomendações contextuais rastreáveis.
+- [ ] Equipe pode editar recomendações.
+- [ ] Prioridade considera severidade, impacto, urgência e esforço.
+- [ ] Alteração de prioridade exige justificativa e aprovação.
+- [ ] Recomendação aprovada pode ser convertida assistidamente em objetivo, ações e tarefas.
+- [ ] Equipe revisa e confirma antes de criar compromissos.
+
+### 16.5 Execução e resultados
+
+- [ ] Projeto possui plano estratégico principal.
+- [ ] Objetivos têm responsável, status, metas e indicadores.
+- [ ] Ações e tarefas estão vinculadas aos objetivos.
+- [ ] Integrantes autorizados atualizam tarefas e registram medições.
+- [ ] Responsáveis validam resultados.
+- [ ] Histórico de medições e evidências é preservado.
+- [ ] Equipe consegue revisar objetivos que não atingiram metas.
+- [ ] Objetivos cancelados/substituídos são arquivados com justificativa.
+
+### 16.6 Relacionamento e relatórios
+
+- [ ] Equipe registra reuniões, decisões e observações.
+- [ ] Documentos são associados ao cliente/projeto e protegidos por permissão.
+- [ ] Comentários e menções respeitam acesso.
+- [ ] Dashboards variam conforme função.
+- [ ] Relatórios distinguem atividade, entrega, resultado e impacto.
+- [ ] Cliente recebe apenas relatório compartilhado e autorizado.
+- [ ] Compartilhamento pode ser revogado ou expirado.
+
+### 16.7 Segurança e operação
+
+- [ ] Testes de autorização e isolamento passam.
+- [ ] Tokens públicos são fortes, expirados e revogáveis.
+- [ ] Rate limit e validação de entrada estão ativos.
+- [ ] Logs não expõem dados pessoais desnecessários.
+- [ ] Backup e restauração foram testados.
+- [ ] Health check e observabilidade estão disponíveis.
+- [ ] Migrações são aplicadas de forma controlada.
+
+---
+
+## 17. Estado atual conhecido versus alvo da V1
+
+| Área | Estado descrito no documento anterior do MVP | Alvo da V1 |
+|---|---|---|
+| Usuários | Uma administradora | Administrador, líderes e integrantes com permissões |
+| Organização | Operação de uma conta | Organização como fronteira de isolamento, preparada para múltiplas |
+| Cliente | Cadastro básico | Histórico contextual e vários projetos |
+| Projeto | Não estruturado como entidade central | Cliente → Projeto/Campanha → Briefing |
+| Briefing | Formulário adaptativo público | Briefing vinculado a projeto e catálogo versionado |
+| Diagnóstico | Motor determinístico em cinco categorias | Diagnóstico versionado, explicável, revisável e auditável |
+| Recomendações | Problemas e oportunidades | Recomendações contextuais, priorizadas e agrupadas em objetivos |
+| Planejamento | Não contemplado como fluxo completo | Plano principal, planos complementares, objetivos, ações e tarefas |
+| Indicadores | Métricas do formulário | Indicadores estratégicos, metas, medições e evidências |
+| Comunicação | Não contemplada como módulo | Comentários, menções e notificações essenciais |
+| Documentos | PDF de briefing | Documentos contextuais de cliente/projeto e relatórios |
+| Relatórios | PDF do briefing | Relatórios operacionais, estratégicos e de desempenho |
+| Cliente externo | Respondente do briefing | Respondente e destinatário de relatórios compartilhados |
+| Integrações | Não implementadas | Produto standalone, arquitetura preparada para futuras integrações |
+
+**Nota:** a coluna de estado atual reproduz a documentação anterior. Deve ser conferida com o código e com o resultado da inspeção técnica antes de planejar migrações.
+
+---
+
+## 18. Decisões pendentes de produto
+
+As decisões abaixo precisam ser resolvidas antes de detalhar os requisitos de implementação correspondentes.
+
+| ID | Tema | Decisão necessária | Impacto |
 |---|---|---|---|
-| GET | `/api/clients` | Listar clientes | 401 |
-| POST | `/api/clients` | Criar cliente | 400, 401 |
-| GET | `/api/clients/[id]` | Detalhe do cliente | 401, 404 |
-| PATCH | `/api/clients/[id]` | Editar cliente | 400, 401, 404 |
-| DELETE | `/api/clients/[id]` | Excluir cliente | 401, 404 |
-| POST | `/api/briefings` | Criar briefing e link | 400, 401, 404 |
-| GET | `/api/briefings/[id]` | Detalhe processado | 401, 404 |
-| POST | `/api/briefings/[id]/reprocess` | Recalcular diagnóstico | 401, 404 |
-| GET | `/api/briefings/[id]/pdf` | Baixar PDF | 401, 404, 500 |
-
-#### Rotas públicas (token)
-
-| Método | Rota | Função | Erros esperados |
-|---|---|---|---|
-| GET | `/api/public/briefing/[token]` | Carregar formulário | 404, 410 |
-| PUT | `/api/public/briefing/[token]/answers` | Autosave em lote | 400, 404, 410, 413, 429 |
-| POST | `/api/public/briefing/[token]/submit` | Enviar briefing | 404, 410, 422, 429 |
-
-#### Formato de erro recomendado
-
-```json
-{
-  "error": "Mensagem legível.",
-  "code": "ANSWER_VALIDATION_FAILED",
-  "issues": {
-    "q:ideal_client": "Resposta não corresponde a uma opção válida."
-  },
-  "requestId": "req_123"
-}
-```
+| PD-01 | Permissões | Matriz de ações por função e escopo | Autorização, UX e testes |
+| PD-02 | Múltiplas funções | Como combinar permissões de um membro com mais de uma função | Segurança |
+| PD-03 | Prioridade | Fórmula, pesos, escalas e desempates | Motor de recomendação |
+| PD-04 | Recomendações | Deduplicação, conflitos e versionamento | Consistência estratégica |
+| PD-05 | Indicadores | Tipos de dados, unidades e formatos aceitos | Modelo de dados |
+| PD-06 | Validação de resultados | Quem pode validar quais indicadores | Permissões e auditoria |
+| PD-07 | Metas | Como registrar alteração de meta sem perder histórico | Histórico e relatórios |
+| PD-08 | Relatórios compartilhados | PDF/link, autenticação, validade, revogação e escopo | Segurança e experiência externa |
+| PD-09 | Modelos | Regras de herança ao duplicar projeto/briefing/plano | Integridade |
+| PD-10 | Recorrência | Criação automática ou sugestão de novo projeto | Automação e notificações |
+| PD-11 | Notificações | Eventos obrigatórios, preferências e canais iniciais | Comunicação |
+| PD-12 | Arquivamento/exclusão | Política por entidade e exceções de retenção | LGPD e integridade |
+| PD-13 | Acesso ao projeto | Se o acesso é por atribuição individual, equipe ou combinação | Autorização |
+| PD-14 | Aprovação | Quais entidades exigem aprovação e por quais funções | Fluxos de trabalho |
 
 ---
 
-## 8. Critérios de aceite do MVP
+## 19. Roadmap de requisitos por incrementos
 
-### 8.1 Fluxo principal
-- [ ] Administradora autenticada cria cliente.
-- [ ] Administradora cria briefing e copia o link.
-- [ ] Respondente abre o link, escolhe o tipo de negócio e vê as perguntas específicas.
-- [ ] Respostas são salvas automaticamente e restauradas ao reabrir.
-- [ ] Obrigatórias impedem avanço e envio.
-- [ ] Envio fecha o briefing, gera sinais e diagnóstico.
-- [ ] Painel mostra respostas, semáforo, problemas e oportunidades.
-- [ ] PDF é gerado com o mesmo conteúdo.
-- [ ] Link enviado não aceita nova edição.
-- [ ] Link expirado, inválido e já enviado têm telas próprias.
+A ordem abaixo organiza dependências; não substitui o roadmap técnico.
 
-### 8.2 Segurança
-- [ ] Nenhuma rota administrativa responde sem sessão.
-- [ ] Conta Supabase não autorizada não vira administradora.
-- [ ] Link de outra conta não é acessível.
-- [ ] Payload público não contém PII interna.
-- [ ] Autosave e envio têm rate limit.
-- [ ] Cabeçalhos de segurança e `noindex` estão ativos.
-- [ ] Nenhum segredo no bundle do cliente.
+### Incremento 0 — Confiabilidade do MVP existente
 
-### 8.3 Qualidade
-- [ ] `npm run lint` passa.
-- [ ] `npm run typecheck` passa.
-- [ ] `npm test` passa.
-- [ ] `npm run test:db` passa em banco limpo.
-- [ ] Testes cobrem 401, 404, 410, 422 e 429.
-- [ ] Há teste E2E do fluxo principal.
-- [ ] Núcleo mantém cobertura ≥ 80%.
+- Fechar falhas de autenticação e autorização.
+- Tornar envio e diagnóstico atômicos.
+- Validar respostas semanticamente.
+- Completar ciclo de vida de links.
+- Versionar catálogo e regras.
+- Implementar rate limit, cabeçalhos e auditoria mínima.
+- Preparar privacidade, retenção, exportação e exclusão.
+- Testar backup, restauração, deploy e PDF.
 
-### 8.4 Operação
-- [ ] Variáveis de ambiente validadas no start.
-- [ ] Migrações aplicadas no deploy.
-- [ ] Health check disponível.
-- [ ] Logs estruturados e error tracking ativos.
-- [ ] Backup e restauração testados.
-- [ ] PDF funciona no ambiente de produção.
+### Incremento 1 — Fundamentos multiusuário e estrutura de trabalho
 
-### 8.5 Privacidade
-- [ ] Aviso de privacidade no formulário.
-- [ ] Retenção definida e implementada.
-- [ ] Exportação e exclusão de dados disponíveis.
-- [ ] Suboperadores documentados.
-- [ ] Nenhum PII em logs.
+- Organização e isolamento.
+- Membros, funções e permissões.
+- Cliente, projeto, responsável e colaboradores.
+- Briefing associado a projeto.
+- Histórico contextual básico.
 
----
+### Incremento 2 — Inteligência estratégica
 
-## 9. Premissas e restrições
+- Diagnóstico versionado.
+- Recomendações contextuais.
+- Priorização explicável.
+- Aprovações e trilha de auditoria.
 
-1. O produto é operado por uma única administradora no MVP.
-2. O respondente não cria conta; o token é a credencial.
-3. O catálogo de perguntas é global e alterado por seed, não por interface.
-4. O diagnóstico é determinístico e não usa IA generativa.
-5. O banco é PostgreSQL, local em Docker e Supabase em produção.
-6. O alvo de hospedagem é Vercel; PDF depende de Chromium.
-7. Não há envio automático de e-mail no MVP.
-8. O idioma é pt-BR.
-9. O produto lida com dados pessoais e precisa de conformidade LGPD antes de operação comercial.
+### Incremento 3 — Planejamento e execução
+
+- Plano estratégico principal e planos complementares.
+- Objetivos, ações e tarefas.
+- Conversão assistida de recomendações.
+- Comentários, menções e notificações essenciais.
+
+### Incremento 4 — Indicadores e resultados
+
+- Definição de indicadores e metas.
+- Medições, evidências e validação.
+- Revisão de objetivos.
+- Encerramento de projeto.
+
+### Incremento 5 — Relatórios e operação ampliada
+
+- Dashboards por função.
+- Relatórios operacionais e estratégicos.
+- Compartilhamento externo controlado.
+- Modelos, duplicação e recorrência.
+- Melhorias guiadas por uso e feedback.
 
 ---
 
-## 10. Riscos e mitigações
+## 20. Definition of Done
 
-| Risco | Probabilidade | Impacto | Mitigação |
-|---|---|---|---|
-| Abandono por formulário longo | Média | Alto | Medir funil, reduzir etapas, revisar perguntas opcionais |
-| Falso positivo do motor de sinais | Média | Médio | Calibrar regras, manter revisão humana, versionar |
-| Conta não autorizada acessando painel | Baixa/Média | Crítico | Allowlist, desativar signup, testes |
-| Envio concorrente com autosave | Média | Alto | Transação e transição condicional de status |
-| Link vazado | Média | Alto | Expiração, revogação, `noindex`, `no-referrer`, rate limit |
-| PDF falhar em serverless | Alta | Médio | Chromium compatível ou worker dedicado |
-| Mudança de catálogo quebrar briefing em andamento | Média | Alto | Versionamento/snapshot do catálogo |
-| Perda de dados por falha operacional | Baixa | Crítico | Backup, restore testado, migrações controladas |
-| Não conformidade LGPD | Média | Crítico | Política, consentimento, retenção, exportação/exclusão |
-| Dependência de uma pessoa | Alta | Médio | Documentação, multiusuário futuro, runbooks |
+Uma entrega só pode ser considerada pronta quando:
 
----
-
-## 11. Roadmap de requisitos por fase
-
-### Fase 0 — Correções críticas (agora)
-- RF-04, RF-05, RF-20, RF-33, RF-44.
-- RNF-02, RNF-04, RNF-05, RNF-06, RNF-10.
-- Atomicidade do envio e validação semântica de respostas.
-
-### Fase 1 — Operação confiável
-- RF-17, RF-18, RF-19, RF-51, RF-53.
-- RNF-13 a RNF-21 (privacidade).
-- RNF-30 a RNF-33 (operação).
-- Versionamento de catálogo/regras.
-
-### Fase 2 — Experiência e escala
-- RF-12, RF-52, RF-59 a RF-63.
-- RNF-34 a RNF-36.
-- Busca, paginação, aprovação e histórico.
-
-### Fase 3 — Produto expandido
-- Multiusuário com papéis.
-- Notificações por e-mail.
-- Catálogo gerenciável por interface.
-- Analytics e benchmarking.
-- Assistente opcional de IA com revisão humana.
-
----
-
-## 12. Definition of Done
-
-Uma entrega só é considerada pronta quando:
-
-- [ ] O requisito tem critério de aceite verificável.
-- [ ] Há teste automatizado cobrindo o caminho feliz e os erros relevantes.
-- [ ] `lint`, `typecheck` e testes passam no CI.
-- [ ] Não introduz regressão de segurança, privacidade ou acessibilidade.
-- [ ] Logs e mensagens de erro não expõem PII.
-- [ ] Documentação de produto/requisitos/inspeção foi atualizada quando necessário.
-- [ ] A mudança funciona em mobile e desktop.
+- [ ] O requisito possui critério de aceite verificável.
+- [ ] O fluxo feliz e os erros relevantes têm testes automatizados.
+- [ ] Autenticação, autorização e isolamento foram testados.
+- [ ] Não há regressão de privacidade, segurança ou acessibilidade.
+- [ ] Logs e mensagens não expõem dados pessoais desnecessários.
+- [ ] A interface funciona em mobile e desktop.
+- [ ] Estados de carregamento, vazio, erro e sucesso estão definidos.
+- [ ] Migrações e variáveis de ambiente estão documentadas.
+- [ ] Impacto em backup, retenção, observabilidade e custo foi considerado.
+- [ ] `lint`, `typecheck`, testes e build passam no CI.
+- [ ] Documentação de produto, requisitos, arquitetura e roadmap foi atualizada.
 - [ ] A mudança foi validada em ambiente de preview antes de produção.
-- [ ] Migrações e variáveis de ambiente foram previstas e documentadas.
-- [ ] O impacto operacional (backup, retenção, custo) foi considerado.
+
+---
+
+## 21. Relação com os demais documentos
+
+| Documento | Responsabilidade |
+|---|---|
+| `PRODUCT.md` | Identidade, público, propósito, princípios e limites do produto |
+| `02-requisitos.md` | O que o sistema deve fazer, regras, qualidade e critérios de aceite |
+| `03-inspecao-e-arquitetura.md` | Estado técnico, arquitetura, dados, segurança e decisões de implementação |
+| `04-roadmap-melhorias.md` | Ordem de execução, dependências, fases e prioridades |
+| `design.md` | Tokens, componentes, padrões e comportamento visual, quando criado |
+
