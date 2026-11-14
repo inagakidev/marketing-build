@@ -88,8 +88,12 @@ export function buildDiagnosis(
   });
 }
 
-/** Keys of unanswered visible required questions, grouped by category. */
-function findMissingRequired(
+/**
+ * Keys of unanswered visible required questions, grouped by category.
+ * Exported for the panel, which rebuilds a stored diagnosis and must say
+ * which answers left a category without enough data.
+ */
+export function findMissingRequired(
   ctx: EvalContext,
   visible: ReadonlySet<string>,
 ): Partial<Record<DiagnosisCategory, string[]>> {

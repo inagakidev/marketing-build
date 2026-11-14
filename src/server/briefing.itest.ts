@@ -365,6 +365,25 @@ describe("submission and diagnosis", () => {
     ]);
   });
 
+  it("tells which required answers a category is missing after a reprocess", async () => {
+    const briefing = await createBriefing(clientId);
+    await saveAnswers(briefing.id, respostasVagas());
+    await submitBriefing(briefing.id);
+
+    // The catalog or the rules can change after submission; a reprocess then
+    // finds a required answer missing and the category becomes "gray".
+    await prisma.answer.deleteMany({
+      where: { briefingId: briefing.id, question: { key: Q.IDEAL_CLIENT } },
+    });
+    await processAndPersist(briefing.id);
+
+    const detail = await loadBriefingDetail(briefing.id, userId);
+    const audience = detail?.diagnoses.find((d) => d.category === "audience");
+    expect(audience?.status).toBe("gray");
+    expect(audience?.missingRequiredKeys).toEqual([Q.IDEAL_CLIENT]);
+    expect(detail?.questionTextByKey[Q.IDEAL_CLIENT]).toBeTruthy();
+  });
+
   it("doesn't return another account's briefing", async () => {
     const briefing = await createBriefing(clientId);
     const detail = await loadBriefingDetail(briefing.id, "usuario-inexistente");

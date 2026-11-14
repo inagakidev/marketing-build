@@ -121,11 +121,14 @@ Adopted so far:
 - **Panel frame (D1–D4):** 248px white sidebar on desktop (symbol and name, organization, section links with icons and a sunken active item, profile at the bottom); on phones a top bar and a bottom navigation bar with icons. Every page starts with `PageHeader` (13px context line or back link, 28px bold title, meta and actions on a surface band) and puts its content in `PageBody` (max 1240px).
 - `/admin/membros` follows the "Membros e acessos" block of D1: avatar, role, status pill, "Convidar membro" as the primary button, destructive actions behind a confirmation (EP-04.5).
 
+- **Diagnosis category card (frame 04 §1):** `DiagnosisCategoryCard` with an overline label, a signal count, a 32px score out of 100, a bar, a pill with icon + label, and a one-line explanation (`src/lib/diagnosisCopy.ts`). Labels follow the microcopy rule (point to the opportunity, don't judge): green **Consistente**, yellow **Atenção**, red **Prioritário**, gray **Dados insuficientes**. Gray is neutral and dashed, and names the missing answers.
+- **Mascot (frame 04 §8):** `Mascot` with four expressions, one job each: `welcome` (first access), `conversation` (in progress), `missing` (empty state, invalid or expired link), `done` (sent, closed, account ready). Never in diagnosis results.
+
 Not adopted yet: the organization switcher (one organization per person, D13), the D1–D3 dashboard content (it depends on projects, tasks and indicators), and the mobile drawer.
 
 ## Brand assets
 
-`public/brand/symbol.svg` is the DS v2 symbol (the folded page with eyes), extracted from the canvas's exported sheet. The canvas assets are crops of a single 127 KB sheet; the extracted file keeps only the symbol's path (5 KB). Use it from 32px up; it inverts over black (`invert`, or `dark:invert` on theme-aware surfaces).
+`public/brand/symbol.svg` is the DS v2 symbol (the folded page with eyes), extracted from the canvas's exported sheet. The canvas assets are crops of a single 127 KB sheet; the extracted file keeps only the symbol's path (5 KB). Use it from 32px up; it inverts over black (`invert`, or `dark:invert` on theme-aware surfaces). The four mascot expressions (`public/brand/mascot-*.svg`, 7–9 KB each) were extracted the same way and checked side by side with the canvas crops.
 
 ## Font
 
