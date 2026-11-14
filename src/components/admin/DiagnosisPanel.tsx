@@ -49,7 +49,7 @@ export function DiagnosisPanel({ detail }: { detail: BriefingDetail }) {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Principais problemas</h2>
+        <h2 className="text-lg leading-[1.625rem] font-semibold">Principais problemas</h2>
         {summary.problems.length === 0 ? (
           <Card>
             <CardContent className="py-6 text-muted-foreground text-sm">
@@ -94,7 +94,7 @@ export function DiagnosisPanel({ detail }: { detail: BriefingDetail }) {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Oportunidades</h2>
+        <h2 className="text-lg leading-[1.625rem] font-semibold">Oportunidades</h2>
         {summary.opportunities.length === 0 ? (
           <Card>
             <CardContent className="py-6 text-muted-foreground text-sm">

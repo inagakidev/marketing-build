@@ -82,8 +82,9 @@
   --brand-700: #c2410c;
   --brand-800: #9a3412;
 
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* Typography. --font-sans comes from next/font (src/app/layout.tsx), set
+     on <html>; redefining it here would replace the loaded Inter with a
+     family name that isn't installed, silently falling back to system-ui. */
 
   --text-display: 2.5rem;   /* 40px */
   --leading-display: 3rem;

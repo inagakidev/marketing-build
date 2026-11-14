@@ -1,5 +1,4 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { BrandGlyph } from "./BrandMark";
 import { LoginBrandPanel } from "./LoginBrandPanel";
 
 /**
@@ -22,9 +21,8 @@ export function LoginShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex flex-col justify-center px-6 py-9 sm:px-10 sm:py-12">
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
-              <BrandGlyph className="size-4" />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG */}
+            <img src="/brand/symbol.svg" alt="" aria-hidden="true" className="h-8 w-auto dark:invert" />
             <span className="text-sm font-semibold tracking-tight">
               Briefing Inteligente
             </span>

@@ -5,6 +5,7 @@ import { prisma } from "@/server/db";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { ClientsTable } from "@/components/admin/ClientsTable";
+import { PageBody, PageHeader } from "@/components/admin/PageHeader";
 
 /** Client list with the status of each one's most recent briefing. */
 export default async function AdminHomePage({
@@ -52,20 +53,19 @@ export default async function AdminHomePage({
     : rows;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {rows.length === 0
-              ? "Nenhum cliente ainda."
-              : `${rows.length} cliente${rows.length > 1 ? "s" : ""}.`}
-          </p>
-        </div>
-        {mayManage && (
-          <Link href="/admin/clientes/novo" className={buttonVariants()}>Novo cliente</Link>
-        )}
-      </div>
+    <>
+      <PageHeader
+        context={rows.length === 0 ? "Nenhum cliente ainda" : `${rows.length} cliente${rows.length > 1 ? "s" : ""}`}
+        title="Clientes"
+        actions={
+          mayManage && (
+            <Link href="/admin/clientes/novo" className={buttonVariants()}>
+              Novo cliente
+            </Link>
+          )
+        }
+      />
+      <PageBody>
 
       {rows.length === 0 ? (
         <EmptyState
@@ -85,6 +85,7 @@ export default async function AdminHomePage({
       ) : (
         <ClientsTable rows={filtered} activeStatus={statusFilter} />
       )}
-    </div>
+      </PageBody>
+    </>
   );
 }

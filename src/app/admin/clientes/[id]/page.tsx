@@ -15,6 +15,8 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { CreateBriefingButton } from "@/components/admin/CreateBriefingButton";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
+import { PageBody, PageHeader } from "@/components/admin/PageHeader";
+import { BackLink } from "@/components/admin/BackLink";
 import {
   BRIEFING_STATUS_LABELS,
   BRIEFING_STATUS_TONE,
@@ -51,36 +53,31 @@ export default async function ClientePage({
   const baseUrl = serverEnv().appUrl;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <Link
-            href="/admin"
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            ← Clientes
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight mt-1">
-            {client.name}
-          </h1>
-          <p className="text-sm text-muted-foreground">
+    <>
+      <PageHeader
+        context={
+          <BackLink href="/admin">Clientes</BackLink>
+        }
+        title={client.name}
+        meta={
+          <span className="text-muted-foreground">
             {client.contactEmail}
             {client.phone ? ` · ${client.phone}` : ""}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {canManageClients(user.role) && (
-            <Link
-              href={`/admin/clientes/${client.id}/editar`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Editar
-            </Link>
-          )}
-          {/* Briefings move under projects in EP-05 (see the API route). */}
-          {canEditProject(user.role, null) && <CreateBriefingButton clientId={client.id} />}
-        </div>
-      </div>
+          </span>
+        }
+        actions={
+          <>
+            {canManageClients(user.role) && (
+              <Link href={`/admin/clientes/${client.id}/editar`} className={buttonVariants({ variant: "outline" })}>
+                Editar
+              </Link>
+            )}
+            {/* Briefings move under projects in EP-05 (see the API route). */}
+            {canEditProject(user.role, null) && <CreateBriefingButton clientId={client.id} />}
+          </>
+        }
+      />
+      <PageBody>
 
       {client.internalNotes && (
         <Card>
@@ -96,7 +93,7 @@ export default async function ClientePage({
       )}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Briefings</h2>
+        <h2 className="text-lg leading-[1.625rem] font-semibold">Briefings</h2>
 
         {client.briefings.length === 0 ? (
           <EmptyState
@@ -147,6 +144,7 @@ export default async function ClientePage({
           </div>
         )}
       </section>
-    </div>
+      </PageBody>
+    </>
   );
 }

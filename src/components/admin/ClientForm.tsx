@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,10 +71,8 @@ export function ClientForm({
   }
 
   return (
+    // The page header (PageHeader) carries the title.
     <Card className="max-w-2xl">
-      <CardHeader>
-        <CardTitle>{editing ? "Editar cliente" : "Novo cliente"}</CardTitle>
-      </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (

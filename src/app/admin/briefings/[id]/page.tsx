@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/server/auth";
 import { canEditProject } from "@/modules/identity/domain/permissions";
@@ -11,6 +10,8 @@ import { AnswersByCategory } from "@/components/admin/AnswersByCategory";
 import { DiagnosisPanel } from "@/components/admin/DiagnosisPanel";
 import { RawAnswers } from "@/components/admin/RawAnswers";
 import { ReprocessButton } from "@/components/admin/ReprocessButton";
+import { PageBody, PageHeader } from "@/components/admin/PageHeader";
+import { BackLink } from "@/components/admin/BackLink";
 import {
   BRIEFING_STATUS_LABELS,
   BRIEFING_STATUS_TONE,
@@ -31,41 +32,35 @@ export default async function BriefingPage({
   const { briefing, client } = detail;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="space-y-1">
-          <Link
-            href={`/admin/clientes/${client.id}`}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            ← {client.name}
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Briefing</h1>
-          <div className="flex items-center gap-2 flex-wrap text-sm">
+    <>
+      <PageHeader
+        context={
+          <BackLink href={`/admin/clientes/${client.id}`}>{client.name}</BackLink>
+        }
+        title="Briefing"
+        meta={
+          <>
             <Badge variant={BRIEFING_STATUS_TONE[briefing.status] ?? "neutral"}>
               {BRIEFING_STATUS_LABELS[briefing.status]}
             </Badge>
             {briefing.businessType && (
-              <Badge variant="outline">
-                {BUSINESS_TYPE_LABELS[briefing.businessType]}
-              </Badge>
+              <Badge variant="outline">{BUSINESS_TYPE_LABELS[briefing.businessType]}</Badge>
             )}
-            <span className="text-muted-foreground">
+            <span className="text-muted-foreground tabular-nums">
               {detail.answeredCount} de {detail.visibleCount} respondidas
             </span>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          {canEditProject(user.role, null) && <ReprocessButton briefingId={briefing.id} />}
-          <a
-            href={`/api/briefings/${briefing.id}/pdf`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Exportar PDF
-          </a>
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <>
+            {canEditProject(user.role, null) && <ReprocessButton briefingId={briefing.id} />}
+            <a href={`/api/briefings/${briefing.id}/pdf`} className={buttonVariants({ variant: "outline" })}>
+              Exportar PDF
+            </a>
+          </>
+        }
+      />
+      <PageBody>
 
       {briefing.submittedAt ? (
         <p className="text-sm text-muted-foreground">
@@ -99,6 +94,7 @@ export default async function BriefingPage({
           <RawAnswers detail={detail} />
         </TabsContent>
       </Tabs>
-    </div>
+      </PageBody>
+    </>
   );
 }

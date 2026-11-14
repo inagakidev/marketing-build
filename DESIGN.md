@@ -118,4 +118,15 @@ Rules:
 The **screens** in the canvas (F1–F6 public form, P1–P6 project, D1–D4 dashboards) are adopted story by story, as each flow is built. They aren't redrawn ahead of their epic.
 
 Adopted so far:
-- `/admin/membros` follows the "Membros e acessos" block of D1: avatar, role, status pill, "Convidar membro" as the primary button, destructive actions behind a confirmation (EP-04.5). The D1 sidebar layout isn't adopted yet; the panel keeps its top bar with section links.
+- **Panel frame (D1–D4):** 248px white sidebar on desktop (symbol and name, organization, section links with icons and a sunken active item, profile at the bottom); on phones a top bar and a bottom navigation bar with icons. Every page starts with `PageHeader` (13px context line or back link, 28px bold title, meta and actions on a surface band) and puts its content in `PageBody` (max 1240px).
+- `/admin/membros` follows the "Membros e acessos" block of D1: avatar, role, status pill, "Convidar membro" as the primary button, destructive actions behind a confirmation (EP-04.5).
+
+Not adopted yet: the organization switcher (one organization per person, D13), the D1–D3 dashboard content (it depends on projects, tasks and indicators), and the mobile drawer.
+
+## Brand assets
+
+`public/brand/symbol.svg` is the DS v2 symbol (the folded page with eyes), extracted from the canvas's exported sheet. The canvas assets are crops of a single 127 KB sheet; the extracted file keeps only the symbol's path (5 KB). Use it from 32px up; it inverts over black (`invert`, or `dark:invert` on theme-aware surfaces).
+
+## Font
+
+Inter comes from `next/font` (`src/app/layout.tsx`), which sets `--font-sans` on `<html>`. Don't redefine `--font-sans` in CSS: a literal "Inter" replaced the loaded font with an uninstalled family name and the UI silently fell back to system-ui.
