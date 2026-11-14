@@ -3,6 +3,7 @@ import { loadEvalContext } from "./briefing";
 import {
   buildSummary,
   DIAGNOSIS_CATEGORY_LABELS,
+  findMissingRequired,
   QUESTION_CATEGORY_LABELS,
   QUESTION_CATEGORY_ORDER,
   toDisplayValue,
@@ -67,6 +68,8 @@ export interface BriefingDetail {
   summary: DiagnosisSummary;
   /** Visible required questions still unanswered. */
   missingRequiredKeys: string[];
+  /** Question text by key, for copy that names a question. */
+  questionTextByKey: Record<string, string>;
   answeredCount: number;
   visibleCount: number;
 }
@@ -184,6 +187,10 @@ export async function loadBriefingDetail(
     ]),
   );
 
+  // Recomputed from the current answers: the stored diagnosis keeps the
+  // status, not which answers made a category "gray".
+  const missingByCategory = findMissingRequired(ctx, new Set(visible.map((q) => q.key)));
+
   const diagnoses = briefing.diagnoses.map((d) => ({
     category: d.category,
     score: d.score,
@@ -191,7 +198,7 @@ export async function loadBriefingDetail(
     signals: d.signalIds
       .map((id) => signalById.get(id))
       .filter((s): s is DetectedSignal => s != null),
-    missingRequiredKeys: [] as string[],
+    missingRequiredKeys: missingByCategory[d.category] ?? [],
     label: DIAGNOSIS_CATEGORY_LABELS[d.category],
   }));
 
@@ -221,6 +228,7 @@ export async function loadBriefingDetail(
     diagnoses,
     summary: buildSummary(ctx, diagnoses),
     missingRequiredKeys,
+    questionTextByKey: Object.fromEntries(rows.map((r) => [r.key, r.text])),
     answeredCount: views.filter((v) => v.value != null).length,
     visibleCount: views.length,
   };

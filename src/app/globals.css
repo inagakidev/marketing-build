@@ -188,6 +188,7 @@
   --warning-bg: #fdf4dc;
   --warning-border: #f2d98c;
   --warning-text: #7a4e00;
+  --warning-bar: #b07a00;   /* score bar, 3.3:1 on the sunken track */
 
   --danger-bg: #fdecec;
   --danger-border: #f5c2bd;
@@ -283,6 +284,7 @@
   --warning-bg: #2e2205;
   --warning-border: #7a4e00;
   --warning-text: #f2d98c;
+  --warning-bar: #e0b54a;
 
   --danger-bg: #3a1210;
   --danger-border: #b42318;
