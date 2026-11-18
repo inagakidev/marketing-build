@@ -229,14 +229,30 @@ export async function loadBriefingByToken(token: string) {
       expiresAt: true,
       submittedAt: true,
       // Only the client's name: the public form NEVER exposes email, phone
-      // or internal notes.
-      client: { select: { name: true, user: { select: { name: true } } } },
+      // or internal notes. The agency's name is what the respondent
+      // recognizes (DS v2 F1); it comes from the owner's active membership.
+      client: {
+        select: {
+          name: true,
+          user: {
+            select: {
+              name: true,
+              memberships: {
+                where: { status: "active" },
+                take: 1,
+                select: { organization: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
   if (!briefing) return { problem: "not_found" as const, briefing: null };
 
-  return { problem: briefingAccessProblem(briefing), briefing };
+  const organizationName = briefing.client.user.memberships[0]?.organization.name ?? null;
+  return { problem: briefingAccessProblem(briefing), briefing: { ...briefing, organizationName } };
 }
 
 /**

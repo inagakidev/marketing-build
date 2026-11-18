@@ -179,6 +179,11 @@ describe("public form", () => {
     expect(tipo?.text).toBeTruthy();
     expect(tipo?.options?.length).toBe(6);
     expect(tipo?.value).toBe("local_business");
+
+    // DS v2 F2: questions revealed by an earlier answer are flagged, so the
+    // form can say "Pergunta nova, com base na sua resposta".
+    expect(tipo?.conditional).toBe(false);
+    expect(form.questions.find((q) => q.key === Q.LOCAL_CITY_REGION)?.conditional).toBe(true);
   });
 
   it("unlocks posting frequency only after a channel is checked", async () => {
