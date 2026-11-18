@@ -69,6 +69,7 @@ export default async function AdminHomePage({
 
       {rows.length === 0 ? (
         <EmptyState
+          mascot="missing"
           title="Nenhum cliente ainda."
           description={
             mayManage

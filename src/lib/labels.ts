@@ -41,11 +41,16 @@ export const BUSINESS_TYPE_LABELS: Record<string, string> = {
   other: "Outro",
 };
 
+/**
+ * DS v2 frame 04: point to the opportunity without judging the client. Red
+ * is "Prioritário" (where to act first), not "bad"; gray is a question
+ * without an answer, not a poor result.
+ */
 export const DIAGNOSIS_STATUS_LABELS: Record<string, string> = {
-  green: "Bem definida",
-  yellow: "Precisa de atenção",
-  red: "Pouco definida",
-  gray: "Sem dados suficientes",
+  green: "Consistente",
+  yellow: "Atenção",
+  red: "Prioritário",
+  gray: "Dados insuficientes",
 };
 
 export const SEVERITY_LABELS: Record<string, string> = {
@@ -55,13 +60,6 @@ export const SEVERITY_LABELS: Record<string, string> = {
 };
 
 /** Traffic-light classes. Contrast checked in light and dark themes. */
-/** DS v2 semantic families; the label always goes with the color. */
-export const DIAGNOSIS_STATUS_CLASSES: Record<string, string> = {
-  green: "bg-(--success-bg) text-(--success-text) border-(--success-border)",
-  yellow: "bg-(--warning-bg) text-(--warning-text) border-(--warning-border)",
-  red: "bg-(--danger-bg) text-(--danger-text) border-(--danger-border)",
-  gray: "bg-(--draft-bg) text-(--draft-text) border-(--draft-border)",
-};
 
 export function formatDate(value: Date | string | null): string {
   if (!value) return "—";

@@ -72,7 +72,7 @@ export function ClientsTable({
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="Nenhum cliente com esse status." />
+        <EmptyState mascot="missing" title="Nenhum cliente com esse status." />
       ) : (
       <Card className="overflow-hidden py-0">
         <div className="overflow-x-auto">

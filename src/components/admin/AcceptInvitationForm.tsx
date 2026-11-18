@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CircleCheck, Eye, EyeOff, Loader2, TriangleAlert } from "lucide-react";
+import { Eye, EyeOff, Loader2, TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MEMBERSHIP_ROLE_LABELS } from "@/lib/labels";
+import { Mascot } from "@/components/Mascot";
 
 interface FieldErrors {
   name?: string;
@@ -85,8 +86,8 @@ export function AcceptInvitationForm({
   if (done) {
     return (
       <div className="w-full space-y-6" role="status">
-        <header className="space-y-1.5">
-          <CircleCheck className="size-8 text-(--success-text)" aria-hidden />
+        <header className="space-y-3">
+          <Mascot name="done" />
           <h1 className="text-xl font-semibold tracking-tight">Conta criada</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Você já faz parte de {organizationName}. Entre com o e-mail {email} e a senha que acabou
@@ -102,7 +103,8 @@ export function AcceptInvitationForm({
 
   return (
     <div className="w-full space-y-7">
-      <header className="space-y-1.5">
+      <header className="space-y-3">
+        <Mascot name="welcome" />
         <h1 className="text-xl font-semibold tracking-tight">Você recebeu um convite</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           Crie a sua conta para entrar em <strong className="text-foreground">{organizationName}</strong>{" "}

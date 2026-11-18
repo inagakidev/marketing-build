@@ -97,6 +97,7 @@ export default async function ClientePage({
 
         {client.briefings.length === 0 ? (
           <EmptyState
+            mascot="missing"
             title="Nenhum briefing ainda."
             description="Crie um para gerar o link do cliente."
           />

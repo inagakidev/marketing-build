@@ -26,6 +26,7 @@ export { runSignals, withVisibleAnswersOnly } from "./signals/run";
 export { SIGNAL_RULES } from "./signals/registry";
 export {
   buildDiagnosis,
+  findMissingRequired,
   scoreToStatus,
   SEVERITY_PENALTY,
   SCORE_BANDS,

@@ -1,11 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BriefingDetail } from "@/server/briefingDetail";
-import {
-  DIAGNOSIS_STATUS_CLASSES,
-  DIAGNOSIS_STATUS_LABELS,
-  SEVERITY_LABELS,
-} from "@/lib/labels";
+import { SEVERITY_LABELS } from "@/lib/labels";
+import { DiagnosisCategoryCard } from "@/components/admin/DiagnosisCategoryCard";
 
 /**
  * Traffic light, main problems and opportunities.
@@ -29,22 +26,13 @@ export function DiagnosisPanel({ detail }: { detail: BriefingDetail }) {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section aria-label="Categorias do diagnóstico" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {diagnoses.map((diagnosis) => (
-          <div
+          <DiagnosisCategoryCard
             key={diagnosis.category}
-            className={`rounded-lg border p-4 ${DIAGNOSIS_STATUS_CLASSES[diagnosis.status]}`}
-          >
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-medium">{diagnosis.label}</h3>
-              <span className="text-2xl font-semibold tabular-nums">
-                {diagnosis.score ?? "—"}
-              </span>
-            </div>
-            <p className="text-sm mt-1 opacity-90">
-              {DIAGNOSIS_STATUS_LABELS[diagnosis.status]}
-            </p>
-          </div>
+            diagnosis={diagnosis}
+            questionTextByKey={detail.questionTextByKey}
+          />
         ))}
       </section>
 
@@ -53,8 +41,8 @@ export function DiagnosisPanel({ detail }: { detail: BriefingDetail }) {
         {summary.problems.length === 0 ? (
           <Card>
             <CardContent className="py-6 text-muted-foreground text-sm">
-              Nenhuma categoria caiu para a faixa vermelha. Vale olhar as
-              amarelas na aba de respostas.
+              Nenhuma categoria ficou como prioritária. Vale olhar as que
+              pedem atenção na aba de respostas.
             </CardContent>
           </Card>
         ) : (
