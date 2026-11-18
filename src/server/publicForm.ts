@@ -18,6 +18,8 @@ export interface PublicQuestion {
   options: { value: string; label: string }[] | null;
   /** Already stored answer, if any. */
   value: string | string[] | null;
+  /** Shown because of an earlier answer (has a visibility rule). */
+  conditional: boolean;
 }
 
 export interface PublicForm {
@@ -43,6 +45,7 @@ export async function buildPublicForm(ctx: EvalContext): Promise<PublicForm> {
     },
   });
   const rowByKey = new Map(rows.map((r) => [r.key, r] as const));
+  const specByKey = new Map(ctx.questions.map((q) => [q.key, q] as const));
 
   const questions: PublicQuestion[] = visibleKeys.flatMap((key) => {
     const row = rowByKey.get(key);
@@ -57,6 +60,7 @@ export async function buildPublicForm(ctx: EvalContext): Promise<PublicForm> {
         required: row.required,
         options: (row.options as PublicQuestion["options"]) ?? null,
         value: ctx.answersByKey[key]?.value ?? null,
+        conditional: specByKey.get(key)?.visibilityRule != null,
       },
     ];
   });

@@ -27,6 +27,8 @@ const MAX_ATTEMPTS = 4;
  */
 export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => void) {
   const [state, setState] = useState<SaveState>("idle");
+  /** When the server last confirmed a save ("Salvo às 14:32", DS v2 F2). */
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   /** Changes not yet confirmed by the server, by question key. */
   const pending = useRef(new Map<string, AnswerValue>());
@@ -84,6 +86,7 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
       }
 
       attempt.current = 0;
+      setSavedAt(new Date());
       onFormUpdateRef.current(data.form);
       setState(pending.current.size > 0 ? "saving" : "saved");
     } catch {
@@ -138,5 +141,5 @@ export function useAutosave(token: string, onFormUpdate: (form: PublicForm) => v
     return () => window.removeEventListener("beforeunload", handler);
   }, []);
 
-  return { state, save, flushNow, hasPending: () => pending.current.size > 0 };
+  return { state, savedAt, save, flushNow, hasPending: () => pending.current.size > 0 };
 }

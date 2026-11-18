@@ -40,6 +40,7 @@ export async function GET(
         expiresAt: briefing.expiresAt,
         clientName: briefing.client.name,
         senderName: briefing.client.user.name,
+        organizationName: briefing.organizationName,
       },
       form: await buildPublicForm(ctx),
     });
