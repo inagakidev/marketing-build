@@ -398,6 +398,8 @@ describe("public routes", () => {
     expect(text).not.toContain(bobClientId);
     expect(text).not.toContain("@exemplo.test");
     expect(JSON.parse(text).briefing).not.toHaveProperty("id");
+    // The agency's name is what the respondent recognizes (DS v2 F1).
+    expect(JSON.parse(text).briefing.organizationName).toBe(`Org bob ${SUFFIX}`);
   });
 
   it("invalid answer → 400 pointing at the question", async () => {
